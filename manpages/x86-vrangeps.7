@@ -1,0 +1,230 @@
+.nh
+.TH "X86-VRANGEPS" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+VRANGEPS - RANGE RESTRICTION CALCULATION FOR PACKED PAIRS OF FLOAT32 VALUES
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp/En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+T{
+EVEX.128.66.0F3A.W0 50 /r ib VRANGEPS xmm1 {k1}{z}, xmm2, xmm3/m128/m32bcst, imm8
+T}
+	A	V/V	AVX512VL AVX512DQ	T{
+Calculate four RANGE operation output value from 4 pairs of single\-precision floating\-point values in xmm2 and xmm3/m128/m32bcst, store the results to xmm1 under the writemask k1. Imm8 specifies the comparison and sign of the range operation.
+T}
+T{
+EVEX.256.66.0F3A.W0 50 /r ib VRANGEPS ymm1 {k1}{z}, ymm2, ymm3/m256/m32bcst, imm8
+T}
+	A	V/V	AVX512VL AVX512DQ	T{
+Calculate eight RANGE operation output value from 8 pairs of single\-precision floating\-point values in ymm2 and ymm3/m256/m32bcst, store the results to ymm1 under the writemask k1. Imm8 specifies the comparison and sign of the range operation.
+T}
+T{
+EVEX.512.66.0F3A.W0 50 /r ib VRANGEPS zmm1 {k1}{z}, zmm2, zmm3/m512/m32bcst{sae}, imm8
+T}
+	A	V/V	AVX512DQ	T{
+Calculate 16 RANGE operation output value from 16 pairs of single\-precision floating\-point values in zmm2 and zmm3/m512/m32bcst, store the results to zmm1 under the writemask k1. Imm8 specifies the comparison and sign of the range operation.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+Op/En	Tuple Type	Operand 1	Operand 2	Operand 3	Operand 4
+A	Full	ModRM:reg (w)	EVEX.vvvv (r)	ModRM:r/m (r)	Imm8
+.TE
+
+.SS Description
+.PP
+This instruction calculates 4/8/16 range operation outputs from two sets
+of packed input single\-precision FP values in the first source operand
+(the second operand) and the second source operand (the third operand).
+The range outputs are written to the destination operand (the first
+operand) under the writemask k1.
+
+.PP
+Bits7:4 of imm8 byte must be zero. The range operation output is
+performed in two parts, each configured by a two\-bit control field
+within imm8[3:0]:
+
+.RS
+.IP \(bu 2
+Imm8[1:0] specifies the initial comparison operation to be one of
+max, min, max absolute value or min absolute value of the input
+value pair. Each comparison of two input values produces an
+intermediate result that combines with the sign selection control
+(Imm8[3:2]) to determine the final range operation output.
+.IP \(bu 2
+Imm8[3:2] specifies the sign of the range operation output to be
+one of the following: from the first input value, from the
+comparison result, set or clear.
+
+.RE
+
+.PP
+The encodings of Imm8[1:0] and Imm8[3:2] are shown in Figure 5\-27.
+
+.PP
+When one or more of the input value is a NAN, the comparison operation
+may signal invalid exception (IE). Details with one of more input value
+is NAN is listed in Table 5\-19.
+
+.PP
+When both input values are zeros of opposite signs, the comparison
+operation of MIN/MAX in the range compare operation is slightly
+different from the conceptually similar FP MIN/MAX operation that are
+found in the instructions VMAXPD/VMINPD. The details of
+MIN/MAX/MIN\_ABS/MAX\_ABS operation for VRANGEPD/PS/SD/SS for
+magni\-tude\-0, opposite\-signed input cases are listed in Table 5\-20.
+
+.PP
+Additionally, non\-zero, equal\-magnitude with opposite\-sign input values
+perform MIN\_ABS or MAX\_ABS comparison operation with result listed in
+Table 5\-21.
+
+.SS Operation
+.PP
+.RS
+
+.nf
+RangeSP(SRC1[31:0], SRC2[31:0], CmpOpCtl[1:0], SignSelCtl[1:0])
+{
+    // Check if SNAN and report IE, see also Table 5\-19
+    IF (SRC1=SNAN) THEN RETURN (QNAN(SRC1), set IE);
+    IF (SRC2=SNAN) THEN RETURN (QNAN(SRC2), set IE);
+    Src1.exp ← SRC1[30:23];
+    Src1.fraction ← SRC1[22:0];
+    IF ((Src1.exp = 0 ) and (Src1.fraction != 0 )) THEN// Src1 is a denormal number
+        IF DAZ THEN Src1.fraction←0;
+        ELSE IF (SRC2 <> QNAN) Set DE; FI;
+    FI;
+    Src2.exp ← SRC2[30:23];
+    Src2.fraction ← SRC2[22:0];
+    IF ((Src2.exp = 0 ) and (Src2.fraction != 0 )) THEN// Src2 is a denormal number
+        IF DAZ THEN Src2.fraction←0;
+        ELSE IF (SRC1 <> QNAN) Set DE; FI;
+    FI;
+    IF (SRC2 = QNAN) THEN{TMP[31:0]←SRC1[31:0]}
+    ELSE IF(SRC1 = QNAN) THEN{TMP[31:0]←SRC2[31:0]}
+    ELSE IF (Both SRC1, SRC2 are magnitude\-0 and opposite\-signed) TMP[31:0] ← from Table 5\-20
+    ELSE IF (Both SRC1, SRC2 are magnitude\-equal and opposite\-signed and CmpOpCtl[1:0] > 01) TMP[31:0] ← from Table 5\-21
+    ELSE
+        Case(CmpOpCtl[1:0])
+        00: TMP[31:0]←(SRC1[31:0] ≤ SRC2[31:0]) ? SRC1[31:0] : SRC2[31:0];
+        01: TMP[31:0]←(SRC1[31:0] ≤ SRC2[31:0]) ? SRC2[31:0] : SRC1[31:0];
+        10: TMP[31:0]←(ABS(SRC1[31:0]) ≤ ABS(SRC2[31:0])) ? SRC1[31:0] : SRC2[31:0];
+        11: TMP[31:0]←(ABS(SRC1[31:0]) ≤ ABS(SRC2[31:0])) ? SRC2[31:0] : SRC1[31:0];
+        ESAC;
+    FI;
+    Case(SignSelCtl[1:0])
+    00: dest←(SRC1[31] << 31) OR (TMP[30:0]);// Preserve Src1 sign bit
+    01: dest←TMP[31:0];// Preserve sign of compare result
+    10: dest←(0 << 31) OR (TMP[30:0]);// Zero out sign bit
+    11: dest←(1 << 31) OR (TMP[30:0]);// Set the sign bit
+    ESAC;
+    RETURN dest[31:0];
+}
+CmpOpCtl[1:0]= imm8[1:0];
+SignSelCtl[1:0]=imm8[3:2];
+
+.fi
+.RE
+
+.SS VRANGEPS
+.PP
+.RS
+
+.nf
+(KL, VL) = (4, 128), (8, 256), (16, 512)
+FOR j←0 TO KL\-1
+    i←j * 32
+    IF k1[j] OR *no writemask* THEN
+            IF (EVEX.b == 1) AND (SRC2 *is memory*)
+                THEN DEST[i+31:i]←RangeSP (SRC1[i+31:i], SRC2[31:0], CmpOpCtl[1:0], SignSelCtl[1:0]);
+                ELSE DEST[i+31:i]←RangeSP (SRC1[i+31:i], SRC2[i+31:i], CmpOpCtl[1:0], SignSelCtl[1:0]);
+            FI;
+    ELSE
+        IF *merging\-masking* ; merging\-masking
+            THEN *DEST[i+31:i] remains unchanged*
+            ELSE ; zeroing\-masking
+                DEST[i+31:i] = 0
+        FI;
+    FI;
+ENDFOR;
+DEST[MAXVL\-1:VL] ← 0
+The following example describes a common usage of this instruction for checking that the input operand is
+bounded between ±150.
+VRANGEPS zmm\_dst, zmm\_src, zmm\_150, 02h;
+Where:
+zmm\_dst is the destination operand.
+zmm\_src is the input operand to compare against ±150.
+zmm\_150 is the reference operand, contains the value of 150.
+IMM=02(imm8[1:0]=’10) selects the Min Absolute value operation with selection of src1.sign.
+In case |zmm\_src| < 150, then its value will be written into zmm\_dst. Otherwise, the value stored in zmm\_dst
+will get the value of 150 (received on zmm\_150).
+However, the sign control (imm8[3:2]=’00) instructs to select the sign of SRC1 received from zmm\_src. So, even
+in the case of |zmm\_src| ≥ 150, the selected sign of SRC1 is kept.
+Thus, if zmm\_src < \-150, the result of VRANGEPS will be the minimal value of \-150 while if zmm\_src > +150,
+the result of VRANGE will be the maximal value of +150.
+
+.fi
+.RE
+
+.SS Intel C/C++ Compiler Intrinsic Equivalent
+.PP
+.RS
+
+.nf
+VRANGEPS \_\_m512 \_mm512\_range\_ps ( \_\_m512 a, \_\_m512 b, int imm);
+
+VRANGEPS \_\_m512 \_mm512\_range\_round\_ps ( \_\_m512 a, \_\_m512 b, int imm, int sae);
+
+VRANGEPS \_\_m512 \_mm512\_mask\_range\_ps (\_\_m512 s, \_\_mmask16 k, \_\_m512 a, \_\_m512 b, int imm);
+
+VRANGEPS \_\_m512 \_mm512\_mask\_range\_round\_ps (\_\_m512 s, \_\_mmask16 k, \_\_m512 a, \_\_m512 b, int imm, int sae);
+
+VRANGEPS \_\_m512 \_mm512\_maskz\_range\_ps ( \_\_mmask16 k, \_\_m512 a, \_\_m512 b, int imm);
+
+VRANGEPS \_\_m512 \_mm512\_maskz\_range\_round\_ps ( \_\_mmask16 k, \_\_m512 a, \_\_m512 b, int imm, int sae);
+
+VRANGEPS \_\_m256 \_mm256\_range\_ps ( \_\_m256 a, \_\_m256 b, int imm);
+
+VRANGEPS \_\_m256 \_mm256\_mask\_range\_ps (\_\_m256 s, \_\_mmask8 k, \_\_m256 a, \_\_m256 b, int imm);
+
+VRANGEPS \_\_m256 \_mm256\_maskz\_range\_ps ( \_\_mmask8 k, \_\_m256 a, \_\_m256 b, int imm);
+
+VRANGEPS \_\_m128 \_mm\_range\_ps ( \_\_m128 a, \_\_m128 b, int imm);
+
+VRANGEPS \_\_m128 \_mm\_mask\_range\_ps (\_\_m128 s, \_\_mmask8 k, \_\_m128 a, \_\_m128 b, int imm);
+
+VRANGEPS \_\_m128 \_mm\_maskz\_range\_ps ( \_\_mmask8 k, \_\_m128 a, \_\_m128 b, int imm);
+
+.fi
+.RE
+
+.SS SIMD Floating\-Point Exceptions
+.PP
+Invalid, Denormal
+
+.SS Other Exceptions
+.PP
+See Exceptions Type E2.
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+Copyleft TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

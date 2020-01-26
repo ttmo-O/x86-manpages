@@ -1,0 +1,279 @@
+.nh
+.TH "X86-VGETEXPPS" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+VGETEXPPS - CONVERT EXPONENTS OF PACKED SP FP VALUES TO SP FP VALUES
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp/En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+T{
+EVEX.128.66.0F38.W0 42 /r VGETEXPPS xmm1 {k1}{z}, xmm2/m128/m32bcst
+T}
+	A	V/V	AVX512VL AVX512F	T{
+Convert the exponent of packed single\-precision floating\-point values in the source operand to SP FP results representing unbiased integer exponents and stores the results in the destination register.
+T}
+T{
+EVEX.256.66.0F38.W0 42 /r VGETEXPPS ymm1 {k1}{z}, ymm2/m256/m32bcst
+T}
+	A	V/V	AVX512VL AVX512F	T{
+Convert the exponent of packed single\-precision floating\-point values in the source operand to SP FP results representing unbiased integer exponents and stores the results in the destination register.
+T}
+T{
+EVEX.512.66.0F38.W0 42 /r VGETEXPPS zmm1 {k1}{z}, zmm2/m512/m32bcst{sae}
+T}
+	A	V/V	AVX512F	T{
+Convert the exponent of packed single\-precision floating\-point values in the source operand to SP FP results representing unbiased integer exponents and stores the results in the destination register.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+Op/En	Tuple Type	Operand 1	Operand 2	Operand 3	Operand 4
+A	Full	ModRM:reg (w)	ModRM:r/m (r)	NA	NA
+.TE
+
+.SS Description
+.PP
+Extracts the biased exponents from the normalized SP FP representation
+of each dword element of the source operand (the second operand) as
+unbiased signed integer value, or convert the denormal representation of
+input data to unbiased negative integer values. Each integer value of
+the unbiased exponent is converted to single\-precision FP value and
+written to the corresponding dword elements of the destination operand
+(the first operand) as SP FP numbers.
+
+.PP
+The destination operand is a ZMM/YMM/XMM register and updated under the
+writemask. The source operand can be a ZMM/YMM/XMM register, a
+512/256/128\-bit memory location, or a 512/256/128\-bit vector broadcasted
+from a 32\-bit memory location.
+
+.PP
+EVEX.vvvv is reserved and must be 1111b, otherwise instructions will
+#UD.
+
+.PP
+Each GETEXP operation converts the exponent value into a FP number
+(permitting input value in denormal representation). Special cases of
+input values are listed in Table 5\-15.
+
+.PP
+The formula is:
+
+.PP
+GETEXP(x) = floor(log2(|x|))
+
+.PP
+Notation floor(x) stands for maximal integer not exceeding real number
+x.
+
+.PP
+Software usage of VGETEXPxx and VGETMANTxx instructions generally
+involve a combination of GETEXP operation and GETMANT operation (see
+VGETMANTPD). Thus VGETEXPxx instruction do not require software to
+handle SIMD FP exceptions.
+
+.TS
+allbox;
+l l l 
+l l l .
+\fB\fCInput Operand\fR	\fB\fCResult\fR	\fB\fCComments\fR
+src1 = NaN	QNaN(src1)	If (SRC = SNaN) then 
+#
+IE If (SRC = denormal) then 
+#
+DE
+	0 \&lt; |src1| \&lt; INF	floor(log
+2
+(
+|
+src1
+|
+))
+	| src1| = +INF	+INF
+	| src1| = 0	\-INF
+.TE
+
+.PP
+Table 5\-15. VGETEXPPS/SS Special Cases
+
+.PP
+Figure 5\-14 illustrates the VGETEXPPS functionality on input values with
+normalized representation.
+
+.PP
+313029282726252423222120191817161514131211109876543210expFractionsSrc =
+2^101000000000000000000000000000000SAR Src, 23 =
+080h00000000000000000000000010000000\-Bias11111111111111111111111110000001Tmp
+\- Bias = 10000000000000000000000000000000Cvt\_PI2PS(01h) =
+2^00111111100000000000000000000000
+
+.PP
+Figure 5\-14. VGETEXPPS Functionality On Normal Input values
+
+.SS Operation
+.PP
+.RS
+
+.nf
+NormalizeExpTinySPFP(SRC[31:0])
+{
+    // Jbit is the hidden integral bit of a FP number. In case of denormal number it has the value of ZERO.
+    Src.Jbit ← 0;
+    Dst.exp ← 1;
+    Dst.fraction ← SRC[22:0];
+    WHILE(Src.Jbit = 0)
+    {
+        Src.Jbit←Dst.fraction[22];
+                        // Get the fraction MSB
+        Dst.fraction←Dst.fraction << 1 ;
+                        // One bit shift left
+        Dst.exp\-\- ;
+                // Decrement the exponent
+    }
+    Dst.fraction←0;
+    Dst.sign←1;
+    TMP[31:0] ← MXCSR.DAZ? 0 : (Dst.sign << 31) OR (Dst.exp << 23) OR (Dst.fraction) ;
+    Return (TMP[31:0]);
+}
+ConvertExpSPFP(SRC[31:0])
+{
+    Src.sign←0;
+                // Zero out sign bit
+    Src.exp ← SRC[30:23];
+    Src.fraction ← SRC[22:0];
+    // Check for NaN
+    IF (SRC = NaN)
+    {
+        IF ( SRC = SNAN ) SET IE;
+        Return QNAN(SRC);
+    }
+    // Check for +INF
+    IF (SRC = +INF) Return (SRC);
+    // check if zero operand
+    IF ((Src.exp = 0) AND ((Src.fraction = 0) OR (MXCSR.DAZ = 1))) Return (\-INF);
+    }
+    ELSE // check if denormal operand (notice that MXCSR.DAZ = 0)
+    {
+        IF ((Src.exp = 0) AND (Src.fraction != 0))
+        {
+            TMP[31:0]←NormalizeExpTinySPFP(SRC[31:0]) ;
+                            // Get Normalized Exponent
+            Set #DE
+        }
+        ELSE // exponent value is correct
+        {
+            TMP[31:0]←(Src.sign << 31) OR (Src.exp << 23) OR (Src.fraction) ;
+        }
+        TMP←SAR(TMP, 23) ;
+                    // Shift Arithmetic Right
+        TMP←TMP – 127;
+                    // Subtract Bias
+        Return CvtI2D(TMP);
+                    // Convert INT to Single\-Precision FP number
+    }
+}
+
+.fi
+.RE
+
+.SS VGETEXPPS (EVEX encoded versions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (4, 128), (8, 256), (16, 512)
+FOR j←0 TO KL\-1
+    i←j * 32
+    IF k1[j] OR *no writemask*
+        THEN
+            IF (EVEX.b = 1) AND (SRC *is memory*)
+                THEN
+                    DEST[i+31:i] ←
+            ConvertExpSPFP(SRC[31:0])
+                ELSE
+                    DEST[i+31:i] ←
+            ConvertExpSPFP(SRC[i+31:i])
+            FI;
+        ELSE
+            IF *merging\-masking*
+                        ; merging\-masking
+                THEN *DEST[i+31:i] remains unchanged*
+                ELSE
+                        ; zeroing\-masking
+                    DEST[i+31:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS Intel C/C++ Compiler Intrinsic Equivalent
+.PP
+.RS
+
+.nf
+VGETEXPPS \_\_m512 \_mm512\_getexp\_ps( \_\_m512 a);
+
+VGETEXPPS \_\_m512 \_mm512\_mask\_getexp\_ps(\_\_m512 s, \_\_mmask16 k, \_\_m512 a);
+
+VGETEXPPS \_\_m512 \_mm512\_maskz\_getexp\_ps( \_\_mmask16 k, \_\_m512 a);
+
+VGETEXPPS \_\_m512 \_mm512\_getexp\_round\_ps( \_\_m512 a, int sae);
+
+VGETEXPPS \_\_m512 \_mm512\_mask\_getexp\_round\_ps(\_\_m512 s, \_\_mmask16 k, \_\_m512 a, int sae);
+
+VGETEXPPS \_\_m512 \_mm512\_maskz\_getexp\_round\_ps( \_\_mmask16 k, \_\_m512 a, int sae);
+
+VGETEXPPS \_\_m256 \_mm256\_getexp\_ps(\_\_m256 a);
+
+VGETEXPPS \_\_m256 \_mm256\_mask\_getexp\_ps(\_\_m256 s, \_\_mmask8 k, \_\_m256 a);
+
+VGETEXPPS \_\_m256 \_mm256\_maskz\_getexp\_ps( \_\_mmask8 k, \_\_m256 a);
+
+VGETEXPPS \_\_m128 \_mm\_getexp\_ps(\_\_m128 a);
+
+VGETEXPPS \_\_m128 \_mm\_mask\_getexp\_ps(\_\_m128 s, \_\_mmask8 k, \_\_m128 a);
+
+VGETEXPPS \_\_m128 \_mm\_maskz\_getexp\_ps( \_\_mmask8 k, \_\_m128 a);
+
+.fi
+.RE
+
+.SS SIMD Floating\-Point Exceptions
+.PP
+Invalid, Denormal
+
+.SS Other Exceptions
+.PP
+See Exceptions Type E2.
+
+.TS
+allbox;
+l l 
+l l .
+#UD	If EVEX.vvvv != 1111B.
+.TE
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+Copyleft TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

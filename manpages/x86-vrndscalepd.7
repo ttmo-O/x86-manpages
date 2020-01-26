@@ -1,0 +1,263 @@
+.nh
+.TH "X86-VRNDSCALEPD" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+VRNDSCALEPD - ROUND PACKED FLOAT64 VALUES TO INCLUDE A GIVEN NUMBER OF FRACTION BITS
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp/En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+T{
+EVEX.128.66.0F3A.W1 09 /r ib VRNDSCALEPD xmm1 {k1}{z}, xmm2/m128/m64bcst, imm8
+T}
+	A	V/V	AVX512VL AVX512F	T{
+Rounds packed double\-precision floating point values in xmm2/m128/m64bcst to a number of fraction bits specified by the imm8 field. Stores the result in xmm1 register. Under writemask.
+T}
+T{
+EVEX.256.66.0F3A.W1 09 /r ib VRNDSCALEPD ymm1 {k1}{z}, ymm2/m256/m64bcst, imm8
+T}
+	A	V/V	AVX512VL AVX512F	T{
+Rounds packed double\-precision floating point values in ymm2/m256/m64bcst to a number of fraction bits specified by the imm8 field. Stores the result in ymm1 register. Under writemask.
+T}
+T{
+EVEX.512.66.0F3A.W1 09 /r ib VRNDSCALEPD zmm1 {k1}{z}, zmm2/m512/m64bcst{sae}, imm8
+T}
+	A	V/V	AVX512F	T{
+Rounds packed double\-precision floating\-point values in zmm2/m512/m64bcst to a number of fraction bits specified by the imm8 field. Stores the result in zmm1 register using writemask k1.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+Op/En	Tuple Type	Operand 1	Operand 2	Operand 3	Operand 4
+A	Full	ModRM:reg (w)	ModRM:r/m (r)	Imm8	NA
+.TE
+
+.SS Description
+.PP
+Round the double\-precision floating\-point values in the source operand
+by the rounding mode specified in the immediate operand (see Figure
+5\-29) and places the result in the destination operand.
+
+.PP
+The destination operand (the first operand) is a ZMM/YMM/XMM register
+conditionally updated according to the writemask. The source operand
+(the second operand) can be a ZMM/YMM/XMM register, a 512/256/128\-bit
+memory location, or a 512/256/128\-bit vector broadcasted from a 64\-bit
+memory location.
+
+.PP
+The rounding process rounds the input to an integral value, plus number
+bits of fraction that are specified by imm8[7:4] (to be included in
+the result) and returns the result as a double\-precision floating\-point
+value.
+
+.PP
+It should be noticed that no overflow is induced while executing this
+instruction (although the source is scaled by the imm8[7:4] value).
+
+.PP
+The immediate operand also specifies control fields for the rounding
+operation, three bit fields are defined and shown in the “Immediate
+Control Description” figure below. Bit 3 of the immediate byte controls
+the processor behavior for a precision exception, bit 2 selects the
+source of rounding mode control. Bits 1:0 specify a non\-sticky
+rounding\-mode value (Immediate control table below lists the encoded
+values for rounding\-mode field).
+
+.PP
+The Precision Floating\-Point Exception is signaled according to the
+immediate operand. If any source operand is an SNaN then it will be
+converted to a QNaN. If DAZ is set to ‘1 then denormals will be
+converted to zero before rounding.
+
+.PP
+The sign of the result of this instruction is preserved, including the
+sign of zero.
+
+.PP
+The formula of the operation on each data element for VRNDSCALEPD is
+
+.PP
+ROUND(x) = 2M, round\_ctrl),
+
+.PP
+round\_ctrl = imm[3:0];
+
+.PP
+M=imm[7:4];
+
+.PP
+The operation of x*2M is computed as if the exponent range is unlimited
+(i.e. no overflow ever occurs).
+
+.PP
+VRNDSCALEPD is a more general form of the VEX\-encoded VROUNDPD
+instruction. In VROUNDPD, the formula of the operation on each element
+is
+
+.PP
+ROUND(x) = Round\_to\_INT(x, round\_ctrl),
+
+.PP
+round\_ctrl = imm[3:0];
+
+.PP
+Note: EVEX.vvvv is reserved and must be 1111b, otherwise instructions
+will #UD.
+
+.TP
+of fixed points to preserveImm8[1:0] = 01b : Round downImm8[2] = 0b
+Use Imm8[1:0]Imm8[3] = 1b : SuppressImm8[1:0] = 10b : Round
+upImm8[2] = 1b : Use MXCSRImm8[1:0] = 11b : Truncate
+
+.TP
+of fixed points to preserveImm8[1:0] = 01b : Round downImm8[2] = 0b
+Use Imm8[1:0]Imm8[3] = 1b : SuppressImm8[1:0] = 10b : Round
+upImm8[2] = 1b : Use MXCSRImm8[1:0] = 11b : Truncate
+
+.PP
+b : Truncate
+
+.PP
+Figure 5\-29. Imm8 Controls for VRNDSCALEPD/SD/PS/SS
+
+.PP
+Handling of special case of input values are listed in Table 5\-25.
+
+.TS
+allbox;
+l l 
+l l .
+Src1=±inf	Src1
+Src1=±NAN	Src1 converted to QNAN
+Src1=±0	Src1
+.TE
+
+.PP
+Table 5\-25. VRNDSCALEPD/SD/PS/SS Special Cases
+
+.SS Operation
+.PP
+.RS
+
+.nf
+RoundToIntegerDP(SRC[63:0], imm8[7:0]) {
+    if (imm8[2] = 1)
+        rounding\_direction←MXCSR:RC
+                    ; get round control from MXCSR
+    else
+        rounding\_direction←imm8[1:0]
+    M←imm8[7:4] ; get the scaling factor
+    case (rounding\_direction)
+    00: TMP[63:0]←round\_to\_nearest\_even\_integer(2M*SRC[63:0])
+    01: TMP[63:0]←round\_to\_equal\_or\_smaller\_integer(2M*SRC[63:0])
+    10: TMP[63:0]←round\_to\_equal\_or\_larger\_integer(2M*SRC[63:0])
+    11: TMP[63:0]←round\_to\_nearest\_smallest\_magnitude\_integer(2M*SRC[63:0])
+    ESAC
+    Dest[63:0]←2\-M* TMP[63:0]
+                ; scale down back to 2\-M
+    if (imm8[3] = 0) Then ; check SPE
+        if (SRC[63:0] != Dest[63:0]) Then
+                    ; check precision lost
+            set\_precision()
+                ; set #PE
+        FI;
+    FI;
+    return(Dest[63:0])
+}
+
+.fi
+.RE
+
+.SS VRNDSCALEPD (EVEX encoded versions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (2, 128), (4, 256), (8, 512)
+IF *src is a memory operand*
+    THEN TMP\_SRC←BROADCAST64(SRC, VL, k1)
+    ELSE TMP\_SRC←SRC
+FI;
+FOR j←0 TO KL\-1
+    i←j * 64
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+63:i]←RoundToIntegerDP((TMP\_SRC[i+63:i], imm8[7:0])
+    ELSE
+        IF *merging\-masking* ; merging\-masking
+            THEN *DEST[i+63:i] remains unchanged*
+            ELSE
+                    ; zeroing\-masking
+                DEST[i+63:i] ← 0
+        FI;
+    FI;
+ENDFOR;
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS Intel C/C++ Compiler Intrinsic Equivalent
+.PP
+.RS
+
+.nf
+VRNDSCALEPD \_\_m512d \_mm512\_roundscale\_pd( \_\_m512d a, int imm);
+
+VRNDSCALEPD \_\_m512d \_mm512\_roundscale\_round\_pd( \_\_m512d a, int imm, int sae);
+
+VRNDSCALEPD \_\_m512d \_mm512\_mask\_roundscale\_pd(\_\_m512d s, \_\_mmask8 k, \_\_m512d a, int imm);
+
+VRNDSCALEPD \_\_m512d \_mm512\_mask\_roundscale\_round\_pd(\_\_m512d s, \_\_mmask8 k, \_\_m512d a, int imm, int sae);
+
+VRNDSCALEPD \_\_m512d \_mm512\_maskz\_roundscale\_pd( \_\_mmask8 k, \_\_m512d a, int imm);
+
+VRNDSCALEPD \_\_m512d \_mm512\_maskz\_roundscale\_round\_pd( \_\_mmask8 k, \_\_m512d a, int imm, int sae);
+
+VRNDSCALEPD \_\_m256d \_mm256\_roundscale\_pd( \_\_m256d a, int imm);
+
+VRNDSCALEPD \_\_m256d \_mm256\_mask\_roundscale\_pd(\_\_m256d s, \_\_mmask8 k, \_\_m256d a, int imm);
+
+VRNDSCALEPD \_\_m256d \_mm256\_maskz\_roundscale\_pd( \_\_mmask8 k, \_\_m256d a, int imm);
+
+VRNDSCALEPD \_\_m128d \_mm\_roundscale\_pd( \_\_m128d a, int imm);
+
+VRNDSCALEPD \_\_m128d \_mm\_mask\_roundscale\_pd(\_\_m128d s, \_\_mmask8 k, \_\_m128d a, int imm);
+
+VRNDSCALEPD \_\_m128d \_mm\_maskz\_roundscale\_pd( \_\_mmask8 k, \_\_m128d a, int imm);
+
+.fi
+.RE
+
+.SS SIMD Floating\-Point Exceptions
+.PP
+Invalid, Precision
+
+.PP
+If SPE is enabled, precision exception is not reported (regardless of
+MXCSR exception mask).
+
+.SS Other Exceptions
+.PP
+See Exceptions Type E2.
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+Copyleft TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

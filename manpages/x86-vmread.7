@@ -1,0 +1,191 @@
+.nh
+.TH "X86-VMREAD" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+VMREAD - READ FIELD FROM VIRTUAL-MACHINE CONTROL STRUCTURE
+.TS
+allbox;
+l l l 
+l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp/En\fR	\fB\fCDescription\fR
+NP 0F 78 VMREAD r/m64, r64	MR	T{
+Reads a specified VMCS field (in 64\-bit mode).
+T}
+NP 0F 78 VMREAD r/m32, r32	MR	T{
+Reads a specified VMCS field (outside 64\-bit mode).
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l 
+l l l l l .
+Op/En	Operand 1	Operand 2	Operand 3	Operand 4
+MR	ModRM:r/m (w)	ModRM:reg (r)	NA	NA
+.TE
+
+.SH DESCRIPTION
+.PP
+Reads a specified field from a VMCS and stores it into a specified
+destination operand (register or memory). In VMX root operation, the
+instruction reads from the current VMCS. If executed in VMX non\-root
+operation, the instruction reads from the VMCS referenced by the VMCS
+link pointer field in the current VMCS.
+
+.PP
+The VMCS field is specified by the VMCS\-field encoding contained in the
+register source operand. Outside IA\-32e mode, the source operand has 32
+bits, regardless of the value of CS.D. In 64\-bit mode, the source
+operand has 64 bits.
+
+.PP
+The effective size of the destination operand, which may be a register
+or in memory, is always 32 bits outside IA\-32e mode (the setting of CS.D
+is ignored with respect to operand size) and 64 bits in 64\-bit mode. If
+the VMCS field specified by the source operand is shorter than this
+effective operand size, the high bits of the destination operand are
+cleared to 0. If the VMCS field is longer, then the high bits of the
+field are not read.
+
+.PP
+Note that any faults resulting from accessing a memory destination
+operand can occur only after determining, in the operation section
+below, that the relevant VMCS pointer is valid and that the specified
+VMCS field is supported.
+
+.SH OPERATION
+.PP
+.RS
+
+.nf
+IF (not in VMX operation) or (CR0.PE = 0) or (RFLAGS.VM = 1) or (IA32\_EFER.LMA = 1 and CS.L = 0)
+    THEN #UD;
+ELSIF in VMX non\-root operation AND (“VMCS shadowing” is 0 OR source operand sets bits in range 63:15 OR
+VMREAD bit corresponding to bits 14:0 of source operand is 1)4
+    THEN VMexit;
+ELSIF CPL > 0
+    THEN #GP(0);
+ELSIF (in VMX root operation AND current\-VMCS pointer is not valid) OR
+(in VMX non\-root operation AND VMCS link pointer is not valid)
+    THEN VMfailInvalid;
+ELSIF source operand does not correspond to any VMCS field
+    THEN VMfailValid(VMREAD/VMWRITE from/to unsupported VMCS component);
+    ELSE
+        IF in VMX root operation
+            THEN destination operand ← contents of field indexed by source operand in current VMCS;
+            ELSE destination operand ← contents of field indexed by source operand in VMCS referenced by VMCS link pointer;
+        FI;
+        VMsucceed;
+FI;
+
+.fi
+.RE
+
+.PP
+.RS
+
+.PP
+4\&. The VMREAD bit for a source operand is defined as follows. Let
+addr | (x » 3).
+
+.RE
+
+.SH FLAGS AFFECTED
+.PP
+See the operation section and Section 30.2.
+
+.SH PROTECTED MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP(0)	T{
+If the current privilege level is not 0.
+T}
+	T{
+If a memory destination operand effective address is outside the CS, DS, ES, FS, or GS segment limit.
+T}
+	T{
+If the DS, ES, FS, or GS register contains an unusable segment.
+T}
+	T{
+If the destination operand is located in a read\-only data segment or any code segment.
+T}
+#PF(fault\-code)	T{
+If a page fault occurs in accessing a memory destination operand.
+T}
+#SS(0)	T{
+If a memory destination operand effective address is outside the SS segment limit.
+T}
+	T{
+If the SS register contains an unusable segment.
+T}
+#UD	If not in VMX operation.
+.TE
+
+.SH REAL\-ADDRESS MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#UD	T{
+The VMREAD instruction is not recognized in real\-address mode.
+T}
+.TE
+
+.SH VIRTUAL\-8086 MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#UD	T{
+The VMREAD instruction is not recognized in virtual\-8086 mode.
+T}
+.TE
+
+.SH COMPATIBILITY MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#UD	T{
+The VMREAD instruction is not recognized in compatibility mode.
+T}
+.TE
+
+.SH 64\-BIT MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP(0)	T{
+If the current privilege level is not 0.
+T}
+	T{
+If the memory destination operand is in the CS, DS, ES, FS, or GS segments and the memory address is in a non\-canonical form.
+T}
+#PF(fault\-code)	T{
+If a page fault occurs in accessing a memory destination operand.
+T}
+#SS(0)	T{
+If the memory destination operand is in the SS segment and the memory address is in a non\-canonical form.
+T}
+#UD	If not in VMX operation.
+.TE
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+Copyleft TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

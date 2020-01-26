@@ -1,0 +1,329 @@
+.nh
+.TH "X86-VINSERTI128-VINSERTI32X4-VINSERTI64X2-VINSERTI32X8-VINSERTI64X4" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+VINSERTI128-VINSERTI32X4-VINSERTI64X2-VINSERTI32X8-VINSERTI64X4 - INSERT PACKED INTEGER VALUES
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp / En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+T{
+VEX.256.66.0F3A.W0 38 /r ib VINSERTI128 ymm1, ymm2, xmm3/m128, imm8
+T}
+	A	V/V	AVX2	T{
+Insert 128 bits of integer data from xmm3/m128 and the remaining values from ymm2 into ymm1.
+T}
+T{
+EVEX.256.66.0F3A.W0 38 /r ib VINSERTI32X4 ymm1 {k1}{z}, ymm2, xmm3/m128, imm8
+T}
+	C	V/V	AVX512VL AVX512F	T{
+Insert 128 bits of packed doubleword integer values from xmm3/m128 and the remaining values from ymm2 into ymm1 under writemask k1.
+T}
+T{
+EVEX.512.66.0F3A.W0 38 /r ib VINSERTI32X4 zmm1 {k1}{z}, zmm2, xmm3/m128, imm8
+T}
+	C	V/V	AVX512F	T{
+Insert 128 bits of packed doubleword integer values from xmm3/m128 and the remaining values from zmm2 into zmm1 under writemask k1.
+T}
+T{
+EVEX.256.66.0F3A.W1 38 /r ib VINSERTI64X2 ymm1 {k1}{z}, ymm2, xmm3/m128, imm8
+T}
+	B	V/V	AVX512VL AVX512DQ	T{
+Insert 128 bits of packed quadword integer values from xmm3/m128 and the remaining values from ymm2 into ymm1 under writemask k1.
+T}
+T{
+EVEX.512.66.0F3A.W1 38 /r ib VINSERTI64X2 zmm1 {k1}{z}, zmm2, xmm3/m128, imm8
+T}
+	B	V/V	AVX512DQ	T{
+Insert 128 bits of packed quadword integer values from xmm3/m128 and the remaining values from zmm2 into zmm1 under writemask k1.
+T}
+T{
+EVEX.512.66.0F3A.W0 3A /r ib VINSERTI32X8 zmm1 {k1}{z}, zmm2, ymm3/m256, imm8
+T}
+	D	V/V	AVX512DQ	T{
+Insert 256 bits of packed doubleword integer values from ymm3/m256 and the remaining values from zmm2 into zmm1 under writemask k1.
+T}
+T{
+EVEX.512.66.0F3A.W1 3A /r ib VINSERTI64X4 zmm1 {k1}{z}, zmm2, ymm3/m256, imm8
+T}
+	C	V/V	AVX512F	T{
+Insert 256 bits of packed quadword integer values from ymm3/m256 and the remaining values from zmm2 into zmm1 under writemask k1.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+Op/En	Tuple Type	Operand 1	Operand 2	Operand 3	Operand 4
+A	NA	ModRM:reg (w)	VEX.vvvv	ModRM:r/m (r)	Imm8
+B	Tuple2	ModRM:reg (w)	EVEX.vvvv	ModRM:r/m (r)	Imm8
+C	Tuple4	ModRM:reg (w)	EVEX.vvvv	ModRM:r/m (r)	Imm8
+D	Tuple8	ModRM:reg (w)	EVEX.vvvv	ModRM:r/m (r)	Imm8
+.TE
+
+.SS Description
+.PP
+VINSERTI32x4 and VINSERTI64x2 inserts 128\-bits of packed integer values
+from the second source operand (the third operand) into the destination
+operand (the first operand) at an 128\-bit granular offset multiplied by
+imm8[0] (256\-bit) or imm8[1:0]\&. The remaining portions of the
+destination are copied from the corresponding fields of the first source
+operand (the second operand). The second source operand can be either an
+XMM register or a 128\-\&bit memory location. The high 6/7bits of the
+immediate are ignored. The destination operand is a ZMM/YMM register and
+updated at 32 and 64\-\&bit granularity according to the writemask.
+
+.PP
+VINSERTI32x8 and VINSERTI64x4 inserts 256\-bits of packed integer values
+from the second source operand (the third operand) into the destination
+operand (the first operand) at a 256\-bit granular offset multiplied by
+imm8[0]\&. The remaining portions of the destination are copied from the
+corresponding fields of the first source operand (the second operand).
+The second source operand can be either an YMM register or a 256\-\&bit
+memory location. The upper bits of the immediate are ignored. The
+destination operand is a ZMM register and updated at 32 and 64\-\&bit
+granularity according to the writemask.
+
+.PP
+VINSERTI128 inserts 128\-bits of packed integer data from the second
+source operand (the third operand) into the destination operand (the
+first operand) at a 128\-bit granular offset multiplied by imm8[0]\&. The
+remaining portions of the destination are copied from the corresponding
+fields of the first source operand (the second operand). The second
+source operand can be either an XMM register or a 128\-\&bit memory
+location. The high 7 bits of the immediate are ignored. VEX.L must be 1,
+otherwise attempt to execute this instruction with VEX.L=0 will cause
+#UD.
+
+.SS Operation
+.SS VINSERTI32x4 (EVEX encoded versions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (8, 256), (16, 512)
+TEMP\_DEST[VL\-1:0] ← SRC1[VL\-1:0]
+IF VL = 256
+    CASE (imm8[0]) OF
+        0: TMP\_DEST[127:0] ← SRC2[127:0]
+        1: TMP\_DEST[255:128] ← SRC2[127:0]
+    ESAC.
+FI;
+IF VL = 512
+    CASE (imm8[1:0]) OF
+        00: TMP\_DEST[127:0]←SRC2[127:0]
+        01: TMP\_DEST[255:128]←SRC2[127:0]
+        10: TMP\_DEST[383:256]←SRC2[127:0]
+        11: TMP\_DEST[511:384]←SRC2[127:0]
+    ESAC.
+FI;
+FOR j←0 TO KL\-1
+    i←j * 32
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+31:i]←TMP\_DEST[i+31:i]
+        ELSE
+            IF *merging\-masking*
+                THEN *DEST[i+31:i] remains unchanged*
+                ELSE ; zeroing\-masking
+                    DEST[i+31:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS VINSERTI64x2 (EVEX encoded versions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (4, 256), (8, 512)
+TEMP\_DEST[VL\-1:0] ← SRC1[VL\-1:0]
+IF VL = 256
+    CASE (imm8[0]) OF
+        0: TMP\_DEST[127:0] ← SRC2[127:0]
+        1: TMP\_DEST[255:128] ← SRC2[127:0]
+    ESAC.
+FI;
+IF VL = 512
+    CASE (imm8[1:0]) OF
+        00: TMP\_DEST[127:0]←SRC2[127:0]
+        01: TMP\_DEST[255:128]←SRC2[127:0]
+        10: TMP\_DEST[383:256]←SRC2[127:0]
+        11: TMP\_DEST[511:384]←SRC2[127:0]
+    ESAC.
+FI;
+FOR j←0 TO KL\-1
+    i←j * 64
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+63:i]←TMP\_DEST[i+63:i]
+        ELSE
+            IF *merging\-masking* ; merging\-masking
+                THEN *DEST[i+63:i] remains unchanged*
+                ELSE
+                        ; zeroing\-masking
+                    DEST[i+63:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS VINSERTI32x8 (EVEX.U1.512 encoded version)
+.PP
+.RS
+
+.nf
+TEMP\_DEST[VL\-1:0] ← SRC1[VL\-1:0]
+CASE (imm8[0]) OF
+    0: TMP\_DEST[255:0]←SRC2[255:0]
+    1: TMP\_DEST[511:256]←SRC2[255:0]
+ESAC.
+FOR j←0 TO 15
+    i←j * 32
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+31:i]←TMP\_DEST[i+31:i]
+        ELSE
+            IF *merging\-masking*
+                        ; merging\-masking
+                THEN *DEST[i+31:i] remains unchanged*
+                ELSE
+                        ; zeroing\-masking
+                    DEST[i+31:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS VINSERTI64x4 (EVEX.512 encoded version)
+.PP
+.RS
+
+.nf
+VL = 512
+TEMP\_DEST[VL\-1:0] ← SRC1[VL\-1:0]
+CASE (imm8[0]) OF
+    0: TMP\_DEST[255:0]←SRC2[255:0]
+    1: TMP\_DEST[511:256]←SRC2[255:0]
+ESAC.
+FOR j←0 TO 7
+    i←j * 64
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+63:i]←TMP\_DEST[i+63:i]
+        ELSE
+            IF *merging\-masking*
+                THEN *DEST[i+63:i] remains unchanged*
+                ELSE ; zeroing\-masking
+                    DEST[i+63:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS VINSERTI128
+.PP
+.RS
+
+.nf
+TEMP[255:0] ←SRC1[255:0]
+CASE (imm8[0]) OF
+    0: TEMP[127:0]←SRC2[127:0]
+    1: TEMP[255:128]←SRC2[127:0]
+ESAC
+DEST ←TEMP
+
+.fi
+.RE
+
+.SS Intel C/C++ Compiler Intrinsic Equivalent
+.PP
+.RS
+
+.nf
+VINSERTI32x4 \_mm512i \_inserti32x4( \_\_m512i a, \_\_m128i b, int imm);
+
+VINSERTI32x4 \_mm512i \_mask\_inserti32x4(\_\_m512i s, \_\_mmask16 k, \_\_m512i a, \_\_m128i b, int imm);
+
+VINSERTI32x4 \_mm512i \_maskz\_inserti32x4( \_\_mmask16 k, \_\_m512i a, \_\_m128i b, int imm);
+
+VINSERTI32x4 \_\_m256i \_mm256\_inserti32x4( \_\_m256i a, \_\_m128i b, int imm);
+
+VINSERTI32x4 \_\_m256i \_mm256\_mask\_inserti32x4(\_\_m256i s, \_\_mmask8 k, \_\_m256i a, \_\_m128i b, int imm);
+
+VINSERTI32x4 \_\_m256i \_mm256\_maskz\_inserti32x4( \_\_mmask8 k, \_\_m256i a, \_\_m128i b, int imm);
+
+VINSERTI32x8 \_\_m512i \_mm512\_inserti32x8( \_\_m512i a, \_\_m256i b, int imm);
+
+VINSERTI32x8 \_\_m512i \_mm512\_mask\_inserti32x8(\_\_m512i s, \_\_mmask16 k, \_\_m512i a, \_\_m256i b, int imm);
+
+VINSERTI32x8 \_\_m512i \_mm512\_maskz\_inserti32x8( \_\_mmask16 k, \_\_m512i a, \_\_m256i b, int imm);
+
+VINSERTI64x2 \_\_m512i \_mm512\_inserti64x2( \_\_m512i a, \_\_m128i b, int imm);
+
+VINSERTI64x2 \_\_m512i \_mm512\_mask\_inserti64x2(\_\_m512i s, \_\_mmask8 k, \_\_m512i a, \_\_m128i b, int imm);
+
+VINSERTI64x2 \_\_m512i \_mm512\_maskz\_inserti64x2( \_\_mmask8 k, \_\_m512i a, \_\_m128i b, int imm);
+
+VINSERTI64x2 \_\_m256i \_mm256\_inserti64x2( \_\_m256i a, \_\_m128i b, int imm);
+
+VINSERTI64x2 \_\_m256i \_mm256\_mask\_inserti64x2(\_\_m256i s, \_\_mmask8 k, \_\_m256i a, \_\_m128i b, int imm);
+
+VINSERTI64x2 \_\_m256i \_mm256\_maskz\_inserti64x2( \_\_mmask8 k, \_\_m256i a, \_\_m128i b, int imm);
+
+VINSERTI64x4 \_mm512\_inserti64x4( \_\_m512i a, \_\_m256i b, int imm);
+
+VINSERTI64x4 \_mm512\_mask\_inserti64x4(\_\_m512i s, \_\_mmask8 k, \_\_m512i a, \_\_m256i b, int imm);
+
+VINSERTI64x4 \_mm512\_maskz\_inserti64x4( \_\_mmask m, \_\_m512i a, \_\_m256i b, int imm);
+
+VINSERTI128 \_\_m256i \_mm256\_insertf128\_si256 (\_\_m256i a, \_\_m128i b, int offset);
+
+.fi
+.RE
+
+.SS SIMD Floating\-Point Exceptions
+.PP
+None
+
+.SS Other Exceptions
+.PP
+VEX\-encoded instruction, see Exceptions Type 6; additionally
+
+.TS
+allbox;
+l l 
+l l .
+#UD	If VEX.L = 0.
+.TE
+
+.PP
+EVEX\-encoded instruction, see Exceptions Type E6NF.
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+Copyleft TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

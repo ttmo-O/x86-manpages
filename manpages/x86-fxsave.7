@@ -1,0 +1,1398 @@
+.nh
+.TH "X86-FXSAVE" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+FXSAVE - SAVE X87 FPU, MMX TECHNOLOGY, AND SSE STATE
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp/En\fR	\fB\fC64\-Bit Mode\fR	\fB\fCCompat/Leg Mode\fR	\fB\fCDescription\fR
+NP 0F AE /0 FXSAVE m512byte	M	Valid	Valid	T{
+Save the x87 FPU, MMX, XMM, and MXCSR register state to m512byte.
+T}
+T{
+NP REX.W + 0F AE /0 FXSAVE64 m512byte
+T}
+	M	Valid	N.E.	T{
+Save the x87 FPU, MMX, XMM, and MXCSR register state to m512byte.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l 
+l l l l l .
+Op/En	Operand 1	Operand 2	Operand 3	Operand 4
+M	ModRM:r/m (w)	NA	NA	NA
+.TE
+
+.SH DESCRIPTION
+.PP
+Saves the current state of the x87 FPU, MMX technology, XMM, and MXCSR
+registers to a 512\-byte memory location specified in the destination
+operand. The content layout of the 512 byte region depends on whether
+the processor is operating in non\-64\-bit operating modes or 64\-bit
+sub\-mode of IA\-32e mode.
+
+.PP
+Bytes 464:511 are available to software use. The processor does not
+write to bytes 464:511 of an FXSAVE area.
+
+.PP
+The operation of FXSAVE in non\-64\-bit modes is described first.
+
+.SH NON\-64\-BIT MODE OPERATION
+.PP
+Table 3\-43 shows the layout of the state information in memory when the
+processor is operating in legacy modes.
+
+.PP
+15 14
+
+.PP
+13 12
+
+.PP
+11 10
+
+.PP
+98
+
+.PP
+76
+
+.PP
+5
+
+.PP
+4
+
+.PP
+32
+
+.PP
+10
+
+.PP
+Rsvd
+
+.PP
+FCS
+
+.PP
+FIP[31:0]
+
+.PP
+FOP
+
+.PP
+Rsvd
+
+.PP
+FTW
+
+.PP
+FSW
+
+.PP
+FCW
+
+.PP
+0
+
+.PP
+MXCSR\_MASK
+
+.PP
+MXCSR
+
+.PP
+Rsrvd
+
+.PP
+FDS
+
+.PP
+FDP[31:0]
+
+.PP
+16
+
+.PP
+Reserved
+
+.PP
+ST0/MM0
+
+.PP
+32
+
+.PP
+Reserved
+
+.PP
+ST1/MM1
+
+.PP
+48
+
+.PP
+Reserved
+
+.PP
+ST2/MM2
+
+.PP
+64
+
+.PP
+Reserved
+
+.PP
+ST3/MM3
+
+.PP
+80
+
+.PP
+Reserved
+
+.PP
+ST4/MM4
+
+.PP
+96
+
+.PP
+Reserved
+
+.PP
+ST5/MM5
+
+.PP
+112
+
+.PP
+Reserved
+
+.PP
+ST6/MM6
+
+.PP
+128
+
+.PP
+Reserved
+
+.PP
+ST7/MM7
+
+.PP
+144
+
+.PP
+XMM0
+
+.PP
+160
+
+.PP
+XMM1
+
+.PP
+176
+
+.PP
+XMM2
+
+.PP
+192
+
+.PP
+XMM3
+
+.PP
+208
+
+.PP
+XMM4
+
+.PP
+224
+
+.PP
+XMM5
+
+.PP
+240
+
+.PP
+XMM6
+
+.PP
+256
+
+.PP
+XMM7
+
+.PP
+272
+
+.PP
+Reserved
+
+.PP
+288
+
+.PP
+Reserved
+
+.PP
+304
+
+.PP
+Reserved
+
+.PP
+320
+
+.PP
+Reserved
+
+.PP
+336
+
+.PP
+Reserved
+
+.PP
+352
+
+.PP
+Reserved
+
+.PP
+368
+
+.PP
+Reserved
+
+.PP
+384
+
+.PP
+Reserved
+
+.PP
+400
+
+.PP
+Reserved
+
+.PP
+416
+
+.PP
+Reserved
+
+.PP
+432
+
+.PP
+Reserved
+
+.PP
+448
+
+.PP
+Available
+
+.PP
+464
+
+.PP
+Available
+
+.PP
+480
+
+.PP
+Available
+
+.PP
+496
+
+.PP
+Table 3\-43. Non\-64\-bit\-Mode Layout of FXSAVE and FXRSTOR Memory Region
+
+.PP
+The destination operand contains the first byte of the memory image, and
+it must be aligned on a 16\-byte boundary. A misaligned destination
+operand will result in a general\-protection (#GP) exception being
+generated (or in some cases, an alignment check exception [#AC]).
+
+.PP
+The FXSAVE instruction is used when an operating system needs to perform
+a context switch or when an exception handler needs to save and examine
+the current state of the x87 FPU, MMX technology, and/or XMM and MXCSR
+registers.
+
+.PP
+The fields in Table 3\-44.
+
+.TS
+allbox;
+l l 
+l l .
+\fB\fCField\fR	\fB\fCDefinition\fR
+FCW	T{
+x87 FPU Control Word (16 bits). See 
+T}
+Figure 8\-6
+T{
+ in the Intel® 64 and IA\-32 Architectures Software Developer’s Manual, Volume 1, for the layout of the x87 FPU control word.
+T}
+FSW	T{
+x87 FPU Status Word (16 bits). See 
+T}
+Figure 8\-4
+T{
+ in the Intel® 64 and IA\-32 Architectures Software Developer’s Manual, Volume 1, for the layout of the x87 FPU status word.
+T}
+Abridged FTW	T{
+x87 FPU Tag Word (8 bits). The tag information saved here is abridged, as described in the following paragraphs.
+T}
+FOP	T{
+x87 FPU Opcode (16 bits). The lower 11 bits of this field contain the opcode, upper 5 bits are reserved. See 
+T}
+Figure 8\-8
+T{
+ in the Intel® 64 and IA\-32 Architectures Software Developer’s Manual, Volume 1, for the layout of the x87 FPU opcode field.
+T}
+FIP	T{
+x87 FPU Instruction Pointer Offset (64 bits). The contents of this field differ depending on the current addressing mode (32\-bit, 16\-bit, or 64\-bit) of the processor when the FXSAVE instruction was executed: 32\-bit mode — 32\-bit IP offset. 16\-bit mode — low 16 bits are IP offset; high 16 bits are reserved. 64\-bit mode with REX.W — 64\-bit IP offset. 64\-bit mode without REX.W — 32\-bit IP offset. See “x87 FPU Instruction and Operand (Data) Pointers” in Chapter 8 of the Intel® 64 and IA\-32 Architectures Software Developer’s Manual, Volume 1, for a description of the x87 FPU instruction pointer.
+T}
+FCS	T{
+x87 FPU Instruction Pointer Selector (16 bits). If CPUID.(EAX=07H,ECX=0H):EBX
+T}
+[
+bit 13
+]
+T{
+ = 1, the processor deprecates FCS and FDS, and this field is saved as 0000H.
+T}
+FDP	T{
+x87 FPU Instruction Operand (Data) Pointer Offset (64 bits). The contents of this field differ depending on the current addressing mode (32\-bit, 16\-bit, or 64\-bit) of the processor when the FXSAVE instruction was executed: 32\-bit mode — 32\-bit DP offset. 16\-bit mode — low 16 bits are DP offset; high 16 bits are reserved. 64\-bit mode with REX.W — 64\-bit DP offset. 64\-bit mode without REX.W — 32\-bit DP offset. See “x87 FPU Instruction and Operand (Data) Pointers” in Chapter 8 of the Intel® 64 and IA\-32 Architectures Software Developer’s Manual, Volume 1, for a description of the x87 FPU operand pointer.
+T}
+FDS	T{
+x87 FPU Instruction Operand (Data) Pointer Selector (16 bits). If CPUID.(EAX=07H,ECX=0H):EBX
+T}
+[
+bit 13
+]
+T{
+ = 1, the processor deprecates FCS and FDS, and this field is saved as 0000H.
+T}
+MXCSR	T{
+MXCSR Register State (32 bits). See 
+T}
+Figure 10\-3
+T{
+ in the Intel® 64 and IA\-32 Architectures Software Developer’s Manual, Volume 1, for the layout of the MXCSR register. If the OSFXSR bit in control register CR4 is not set, the FXSAVE instruction may not save this register. This behavior is implementation dependent.
+T}
+MXCSR\_ MASK	MXCSR
+\_
+T{
+MASK (32 bits). This mask can be used to adjust values written to the MXCSR register, ensuring that reserved bits are set to 0. Set the mask bits and flags in MXCSR to the mode of operation desired for SSE and SSE2 SIMD floating\-point instructions. See “Guidelines for Writing to the MXCSR Register” in Chapter 11 of the Intel® 64 and IA\-32 Architectures Software Developer’s Manual, Volume 1, for instructions for how to determine and use the MXCSR
+T}
+\_
+MASK value.
+ST0/MM0 through ST7/MM7	T{
+x87 FPU or MMX technology registers. These 80\-bit fields contain the x87 FPU data registers or the MMX technology registers, depending on the state of the processor prior to the execution of the FXSAVE instruction. If the processor had been executing x87 FPU instruction prior to the FXSAVE instruction, the x87 FPU data registers are saved; if it had been executing MMX instructions (or SSE or SSE2 instructions that operated on the MMX technology registers), the MMX technology registers are saved. When the MMX technology registers are saved, the high 16 bits of the field are reserved.
+T}
+XMM0 through XMM7	T{
+XMM registers (128 bits per field). If the OSFXSR bit in control register CR4 is not set, the FXSAVE instruction may not save these registers. This behavior is implementation dependent.
+T}
+.TE
+
+.PP
+Table 3\-44. Field Definitions
+
+.PP
+The FXSAVE instruction saves an abridged version of the x87 FPU tag word
+in the FTW field (unlike the FSAVE instruction, which saves the complete
+tag word). The tag information is saved in physical register order (R0
+through R7), rather than in top\-of\-stack (TOS) order. With the FXSAVE
+instruction, however, only a single bit (1 for valid or 0 for empty) is
+saved for each tag. For example, assume that the tag word is currently
+set as follows:
+
+.PP
+R7 R6 R5 R4 R3 R2 R1 R0
+
+.PP
+11 xx xx xx 11 11 11 11
+
+.PP
+Here, 11B indicates empty stack elements and “xx” indicates valid (00B),
+zero (01B), or special (10B).
+
+.PP
+For this example, the FXSAVE instruction saves only the following 8 bits
+of information:
+
+.PP
+R7 R6 R5 R4 R3 R2 R1 R0
+
+.PP
+01110000
+
+.PP
+Here, a 1 is saved for any valid, zero, or special tag, and a 0 is saved
+for any empty tag.
+
+.PP
+The operation of the FXSAVE instruction differs from that of the FSAVE
+instruction, the as follows:
+
+.RS
+.IP \(bu 2
+FXSAVE instruction does not check for pending unmasked
+floating\-point exceptions. (The FXSAVE operation in this regard is
+similar to the operation of the FNSAVE instruction).
+.IP \(bu 2
+After the FXSAVE instruction has saved the state of the x87 FPU, MMX
+technology, XMM, and MXCSR registers, the processor retains the
+contents of the registers. Because of this behavior, the FXSAVE
+instruction cannot be used by an application program to pass a
+“clean” x87 FPU state to a procedure, since it retains the current
+state. To clean the x87 FPU state, an application must explicitly
+execute an FINIT instruction after an FXSAVE instruction to
+reinitialize the x87 FPU state.
+.IP \(bu 2
+The format of the memory image saved with the FXSAVE instruction is
+the same regardless of the current addressing mode (32\-bit or
+16\-bit) and operating mode (protected, real address, or system
+management). This behavior differs from the FSAVE instructions,
+where the memory image format is different depending on the
+addressing mode and operating mode. Because of the different image
+formats, the memory image saved with the FXSAVE instruction cannot
+be restored correctly with the FRSTOR instruction, and likewise the
+state saved with the FSAVE instruction cannot be restored correctly
+with the FXRSTOR instruction.
+
+.RE
+
+.PP
+The FSAVE format for FTW can be recreated from the FTW valid bits and
+the stored 80\-bit FP data (assuming the stored data was not the contents
+of MMX technology registers) using Table 3\-45.
+
+.PP
+Exponent all 1’s
+
+.PP
+Exponent all 0’s
+
+.PP
+Fraction all 0’s
+
+.PP
+J and M bits
+
+.PP
+FTW valid bit
+
+.PP
+x87 FTW
+
+.PP
+0 0
+
+.PP
+0 0
+
+.PP
+0 0
+
+.PP
+0x 1x
+
+.PP
+1 1
+
+.PP
+Special 10 Valid 00
+
+.PP
+0 0
+
+.PP
+0 0
+
+.PP
+1 1
+
+.PP
+00 10
+
+.PP
+1 1
+
+.PP
+Special 10 Valid 00
+
+.PP
+0 0
+
+.PP
+1 1
+
+.PP
+0 0
+
+.PP
+0x 1x
+
+.PP
+1 1
+
+.PP
+Special 10 Special 10
+
+.PP
+0 0
+
+.PP
+1 1
+
+.PP
+1 1
+
+.PP
+00 10
+
+.PP
+1 1
+
+.PP
+Zero 01 Special 10
+
+.PP
+1 1
+
+.PP
+0 0
+
+.PP
+0 0
+
+.PP
+1x 1x
+
+.PP
+1 1
+
+.PP
+Special 10 Special 10
+
+.PP
+1 1
+
+.PP
+0 0
+
+.PP
+1 1
+
+.PP
+00 10
+
+.PP
+1 1
+
+.PP
+Special 10 Special 10
+
+.PP
+For all legal combinations above.
+
+.PP
+0
+
+.PP
+Empty 11
+
+.PP
+Table 3\-45. Recreating FSAVE Format
+
+.PP
+The J\-bit is defined to be the 1\-bit binary integer to the left of the
+decimal place in the significand. The M\-bit is defined to be the most
+significant bit of the fractional portion of the significand (i.e., the
+bit immediately to the right of the decimal place).
+
+.PP
+When the M\-bit is the most significant bit of the fractional portion of
+the significand, it must be 0 if the fraction is all 0’s.
+
+.SH IA\-32E MODE OPERATION
+.PP
+In compatibility sub\-mode of IA\-32e mode, legacy SSE registers, XMM0
+through XMM7, are saved according to the legacy FXSAVE map. In 64\-bit
+mode, all of the SSE registers, XMM0 through XMM15, are saved.
+Additionally, there are two different layouts of the FXSAVE map in
+64\-bit mode, corresponding to FXSAVE64 (which requires REX.W=1) and
+FXSAVE (REX.W=0). In the FXSAVE64 map (Table 3\-47), the FPU IP and FPU
+DP pointers are 32\-bits.
+
+.PP
+15 14
+
+.PP
+13 12
+
+.PP
+11 10
+
+.PP
+98
+
+.PP
+76
+
+.PP
+5
+
+.PP
+4
+
+.PP
+32
+
+.PP
+10
+
+.PP
+FIP
+
+.PP
+FOP
+
+.PP
+Reserved
+
+.PP
+FTW
+
+.PP
+FSW
+
+.PP
+FCW
+
+.PP
+0
+
+.PP
+MXCSR\_MASK
+
+.PP
+MXCSR
+
+.PP
+FDP
+
+.PP
+16
+
+.PP
+Reserved
+
+.PP
+ST0/MM0
+
+.PP
+32
+
+.PP
+Reserved
+
+.PP
+ST1/MM1
+
+.PP
+48
+
+.PP
+Reserved
+
+.PP
+ST2/MM2
+
+.PP
+64
+
+.PP
+Reserved
+
+.PP
+ST3/MM3
+
+.PP
+80
+
+.PP
+Reserved
+
+.PP
+ST4/MM4
+
+.PP
+96
+
+.PP
+Reserved
+
+.PP
+ST5/MM5
+
+.PP
+112
+
+.PP
+Reserved
+
+.PP
+ST6/MM6
+
+.PP
+128
+
+.PP
+Reserved
+
+.PP
+ST7/MM7
+
+.PP
+144
+
+.PP
+XMM0
+
+.PP
+160
+
+.PP
+XMM1
+
+.PP
+176
+
+.PP
+XMM2
+
+.PP
+192
+
+.PP
+XMM3
+
+.PP
+208
+
+.PP
+XMM4
+
+.PP
+224
+
+.PP
+XMM5
+
+.PP
+240
+
+.PP
+XMM6
+
+.PP
+256
+
+.PP
+XMM7
+
+.PP
+272
+
+.PP
+XMM8
+
+.PP
+288
+
+.PP
+XMM9
+
+.PP
+304
+
+.PP
+XMM10
+
+.PP
+320
+
+.PP
+XMM11
+
+.PP
+336
+
+.PP
+XMM12
+
+.PP
+352
+
+.PP
+XMM13
+
+.PP
+368
+
+.PP
+XMM14
+
+.PP
+384
+
+.PP
+XMM15
+
+.PP
+400
+
+.PP
+Reserved
+
+.PP
+416
+
+.PP
+Reserved
+
+.PP
+432
+
+.PP
+Reserved
+
+.PP
+448
+
+.PP
+Available
+
+.PP
+464
+
+.PP
+Available
+
+.PP
+480
+
+.PP
+Available
+
+.PP
+496
+
+.PP
+Table 3\-46. Layout of the 64\-bit\-mode FXSAVE64 Map (requires REX.W = 1)
+
+.PP
+15 14
+
+.PP
+13 12
+
+.PP
+11 10
+
+.PP
+98
+
+.PP
+76
+
+.PP
+5
+
+.PP
+4
+
+.PP
+32
+
+.PP
+10
+
+.PP
+Reserved
+
+.PP
+FCS
+
+.PP
+FIP[31:0]
+
+.PP
+FOP
+
+.PP
+Reserved
+
+.PP
+FTW
+
+.PP
+FSW
+
+.PP
+FCW
+
+.PP
+0
+
+.PP
+MXCSR\_MASK
+
+.PP
+MXCSR
+
+.PP
+Reserved
+
+.PP
+FDS
+
+.PP
+FDP[31:0]
+
+.PP
+16
+
+.PP
+Reserved
+
+.PP
+ST0/MM0
+
+.PP
+32
+
+.PP
+Reserved
+
+.PP
+ST1/MM1
+
+.PP
+48
+
+.PP
+Reserved
+
+.PP
+ST2/MM2
+
+.PP
+64
+
+.PP
+Reserved
+
+.PP
+ST3/MM3
+
+.PP
+80
+
+.PP
+Reserved
+
+.PP
+ST4/MM4
+
+.PP
+96
+
+.PP
+Reserved
+
+.PP
+ST5/MM5
+
+.PP
+112
+
+.PP
+Reserved
+
+.PP
+ST6/MM6
+
+.PP
+128
+
+.PP
+Reserved
+
+.PP
+ST7/MM7
+
+.PP
+144
+
+.PP
+XMM0
+
+.PP
+160
+
+.PP
+XMM1
+
+.PP
+176
+
+.PP
+XMM2
+
+.PP
+192
+
+.PP
+XMM3
+
+.PP
+208
+
+.PP
+XMM4
+
+.PP
+224
+
+.PP
+XMM5
+
+.PP
+240
+
+.PP
+XMM6
+
+.PP
+256
+
+.PP
+XMM7
+
+.PP
+272
+
+.PP
+XMM8
+
+.PP
+288
+
+.PP
+XMM9
+
+.PP
+304
+
+.PP
+XMM10
+
+.PP
+320
+
+.PP
+XMM11
+
+.PP
+336
+
+.PP
+XMM12
+
+.PP
+352
+
+.PP
+XMM13
+
+.PP
+368
+
+.PP
+XMM14
+
+.PP
+384
+
+.PP
+XMM15
+
+.PP
+400
+
+.PP
+Reserved
+
+.PP
+416
+
+.PP
+Reserved
+
+.PP
+432
+
+.PP
+Reserved
+
+.PP
+448
+
+.PP
+Available
+
+.PP
+464
+
+.PP
+Available
+
+.PP
+480
+
+.PP
+Available
+
+.PP
+496
+
+.PP
+Table 3\-47. Layout of the 64\-bit\-mode FXSAVE Map (REX.W = 0)
+
+.SH OPERATION
+.PP
+.RS
+
+.nf
+IF 64\-Bit Mode
+    THEN
+        IF REX.W = 1
+            THEN
+                DEST ← Save64BitPromotedFxsave(x87 FPU, MMX, XMM15\-XMM0,
+                MXCSR);
+            ELSE
+                DEST ← Save64BitDefaultFxsave(x87 FPU, MMX, XMM15\-XMM0, MXCSR);
+        FI;
+    ELSE
+        DEST ← SaveLegacyFxsave(x87 FPU, MMX, XMM7\-XMM0, MXCSR);
+FI;
+
+.fi
+.RE
+
+.SH PROTECTED MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP(0)	T{
+For an illegal memory operand effective address in the CS, DS, ES, FS or GS segments.
+T}
+	T{
+If a memory operand is not aligned on a 16\-byte boundary, regardless of segment. (See the description of the alignment check exception 
+T}
+[
+
+#
+AC
+]
+ below.)
+#SS(0)	T{
+For an illegal address in the SS segment.
+T}
+#PF(fault\-code)	For a page fault.
+#NM	If CR0.TS
+[
+bit 3
+]
+ = 1.
+	If CR0.EM
+[
+bit 2
+]
+ = 1.
+#UD	If CPUID.01H:EDX.FXSR
+[
+bit 24
+]
+ = 0.
+#UD	If the LOCK prefix is used.
+#AC	T{
+If this exception is disabled a general protection exception (
+T}
+#
+T{
+GP) is signaled if the memory operand is not aligned on a 16\-byte boundary, as described above. If the alignment check exception (
+T}
+#
+T{
+AC) is enabled (and the CPL is 3), signaling of 
+T}
+#
+T{
+AC is not guaranteed and may vary with implementation, as follows. In all implementations where 
+T}
+#
+T{
+AC is not signaled, a general protection exception is signaled in its place. In addition, the width of the alignment check may also vary with implementation. For instance, for a given implementation, an alignment check exception might be signaled for a 2\-byte misalignment, whereas a general protection exception might be signaled for all other misalignments (4\-, 8\-, or 16\-byte misalignments).
+T}
+.TE
+
+.SH REAL\-ADDRESS MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP	T{
+If a memory operand is not aligned on a 16\-byte boundary, regardless of segment.
+T}
+	T{
+If any part of the operand lies outside the effective address space from 0 to FFFFH.
+T}
+#NM	If CR0.TS
+[
+bit 3
+]
+ = 1.
+	If CR0.EM
+[
+bit 2
+]
+ = 1.
+#UD	If CPUID.01H:EDX.FXSR
+[
+bit 24
+]
+ = 0.
+	If the LOCK prefix is used.
+.TE
+
+.SH VIRTUAL\-8086 MODE EXCEPTIONS
+.PP
+Same exceptions as in real address mode.
+
+.TS
+allbox;
+l l 
+l l .
+#PF(fault\-code)	For a page fault.
+#AC	T{
+For unaligned memory reference.
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH COMPATIBILITY MODE EXCEPTIONS
+.PP
+Same exceptions as in protected mode.
+
+.SH 64\-BIT MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#SS(0)	T{
+If a memory address referencing the SS segment is in a non\-canonical form.
+T}
+#GP(0)	T{
+If the memory address is in a non\-canonical form.
+T}
+	T{
+If memory operand is not aligned on a 16\-byte boundary, regardless of segment.
+T}
+#PF(fault\-code)	For a page fault.
+#NM	If CR0.TS
+[
+bit 3
+]
+ = 1.
+	If CR0.EM
+[
+bit 2
+]
+ = 1.
+#UD	If CPUID.01H:EDX.FXSR
+[
+bit 24
+]
+ = 0.
+	If the LOCK prefix is used.
+#AC	T{
+If this exception is disabled a general protection exception (
+T}
+#
+T{
+GP) is signaled if the memory operand is not aligned on a 16\-byte boundary, as described above. If the alignment check exception (
+T}
+#
+T{
+AC) is enabled (and the CPL is 3), signaling of 
+T}
+#
+T{
+AC is not guaranteed and may vary with implementation, as follows. In all implementations where 
+T}
+#
+T{
+AC is not signaled, a general protection exception is signaled in its place. In addition, the width of the alignment check may also vary with implementation. For instance, for a given implementation, an alignment check exception might be signaled for a 2\-byte misalignment, whereas a general protection exception might be signaled for all other misalignments (4\-, 8\-, or 16\-byte misalignments).
+T}
+.TE
+
+.SH IMPLEMENTATION NOTE
+.PP
+The order in which the processor signals general\-protection (#GP) and
+page\-fault (#PF) exceptions when they both occur on an instruction
+boundary is given in Table 5\-2 in the
+Intel® 64 and IA\-32 Architectures Software Developer’s Manual, Volume
+3B. This order vary for FXSAVE for different processor implementations.
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+Copyleft TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

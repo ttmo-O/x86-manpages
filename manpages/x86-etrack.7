@@ -1,0 +1,290 @@
+.nh
+.TH "X86-ETRACK" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+ETRACK - ACTIVATES EBLOCK CHECKS
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp/En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+EAX = 0CH ENCLS[ETRACK]	IR	V/V	SGX1	T{
+This leaf function activates EBLOCK checks.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.PP
+Op/En
+
+.PP
+EAX
+
+.PP
+RCX
+
+.PP
+IR
+
+.PP
+ETRACK (In)
+
+.PP
+Return error code (Out)
+
+.PP
+Pointer to the SECS of the EPC page (In)
+
+.SS Description
+.PP
+This leaf function provides the mechanism for hardware to track that
+software has completed the required TLB address clears successfully. The
+instruction can only be executed when the current privilege level is 0.
+
+.PP
+The content of RCX is an effective address of an EPC page.
+
+.PP
+The table below provides additional information on the memory parameter
+of ETRACK leaf function.
+
+.SH ETRACK MEMORY PARAMETER SEMANTICS
+.TS
+allbox;
+l 
+l .
+EPCPAGE
+T{
+Read/Write access permitted by Enclave
+T}
+.TE
+
+.PP
+The error codes are:
+
+.TS
+allbox;
+l l 
+l l .
+\fB\fCError Code (see Table 40\-4)\fR	\fB\fCDescription\fR
+No Error	ETRACK successful.
+SGX\_PREV\_TRK\_INCMPL	T{
+All processors did not complete the previous shoot\-down sequence.
+T}
+.TE
+
+.PP
+Table 40\-45\&. ETRACK Return Value in
+RAX
+
+.SS Concurrency Restrictions
+.PP
+Leaf
+
+.PP
+Parameter
+
+.PP
+Base Concurrency Restrictions
+
+.PP
+Access
+
+.PP
+On Conflict
+
+.PP
+SGX\_CONFLICT VM Exit Qualification
+
+.PP
+ETRACK
+
+.PP
+SECS [DS:RCX]
+
+.PP
+Shared
+
+.PP
+#GP
+
+.PP
+Table 40\-46\&. Base Concurrency
+Restrictions of ETRACK
+
+.PP
+Leaf
+
+.PP
+Parameter
+
+.PP
+Additional Concurrency Restrictions
+
+.PP
+vs. EACCEPT, EACCEPTCOPY, EMODPE, EMODPR, EMODT
+
+.PP
+vs. EADD, EEXTEND, EINIT
+
+.PP
+vs. ETRACK, ETRACKC
+
+.PP
+Access
+
+.PP
+On Conflict
+
+.PP
+Access
+
+.PP
+On Conflict
+
+.PP
+Access
+
+.PP
+On Conflict
+
+.PP
+ETRACK
+
+.PP
+SECS [DS:RCX]
+
+.PP
+Concurrent
+
+.PP
+Concurrent
+
+.PP
+Exclusive
+
+.PP
+SGX\_EPC\_PAGE \_CONFLICT
+
+.PP
+Table 40\-47\&. Additional Concurrency
+Restrictions of ETRACK
+
+.SS Operation
+.PP
+.RS
+
+.nf
+IF (DS:RCX is not 4KByte Aligned)
+    THEN #GP(0); FI;
+IF (DS:RCX does not resolve within an EPC)
+    THEN #PF(DS:RCX); FI;
+(* Check concurrency with other Intel SGX instructions *)
+IF (Other Intel SGX instructions using tracking facility on this SECS)
+    THEN
+        IF (<<VMX non\-root operation>> AND <<ENABLE\_EPC\_VIRTUALIZATION\_EXTENSIONS>>)
+            THEN
+                VMCS.Exit\_reason ← SGX\_CONFLICT;
+                VMCS.Exit\_qualification.code ← TRACKING\_RESOURCE\_CONFLICT;
+                VMCS.Exit\_qualification.error ← 0;
+                VMCS.Guest\-physical\_address ← SECS(TMP\_SECS).ENCLAVECONTEXT;
+                VMCS.Guest\-linear\_address ← 0;
+            Deliver VMEXIT;
+            ELSE
+                #GP(0);
+        FI;
+FI;
+IF (EPCM(DS:RCX). VALID = 0)
+    THEN #PF(DS:RCX); FI;
+IF (EPCM(DS:RCX).PT ≠ PT\_SECS)
+    THEN #PF(DS:RCX); FI;
+(* All processors must have completed the previous tracking cycle*)
+IF ( (DS:RCX).TRACKING ≠ 0) )
+    THEN
+        IF (<<VMX non\-root operation>> AND <<ENABLE\_EPC\_VIRTUALIZATION\_EXTENSIONS>>)
+            THEN
+                VMCS.Exit\_reason ← SGX\_CONFLICT;
+                VMCS.Exit\_qualification.code ← TRACKING\_REFERENCE\_CONFLICT;
+                VMCS.Exit\_qualification.error ← 0;
+                VMCS.Guest\-physical\_address ← SECS(TMP\_SECS).ENCLAVECONTEXT;
+                VMCS.Guest\-linear\_address ← 0;
+            Deliver VMEXIT;
+        FI;
+    RFLAGS.ZF ← 1;
+        RAX← SGX\_PREV\_TRK\_INCMPL;
+        GOTO DONE;
+    ELSE
+        RAX← 0;
+        RFLAGS.ZF ← 0;
+FI;
+DONE:
+RFLAGS.CF,PF,AF,OF,SF ← 0;
+
+.fi
+.RE
+
+.SS Flags Affected
+.PP
+Sets ZF if SECS is in use or invalid, otherwise cleared. Clears CF, PF,
+AF, OF, SF.
+
+.SS Protected Mode Exceptions
+.PP
+#GP(0)
+
+.PP
+If a memory operand effective address is outside the DS segment limit.
+
+.PP
+If a memory operand is not properly aligned.
+
+.PP
+If another thread is concurrently using the tracking facility on this
+SECS.
+
+.PP
+#PF(error
+
+.PP
+code) If a page fault occurs in accessing memory operands.
+
+.PP
+If a memory operand is not an EPC page.
+
+.SS 64\-Bit Mode Exceptions
+.PP
+#GP(0)
+
+.PP
+If a memory operand is non\-canonical form.
+
+.PP
+If a memory operand is not properly aligned.
+
+.PP
+If the specified EPC resource is in use.
+
+.PP
+#PF(error
+
+.PP
+code) If a page fault occurs in accessing memory operands.
+
+.PP
+If a memory operand is not an EPC page.
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+Copyleft TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

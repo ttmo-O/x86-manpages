@@ -1,0 +1,381 @@
+.nh
+.TH "X86-EMODPE" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+EMODPE - EXTEND AN EPC PAGE PERMISSIONS
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp/En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+EAX = 06H ENCLU[EMODPE]	IR	V/V	SGX2	T{
+This leaf function extends the access rights of an existing EPC page.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l 
+l l l l .
+Op/En	EAX	RBX	RCX
+IR	EMODPE (In)	Address of a SECINFO (In)	T{
+Address of the destination EPC page (In)
+T}
+.TE
+
+.SS Description
+.PP
+This leaf function extends the access rights associated with an existing
+EPC page in the running enclave. THE RWX bits of the SECINFO parameter
+are treated as a permissions mask; supplying a value that does not
+extend the page permissions will have no effect. This instruction leaf
+can only be executed when inside the enclave.
+
+.PP
+RBX contains the effective address of a SECINFO structure while RCX
+contains the effective address of an EPC page. The table below provides
+additional information on the memory parameter of the EMODPE leaf
+function.
+
+.SH EMODPE MEMORY PARAMETER SEMANTICS
+.TS
+allbox;
+l l 
+l l .
+SECINFO	EPCPAGE
+T{
+Read access permitted by Non Enclave
+T}
+	T{
+Read access permitted by Enclave
+T}
+.TE
+
+.PP
+The instruction faults if any of the following:
+
+.SH EMODPE FAULTING CONDITIONS
+.TS
+allbox;
+l l 
+l l .
+T{
+The operands are not properly aligned.
+T}
+	T{
+If security attributes of the SECINFO page make the page inaccessible.
+T}
+T{
+The EPC page is locked by another thread.
+T}
+	T{
+RBX does not contain an effective address in an EPC page in the running enclave.
+T}
+The EPC page is not valid.	T{
+RCX does not contain an effective address of an EPC page in the running enclave.
+T}
+T{
+SECINFO contains an invalid request.
+T}
+	.TE
+
+.SS Concurrency Restrictions
+.PP
+Leaf
+
+.PP
+Parameter
+
+.PP
+Base Concurrency Restrictions
+
+.PP
+Access
+
+.PP
+On Conflict
+
+.PP
+SGX\_CONFLICT VM Exit Qualification
+
+.PP
+EMODPE
+
+.PP
+Target [DS:RCX]
+
+.PP
+Concurrent
+
+.PP
+SECINFO [DS:RBX]
+
+.PP
+Concurrent
+
+.PP
+Table 40\-68\&. Base Concurrency
+Restrictions of EMODPE
+
+.PP
+Leaf
+
+.PP
+Parameter
+
+.PP
+Additional Concurrency Restrictions
+
+.PP
+vs. EACCEPT, EACCEPTCOPY, EMODPE, EMODPR, EMODT
+
+.PP
+vs. EADD, EEXTEND, EINIT
+
+.PP
+vs. ETRACK, ETRACKC
+
+.PP
+Access
+
+.PP
+On Conflict
+
+.PP
+Access
+
+.PP
+On Conflict
+
+.PP
+Access
+
+.PP
+On Conflict
+
+.PP
+EMODPE
+
+.PP
+Target [DS:RCX]
+
+.PP
+Exclusive
+
+.PP
+#GP
+
+.PP
+Concurrent
+
+.PP
+Concurrent
+
+.PP
+SECINFO [DS:RBX]
+
+.PP
+Concurrent
+
+.PP
+Concurrent
+
+.PP
+Concurrent
+
+.PP
+Table 40\-69\&. Additional Concurrency
+Restrictions of EMODPE
+
+.SS Operation
+.SH TEMP VARIABLES IN EMODPE OPERATIONAL FLOW
+.TS
+allbox;
+l l l l 
+l l l l .
+\fB\fCName\fR	\fB\fCType\fR	\fB\fCSize (bits)\fR	\fB\fCDescription\fR
+SCRATCH\_SECINFO	SECINFO	512	T{
+Scratch storage for holding the contents of DS:RBX.
+T}
+.TE
+
+.PP
+IF (DS:RBX is not 64Byte Aligned)
+
+.PP
+THEN #GP(0); FI;
+
+.PP
+IF (DS:RCX is not 4KByte Aligned)
+
+.PP
+THEN #GP(0); FI;
+
+.PP
+IF ((DS:RBX is not within CR\_ELRANGE) or (DS:RCX is not within
+CR\_ELRANGE) )
+
+.PP
+THEN #GP(0); FI;
+
+.PP
+IF (DS:RBX does not resolve within an EPC)
+
+.PP
+THEN #PF(DS:RBX); FI;
+
+.PP
+IF (DS:RCX does not resolve within an EPC)
+
+.PP
+THEN #PF(DS:RCX); FI;
+
+.PP
+IF ( (EPCM(DS:RBX).VALID = 0) or (EPCM(DS:RBX).R = 0) or
+(EPCM(DS:RBX).PENDING ≠ 0) or (EPCM(DS:RBX).MODIFIED ≠ 0) or
+
+.PP
+(EPCM(DS:RBX).BLOCKED ≠ 0) or (EPCM(DS:RBX).PT ≠ PT\_REG) or
+(EPCM(DS:RBX).ENCLAVESECS ≠ CR\_ACTIVE\_SECS) or
+
+.PP
+(EPCM(DS:RBX).ENCLAVEADDRESS ≠ (DS:RBX \& \~0xFFF)) )
+
+.PP
+THEN #PF(DS:RBX); FI;
+
+.PP
+SCRATCH\_SECINFO ← DS:RBX;
+
+.PP
+(* Check for misconfigured SECINFO flags*)
+
+.PP
+IF (SCRATCH\_SECINFO reserved fields are not zero )
+
+.PP
+THEN #GP(0); FI;
+
+.PP
+(* Check security attributes of the EPC page *)
+
+.PP
+IF ( (EPCM(DS:RCX).VALID = 0) or (EPCM(DS:RCX).PENDING ≠ 0) or
+(EPCM(DS:RCX).MODIFIED ≠ 0) or
+
+.PP
+(EPCM(DS:RCX).BLOCKED ≠ 0) or (EPCM(DS:RCX).PT ≠ PT\_REG) or
+(EPCM(DS:RCX).ENCLAVESECS ≠ CR\_ACTIVE\_SECS) )
+
+.PP
+THEN #PF(DS:RCX); FI;
+
+.PP
+(* Check the EPC page for concurrency *)
+
+.PP
+IF (EPC page in use by another SGX2 instruction)
+
+.PP
+THEN #GP(0); FI;
+
+.PP
+(* Re\-Check security attributes of the EPC page *)
+
+.PP
+IF ( (EPCM(DS:RCX).VALID = 0) or (EPCM(DS:RCX).PENDING ≠ 0) or
+(EPCM(DS:RCX).MODIFIED ≠ 0) or
+
+.PP
+(EPCM(DS:RCX).PT ≠ PT\_REG) or (EPCM(DS:RCX).ENCLAVESECS ≠
+CR\_ACTIVE\_SECS) or
+
+.PP
+(EPCM(DS:RCX).ENCLAVEADDRESS ≠ DS:RCX))
+
+.PP
+THEN #PF(DS:RCX); FI;
+
+.PP
+(* Check for misconfigured SECINFO flags*)
+
+.PP
+IF ( (EPCM(DS:RCX).R = 0) and (SCRATCH\_SECINFO.FLAGS.R = 0) and
+(SCRATCH\_SECINFO.FLAGS.W ≠ 0) )
+
+.PP
+(* Update EPCM permissions *)
+
+.PP
+EPCM(DS:RCX).R←EPCM(DS:RCX).R | SCRATCH\_SECINFO.FLAGS.R;
+
+.PP
+EPCM(DS:RCX).W←EPCM(DS:RCX).W | SCRATCH\_SECINFO.FLAGS.W;
+
+.PP
+EPCM(DS:RCX).X←EPCM(DS:RCX).X | SCRATCH\_SECINFO.FLAGS.X;
+
+.SS Flags Affected
+.PP
+None
+
+.SS Protected Mode Exceptions
+.PP
+#GP(0)
+
+.PP
+If executed outside an enclave.
+
+.PP
+If a memory operand effective address is outside the DS segment limit.
+
+.PP
+If a memory operand is not properly aligned.
+
+.PP
+If a memory operand is locked.
+
+.PP
+#PF(error
+
+.PP
+code) If a page fault occurs in accessing memory operands.
+
+.SS 64\-Bit Mode Exceptions
+.PP
+#GP(0)
+
+.PP
+If executed outside an enclave.
+
+.PP
+If a memory operand is non\-canonical form.
+
+.PP
+If a memory operand is not properly aligned.
+
+.PP
+If a memory operand is locked.
+
+.PP
+#PF(error
+
+.PP
+code) If a page fault occurs in accessing memory operands.
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+Copyleft TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

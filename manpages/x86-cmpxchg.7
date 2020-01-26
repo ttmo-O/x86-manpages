@@ -1,0 +1,198 @@
+.nh
+.TH "X86-CMPXCHG" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+CMPXCHG - COMPARE AND EXCHANGE
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp/En\fR	\fB\fC64\-Bit Mode\fR	\fB\fCCompat/Leg Mode\fR	\fB\fCDescription\fR
+0F B0/r/m8, r8	MR	Valid	Valid*	Compare AL with r/m8 into AL.
+REX + 0F B0/r/m8**,r8	MR	Valid	N.E.	Compare AL with r/m8 into AL.
+0F B1/r/m16, r16	MR	Valid	Valid*	Compare AX with r/m16 into AX.
+0F B1/r/m32, r32	MR	Valid	Valid*	T{
+Compare EAX with r/m32 into EAX.
+T}
+REX.W + 0F B1/r/m64, r64	MR	Valid	N.E.	T{
+Compare RAX with r/m64 into RAX.
+T}
+.TE
+
+.PP
+.RS
+
+.PP
+* SeetheIA\-32ArchitectureCompatibilitysectionbelow.
+
+.PP
+** In 64\-bit mode, r/m8 can not be encoded to access the following
+byte registers if a REX prefix is used: AH, BH, CH, DH.
+
+.RE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l 
+l l l l l .
+Op/En	Operand 1	Operand 2	Operand 3	Operand 4
+MR	ModRM:r/m (r, w)	ModRM:reg (r)	NA	NA
+.TE
+
+.SH DESCRIPTION
+.PP
+Compares the value in the AL, AX, EAX, or RAX register with the first
+operand (destination operand). If the two values are equal, the second
+operand (source operand) is loaded into the destination operand.
+Otherwise, the destination operand is loaded into the AL, AX, EAX or RAX
+register. RAX register is available only in 64\-bit mode.
+
+.PP
+This instruction can be used with a LOCK prefix to allow the instruction
+to be executed atomically. To simplify the interface to the processor’s
+bus, the destination operand receives a write cycle without regard to
+the result of the comparison. The destination operand is written back if
+the comparison fails; otherwise, the source operand is written into the
+destination. (The processor never produces a locked read without also
+producing a locked write.)
+
+.PP
+In 64\-bit mode, the instruction’s default operation size is 32 bits. Use
+of the REX.R prefix permits access to additional registers (R8\-R15). Use
+of the REX.W prefix promotes operation to 64 bits. See the summary chart
+at the beginning of this section for encoding data and limits.
+
+.SH IA\-32 ARCHITECTURE COMPATIBILITY
+.PP
+This instruction is not supported on Intel processors earlier than the
+Intel486 processors.
+
+.SH OPERATION
+.PP
+.RS
+
+.nf
+(* Accumulator = AL, AX, EAX, or RAX depending on whether a byte, word, doubleword, or quadword comparison is being performed *)
+TEMP ← DEST
+IF accumulator = TEMP
+    THEN
+        ZF ← 1;
+        DEST ← SRC;
+    ELSE
+        ZF ← 0;
+        accumulator ← TEMP;
+        DEST ← TEMP;
+FI;
+
+.fi
+.RE
+
+.SH FLAGS AFFECTED
+.PP
+The ZF flag is set if the values in the destination operand and register
+AL, AX, or EAX are equal; otherwise it is cleared. The CF, PF, AF, SF,
+and OF flags are set according to the results of the comparison
+operation.
+
+.SH PROTECTED MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP(0)	T{
+If the destination is located in a non\-writable segment.
+T}
+	T{
+If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit.
+T}
+	T{
+If the DS, ES, FS, or GS register contains a NULL segment selector.
+T}
+#SS(0)	T{
+If a memory operand effective address is outside the SS segment limit.
+T}
+#PF(fault\-code)	If a page fault occurs.
+#AC(0)	T{
+If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3.
+T}
+#UD	T{
+If the LOCK prefix is used but the destination is not a memory operand.
+T}
+.TE
+
+.SH REAL\-ADDRESS MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP	T{
+If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit.
+T}
+#SS	T{
+If a memory operand effective address is outside the SS segment limit.
+T}
+#UD	T{
+If the LOCK prefix is used but the destination is not a memory operand.
+T}
+.TE
+
+.SH VIRTUAL\-8086 MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP(0)	T{
+If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit.
+T}
+#SS(0)	T{
+If a memory operand effective address is outside the SS segment limit.
+T}
+#PF(fault\-code)	If a page fault occurs.
+#AC(0)	T{
+If alignment checking is enabled and an unaligned memory reference is made.
+T}
+#UD	T{
+If the LOCK prefix is used but the destination is not a memory operand.
+T}
+.TE
+
+.SH COMPATIBILITY MODE EXCEPTIONS
+.PP
+Same exceptions as in protected mode.
+
+.SH 64\-BIT MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#SS(0)	T{
+If a memory address referencing the SS segment is in a non\-canonical form.
+T}
+#GP(0)	T{
+If the memory address is in a non\-canonical form.
+T}
+#PF(fault\-code)	If a page fault occurs.
+#AC(0)	T{
+If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3.
+T}
+#UD	T{
+If the LOCK prefix is used but the destination is not a memory operand.
+T}
+.TE
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+Copyleft TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

@@ -1,0 +1,389 @@
+.nh
+.TH "X86-GETSEC[SEXIT]" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+GETSEC[SEXIT] - EXIT MEASURED ENVIRONMENT
+.TS
+allbox;
+l l l 
+l l l .
+\fB\fCOpcode\fR	\fB\fCInstruction\fR	\fB\fCDescription\fR
+NP 0F 37 (EAX=5)	GETSEC[SEXIT]	Exit measured environment.
+.TE
+
+.SH DESCRIPTION
+.PP
+The GETSEC[SEXIT] instruction initiates an exit of a measured
+environment established by GETSEC[SENTER]\&. The SEXIT leaf of GETSEC is
+selected with EAX set to 5 at execution. This instruction leaf sends a
+message to all logical processors in the platform to signal the measured
+environment exit.
+
+.PP
+There are restrictions enforced by the processor for the execution of
+the GETSEC[SEXIT] instruction:
+
+.RS
+.IP \(bu 2
+Execution is not allowed unless the processor is in protected mode
+(CR0.PE = 1) with CPL = 0 and EFLAGS.VM = 0.
+.IP \(bu 2
+The processor must be in a measured environment as launched by a
+previous GETSEC[SENTER] instruction, but not still in
+authenticated code execution mode.
+.IP \(bu 2
+To avoid potential inter\-operability conflicts between modes, the
+processor is not allowed to execute this instruction if it currently
+is in SMM or in VMX operation.
+.IP \(bu 2
+To insure consistent handling of SIPI messages, the processor
+executing the GETSEC[SEXIT] instruction must also be designated
+the BSP (bootstrap processor) as defined by the register bit
+IA32\_APIC\_BASE.BSP (bit 8).
+
+.RE
+
+.PP
+Failure to abide by the above conditions results in the processor
+signaling a general protection violation.
+
+.PP
+This instruction initiates a sequence to rendezvous the RLPs with the
+ILP. It then clears the internal processor flag indicating the processor
+is operating in a measured environment.
+
+.PP
+In response to a message signaling the completion of rendezvous, all
+RLPs restart execution with the instruction that was to be executed at
+the time GETSEC[SEXIT] was recognized. This applies to all processor
+conditions, with the following exceptions:
+
+.RS
+.IP \(bu 2
+If an RLP executed HLT and was in this halt state at the time of the
+message initiated by GETSEC[SEXIT], then execution resumes in the
+halt state.
+.IP \(bu 2
+If an RLP was executing MWAIT, then a message initiated by
+GETSEC[SEXIT] causes an exit of the MWAIT state, falling through
+to the next instruction.
+.IP \(bu 2
+If an RLP was executing an intermediate iteration of a string
+instruction, then the processor resumes execution of the string
+instruction at the point which the message initiated by
+GETSEC[SEXIT] was recognized.
+.IP \(bu 2
+If an RLP is still in the SENTER sleep state (never awakened with
+GETSEC[WAKEUP]), it will be sent to the wait\-for\-SIPI state after
+first clearing the bootstrap processor indicator flag
+(IA32\_APIC\_BASE.BSP) and any pending SIPI state. In this case,
+such RLPs are initialized to an architectural state consistent with
+having taken a soft reset using the INIT# pin.
+
+.RE
+
+.PP
+Prior to completion of the GETSEC[SEXIT] operation, both the ILP and
+any active RLPs unmask the response of the external event signals
+INIT#, A20M, NMI#, and SMI#\&. This unmasking is performed
+unconditionally to recognize pin events which are masked after a
+GETSEC[SENTER]\&. The state of A20M is unmasked, as the A20M pin is not
+recognized while the measured environment is active.
+
+.PP
+On a successful exit of the measured environment, the ILP re\-locks the
+Intel® TXT\-capable chipset private configuration space. GETSEC[SEXIT]
+does not affect the content of any PCR.
+
+.PP
+At completion of GETSEC[SEXIT] by the ILP, execution proceeds to the
+next instruction. Since EFLAGS and the debug register state are not
+modified by this instruction, a pending trap condition is free to be
+signaled if previously enabled.
+
+.SH OPERATION IN A UNI\-PROCESSOR PLATFORM
+.PP
+(* The state of the internal flag ACMODEFLAG and SENTERFLAG persist
+across instruction boundary *)
+
+.PP
+GETSEC[SEXIT] (ILP only):
+
+.PP
+IF (CR4.SMXE=0)
+
+.PP
+THEN #UD;
+
+.PP
+ELSE IF (in VMX non\-root operation)
+
+.PP
+THEN VM Exit (reason=”GETSEC instruction”);
+
+.PP
+ELSE IF (GETSEC leaf unsupported)
+
+.PP
+THEN #UD;
+
+.PP
+ELSE IF ((in VMX root operation) or
+
+.PP
+(CR0.PE=0) or (CPL\&gt;0) or (EFLAGS.VM=1) or
+
+.PP
+(IA32\_APIC\_BASE.BSP=0) or
+
+.PP
+(TXT chipset not present) or
+
+.PP
+(SENTERFLAG=0) or (ACMODEFLAG=1) or (IN\_SMM=1))
+
+.PP
+THEN #GP(0);
+
+.PP
+SignalTXTMsg(SEXIT);
+
+.PP
+DO
+
+.PP
+WHILE (no SignalSEXIT message);
+
+.PP
+TXT\_SEXIT\_MSG\_EVENT (ILP \& RLP):
+
+.PP
+Mask and clear SignalSEXIT event;
+
+.PP
+Clear MONITOR FSM;
+
+.PP
+Unmask SignalSENTER event;
+
+.PP
+IF (in VMX operation)
+
+.PP
+THEN TXT\-SHUTDOWN(#IllegalEvent);
+
+.PP
+SignalTXTMsg(SEXITAck);
+
+.PP
+IF (logical processor is not ILP)
+
+.PP
+THEN GOTO RLP\_SEXIT\_ROUTINE;
+
+.PP
+(* ILP waits for all logical processors to ACK *)
+
+.PP
+DO
+
+.PP
+DONE← READ(LT.STS); WHILE (NOT DONE);
+
+.PP
+SignalTXTMsg(SEXITContinue);
+
+.PP
+SignalTXTMsg(ClosePrivate);
+
+.PP
+SENTERFLAG← 0; Unmask SMI, INIT, A20M, and NMI external pin events;
+
+.PP
+END;
+
+.PP
+RLP\_SEXIT\_ROUTINE (RLPs only):
+
+.PP
+Wait for SignalSEXITContinue message;
+
+.PP
+Unmask SMI, INIT, A20M, and NMI external pin events;
+
+.PP
+IF (prior execution state = HLT)
+
+.PP
+THEN reenter HLT state;
+
+.PP
+IF (prior execution state = SENTER sleep)
+
+.PP
+THEN
+
+.PP
+IA32\_APIC\_BASE.BSP← 0; Clear pending SIPI state;
+
+.PP
+Call INIT\_PROCESSOR\_STATE;
+
+.PP
+Unmask SIPI event;
+
+.PP
+GOTO WAIT\-FOR\-SIPI;
+
+.PP
+FI;
+
+.PP
+END;
+
+.SH FLAGS AFFECTED
+.PP
+ILP: None.
+
+.PP
+RLPs: all flags are modified for an RLP. returning to wait\-for\-SIPI
+state, none otherwise.
+
+.SH USE OF PREFIXES
+.PP
+LOCK Causes #UD.
+
+.PP
+REP* Cause #UD (includes REPNE/REPNZ and REP/REPE/REPZ).
+
+.PP
+Operand size Causes #UD.
+
+.PP
+NP 66/F2/F3 prefixes are not allowed.
+
+.PP
+Segmentoverrides Ignored.
+
+.PP
+Address size Ignored.
+
+.PP
+REX Ignored.
+
+.SH PROTECTED MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#UD	If CR4.SMXE = 0.
+	If GETSEC
+[
+SEXIT
+]
+T{
+ is not reported as supported by GETSEC
+T}
+[
+CAPABILITIES
+]
+\&.
+#GP(0)	IfCR0.PE=0orCPL
+\&gt;
+0orEFLAGS.VM=1.
+	If in VMX root operation.
+	T{
+If the initiating processor is not designated via the MSR bit IA32
+T}
+\_
+APIC
+\_
+BASE.BSP.
+	T{
+If an Intel® TXT\-capable chipset is not present.
+T}
+	T{
+If a protected partition is not already active or the processor is already in authenticated code mode.
+T}
+	If the processor is in SMM.
+.TE
+
+.SH REAL\-ADDRESS MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#UD	If CR4.SMXE = 0.
+	If GETSEC
+[
+SEXIT
+]
+T{
+ is not reported as supported by GETSEC
+T}
+[
+CAPABILITIES
+]
+\&.
+#GP(0)	GETSEC
+[
+SEXIT
+]
+T{
+ is not recognized in real\-address mode.
+T}
+.TE
+
+.SH VIRTUAL\-8086 MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#UD	If CR4.SMXE = 0.
+	If GETSEC
+[
+SEXIT
+]
+T{
+ is not reported as supported by GETSEC
+T}
+[
+CAPABILITIES
+]
+\&.
+#GP(0)	GETSEC
+[
+SEXIT
+]
+T{
+ is not recognized in virtual\-8086 mode.
+T}
+.TE
+
+.SH COMPATIBILITY MODE EXCEPTIONS
+.PP
+All protected mode exceptions apply.
+
+.SH 64\-BIT MODE EXCEPTIONS
+.PP
+All protected mode exceptions apply.
+
+.SH VM\-EXIT CONDITION
+.PP
+Reason (GETSEC) IF in VMX non\-root operation.
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+Copyleft TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

@@ -1,0 +1,457 @@
+.nh
+.TH "X86-VEXTRACTF128-VEXTRACTF32X4-VEXTRACTF64X2-VEXTRACTF32X8-VEXTRACTF64X4" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+VEXTRACTF128-VEXTRACTF32X4-VEXTRACTF64X2-VEXTRACTF32X8-VEXTRACTF64X4 - EXTRA CT PACKED FLOATING-POINT VALUES
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp/En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+T{
+VEX.256.66.0F3A.W0 19 /r ib VEXTRACTF128 xmm1/m128, ymm2, imm8
+T}
+	A	V/V	AVX	T{
+Extract 128 bits of packed floating\-point values from ymm2 and store results in xmm1/m128.
+T}
+T{
+EVEX.256.66.0F3A.W0 19 /r ib VEXTRACTF32X4 xmm1/m128 {k1}{z}, ymm2, imm8
+T}
+	C	V/V	AVX512VL AVX512F	T{
+Extract 128 bits of packed single\-precision floating\-point values from ymm2 and store results in xmm1/m128 subject to writemask k1.
+T}
+T{
+EVEX.512.66.0F3A.W0 19 /r ib VEXTRACTF32x4 xmm1/m128 {k1}{z}, zmm2, imm8
+T}
+	C	V/V	AVX512F	T{
+Extract 128 bits of packed single\-precision floating\-point values from zmm2 and store results in xmm1/m128 subject to writemask k1.
+T}
+T{
+EVEX.256.66.0F3A.W1 19 /r ib VEXTRACTF64X2 xmm1/m128 {k1}{z}, ymm2, imm8
+T}
+	B	V/V	AVX512VL AVX512DQ	T{
+Extract 128 bits of packed double\-precision floating\-point values from ymm2 and store results in xmm1/m128 subject to writemask k1.
+T}
+T{
+EVEX.512.66.0F3A.W1 19 /r ib VEXTRACTF64X2 xmm1/m128 {k1}{z}, zmm2, imm8
+T}
+	B	V/V	AVX512DQ	T{
+Extract 128 bits of packed double\-precision floating\-point values from zmm2 and store results in xmm1/m128 subject to writemask k1.
+T}
+T{
+EVEX.512.66.0F3A.W0 1B /r ib VEXTRACTF32X8 ymm1/m256 {k1}{z}, zmm2, imm8
+T}
+	D	V/V	AVX512DQ	T{
+Extract 256 bits of packed single\-precision floating\-point values from zmm2 and store results in ymm1/m256 subject to writemask k1.
+T}
+T{
+EVEX.512.66.0F3A.W1 1B /r ib VEXTRACTF64x4 ymm1/m256 {k1}{z}, zmm2, imm8
+T}
+	C	V/V	AVX512F	T{
+Extract 256 bits of packed double\-precision floating\-point values from zmm2 and store results in ymm1/m256 subject to writemask k1.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+Op/En	Tuple Type	Operand 1	Operand 2	Operand 3	Operand 4
+A	NA	ModRM:r/m (w)	ModRM:reg (r)	Imm8	NA
+B	Tuple2	ModRM:r/m (w)	ModRM:reg (r)	Imm8	NA
+C	Tuple4	ModRM:r/m (w)	ModRM:reg (r)	Imm8	NA
+D	Tuple8	ModRM:r/m (w)	ModRM:reg (r)	Imm8	NA
+.TE
+
+.SS Description
+.PP
+VEXTRACTF128/VEXTRACTF32x4 and VEXTRACTF64x2 extract 128\-bits of
+single\-precision floating\-point values from the source operand (the
+second operand) and store to the low 128\-bit of the destination operand
+(the first operand). The 128\-bit data extraction occurs at an 128\-bit
+granular offset specified by imm8[0] (256\-bit) or imm8[1:0] as the
+multiply factor. The destination may be either a vector register or an
+128\-bit memory location.
+
+.PP
+VEXTRACTF32x4: The low 128\-bit of the destination operand is updated at
+32\-bit granularity according to the writemask.
+
+.PP
+VEXTRACTF32x8 and VEXTRACTF64x4 extract 256\-bits of double\-precision
+floating\-point values from the source operand (second operand) and store
+to the low 256\-bit of the destination operand (the first operand). The
+256\-bit data extraction occurs at an 256\-bit granular offset specified
+by imm8[0] (256\-bit) or imm8[0] as the multiply factor The
+destination may be either a vector register or a 256\-bit memory
+location.
+
+.PP
+VEXTRACTF64x4: The low 256\-bit of the destination operand is updated at
+64\-bit granularity according to the writemask.
+
+.PP
+VEX.vvvv and EVEX.vvvv are reserved and must be 1111b otherwise
+instructions will #UD.
+
+.PP
+The high 6 bits of the immediate are ignored.
+
+.PP
+If VEXTRACTF128 is encoded with VEX.L= 0, an attempt to execute the
+instruction encoded with VEX.L= 0 will cause an #UD exception.
+
+.SS Operation
+.SS VEXTRACTF32x4 (EVEX encoded versions) when destination is a register
+.PP
+.RS
+
+.nf
+VL = 256, 512
+IF VL = 256
+    CASE (imm8[0]) OF
+        0: TMP\_DEST[127:0]←SRC1[127:0]
+        1: TMP\_DEST[127:0]←SRC1[255:128]
+    ESAC.
+FI;
+IF VL = 512
+    CASE (imm8[1:0]) OF
+        00: TMP\_DEST[127:0]←SRC1[127:0]
+        01: TMP\_DEST[127:0]←SRC1[255:128]
+        10: TMP\_DEST[127:0]←SRC1[383:256]
+        11: TMP\_DEST[127:0]←SRC1[511:384]
+    ESAC.
+FI;
+FOR j←0 TO 3
+    i←j * 32
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+31:i]←TMP\_DEST[i+31:i]
+        ELSE
+            IF *merging\-masking*
+                        ; merging\-masking
+                THEN *DEST[i+31:i] remains unchanged*
+                ELSE *zeroing\-masking*
+                            ; zeroing\-masking
+                    DEST[i+31:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:128] ← 0
+
+.fi
+.RE
+
+.SS VEXTRACTF32x4 (EVEX encoded versions) when destination is memory
+.PP
+.RS
+
+.nf
+VL = 256, 512
+IF VL = 256
+    CASE (imm8[0]) OF
+        0: TMP\_DEST[127:0]←SRC1[127:0]
+        1: TMP\_DEST[127:0]←SRC1[255:128]
+    ESAC.
+FI;
+IF VL = 512
+    CASE (imm8[1:0]) OF
+        00: TMP\_DEST[127:0]←SRC1[127:0]
+        01: TMP\_DEST[127:0]←SRC1[255:128]
+        10: TMP\_DEST[127:0]←SRC1[383:256]
+        11: TMP\_DEST[127:0]←SRC1[511:384]
+    ESAC.
+FI;
+FOR j←0 TO 3
+    i←j * 32
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+31:i]←TMP\_DEST[i+31:i]
+        ELSE *DEST[i+31:i] remains unchanged*
+            ; merging\-masking
+    FI;
+ENDFOR
+
+.fi
+.RE
+
+.SS VEXTRACTF64x2 (EVEX encoded versions) when destination is a register
+.PP
+.RS
+
+.nf
+VL = 256, 512
+IF VL = 256
+    CASE (imm8[0]) OF
+        0: TMP\_DEST[127:0]←SRC1[127:0]
+        1: TMP\_DEST[127:0]←SRC1[255:128]
+    ESAC.
+FI;
+IF VL = 512
+    CASE (imm8[1:0]) OF
+        00: TMP\_DEST[127:0]←SRC1[127:0]
+        01: TMP\_DEST[127:0]←SRC1[255:128]
+        10: TMP\_DEST[127:0]←SRC1[383:256]
+        11: TMP\_DEST[127:0]←SRC1[511:384]
+    ESAC.
+FI;
+FOR j←0 TO 1
+    i←j * 64
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+63:i]←TMP\_DEST[i+63:i]
+        ELSE
+            IF *merging\-masking*
+                        ; merging\-masking
+                THEN *DEST[i+63:i] remains unchanged*
+                ELSE *zeroing\-masking*
+                            ; zeroing\-masking
+                    DEST[i+63:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:128] ← 0
+
+.fi
+.RE
+
+.SS VEXTRACTF64x2 (EVEX encoded versions) when destination is memory
+.PP
+.RS
+
+.nf
+VL = 256, 512
+IF VL = 256
+    CASE (imm8[0]) OF
+        0: TMP\_DEST[127:0]←SRC1[127:0]
+        1: TMP\_DEST[127:0]←SRC1[255:128]
+    ESAC.
+FI;
+IF VL = 512
+    CASE (imm8[1:0]) OF
+        00: TMP\_DEST[127:0]←SRC1[127:0]
+        01: TMP\_DEST[127:0]←SRC1[255:128]
+        10: TMP\_DEST[127:0]←SRC1[383:256]
+        11: TMP\_DEST[127:0]←SRC1[511:384]
+    ESAC.
+FI;
+FOR j←0 TO 1
+    i←j * 64
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+63:i]←TMP\_DEST[i+63:i]
+        ELSE *DEST[i+63:i] remains unchanged* ; merging\-masking
+    FI;
+ENDFOR
+
+.fi
+.RE
+
+.SS VEXTRACTF32x8 (EVEX.U1.512 encoded version) when destination is a register
+.PP
+.RS
+
+.nf
+VL = 512
+CASE (imm8[0]) OF
+    0: TMP\_DEST[255:0]←SRC1[255:0]
+    1: TMP\_DEST[255:0]←SRC1[511:256]
+ESAC.
+FOR j←0 TO 7
+    i←j * 32
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+31:i]←TMP\_DEST[i+31:i]
+        ELSE
+            IF *merging\-masking*
+                        ; merging\-masking
+                THEN *DEST[i+31:i] remains unchanged*
+                ELSE *zeroing\-masking*
+                            ; zeroing\-masking
+                    DEST[i+31:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:256] ← 0
+
+.fi
+.RE
+
+.SS VEXTRACTF32x8 (EVEX.U1.512 encoded version) when destination is memory
+.PP
+.RS
+
+.nf
+CASE (imm8[0]) OF
+    0: TMP\_DEST[255:0]←SRC1[255:0]
+    1: TMP\_DEST[255:0]←SRC1[511:256]
+ESAC.
+FOR j←0 TO 7
+    i←j * 32
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+31:i]←TMP\_DEST[i+31:i]
+        ELSE *DEST[i+31:i] remains unchanged*
+            ; merging\-masking
+    FI;
+ENDFOR
+
+.fi
+.RE
+
+.SS VEXTRACTF64x4 (EVEX.512 encoded version) when destination is a register
+.PP
+.RS
+
+.nf
+VL = 512
+CASE (imm8[0]) OF
+    0: TMP\_DEST[255:0]←SRC1[255:0]
+    1: TMP\_DEST[255:0]←SRC1[511:256]
+ESAC.
+FOR j←0 TO 3
+    i←j * 64
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+63:i]←TMP\_DEST[i+63:i]
+        ELSE
+            IF *merging\-masking*
+                THEN *DEST[i+63:i] remains unchanged*
+                ELSE *zeroing\-masking* ; zeroing\-masking
+                    DEST[i+63:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:256] ← 0
+
+.fi
+.RE
+
+.SS VEXTRACTF64x4 (EVEX.512 encoded version) when destination is memory
+.PP
+.RS
+
+.nf
+CASE (imm8[0]) OF
+    0: TMP\_DEST[255:0]←SRC1[255:0]
+    1: TMP\_DEST[255:0]←SRC1[511:256]
+ESAC.
+FOR j←0 TO 3
+    i←j * 64
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+63:i]←TMP\_DEST[i+63:i]
+        ELSE ; merging\-masking
+            *DEST[i+63:i] remains unchanged*
+    FI;
+ENDFOR
+
+.fi
+.RE
+
+.SS VEXTRACTF128 (memory destination form)
+.PP
+.RS
+
+.nf
+CASE (imm8[0]) OF
+    0: DEST[127:0]←SRC1[127:0]
+    1: DEST[127:0]←SRC1[255:128]
+ESAC.
+
+.fi
+.RE
+
+.SS VEXTRACTF128 (register destination form)
+.PP
+.RS
+
+.nf
+CASE (imm8[0]) OF
+    0: DEST[127:0]←SRC1[127:0]
+    1: DEST[127:0]←SRC1[255:128]
+ESAC.
+DEST[MAXVL\-1:128] ←0
+
+.fi
+.RE
+
+.SS Intel C/C++ Compiler Intrinsic Equivalent
+.PP
+.RS
+
+.nf
+VEXTRACTF32x4 \_\_m128 \_mm512\_extractf32x4\_ps(\_\_m512 a, const int nidx);
+
+VEXTRACTF32x4 \_\_m128 \_mm512\_mask\_extractf32x4\_ps(\_\_m128 s, \_\_mmask8 k, \_\_m512 a, const int nidx);
+
+VEXTRACTF32x4 \_\_m128 \_mm512\_maskz\_extractf32x4\_ps( \_\_mmask8 k, \_\_m512 a, const int nidx);
+
+VEXTRACTF32x4 \_\_m128 \_mm256\_extractf32x4\_ps(\_\_m256 a, const int nidx);
+
+VEXTRACTF32x4 \_\_m128 \_mm256\_mask\_extractf32x4\_ps(\_\_m128 s, \_\_mmask8 k, \_\_m256 a, const int nidx);
+
+VEXTRACTF32x4 \_\_m128 \_mm256\_maskz\_extractf32x4\_ps( \_\_mmask8 k, \_\_m256 a, const int nidx);
+
+VEXTRACTF32x8 \_\_m256 \_mm512\_extractf32x8\_ps(\_\_m512 a, const int nidx);
+
+VEXTRACTF32x8 \_\_m256 \_mm512\_mask\_extractf32x8\_ps(\_\_m256 s, \_\_mmask8 k, \_\_m512 a, const int nidx);
+
+VEXTRACTF32x8 \_\_m256 \_mm512\_maskz\_extractf32x8\_ps( \_\_mmask8 k, \_\_m512 a, const int nidx);
+
+VEXTRACTF64x2 \_\_m128d \_mm512\_extractf64x2\_pd(\_\_m512d a, const int nidx);
+
+VEXTRACTF64x2 \_\_m128d \_mm512\_mask\_extractf64x2\_pd(\_\_m128d s, \_\_mmask8 k, \_\_m512d a, const int nidx);
+
+VEXTRACTF64x2 \_\_m128d \_mm512\_maskz\_extractf64x2\_pd( \_\_mmask8 k, \_\_m512d a, const int nidx);
+
+VEXTRACTF64x2 \_\_m128d \_mm256\_extractf64x2\_pd(\_\_m256d a, const int nidx);
+
+VEXTRACTF64x2 \_\_m128d \_mm256\_mask\_extractf64x2\_pd(\_\_m128d s, \_\_mmask8 k, \_\_m256d a, const int nidx);
+
+VEXTRACTF64x2 \_\_m128d \_mm256\_maskz\_extractf64x2\_pd( \_\_mmask8 k, \_\_m256d a, const int nidx);
+
+VEXTRACTF64x4 \_\_m256d \_mm512\_extractf64x4\_pd( \_\_m512d a, const int nidx);
+
+VEXTRACTF64x4 \_\_m256d \_mm512\_mask\_extractf64x4\_pd(\_\_m256d s, \_\_mmask8 k, \_\_m512d a, const int nidx);
+
+VEXTRACTF64x4 \_\_m256d \_mm512\_maskz\_extractf64x4\_pd( \_\_mmask8 k, \_\_m512d a, const int nidx);
+
+VEXTRACTF128 \_\_m128 \_mm256\_extractf128\_ps (\_\_m256 a, int offset);
+
+VEXTRACTF128 \_\_m128d \_mm256\_extractf128\_pd (\_\_m256d a, int offset);
+
+VEXTRACTF128 \_\_m128i\_mm256\_extractf128\_si256(\_\_m256i a, int offset);
+
+.fi
+.RE
+
+.SS SIMD Floating\-Point Exceptions
+.PP
+None
+
+.SS Other Exceptions
+.PP
+VEX\-encoded instructions, see Exceptions Type 6;
+
+.PP
+EVEX\-encoded instructions, see Exceptions Type E6NF.
+
+.TS
+allbox;
+l l 
+l l .
+#UD	IF VEX.L = 0.
+#UD	T{
+If VEX.vvvv != 1111B or EVEX.vvvv != 1111B.
+T}
+.TE
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+Copyleft TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

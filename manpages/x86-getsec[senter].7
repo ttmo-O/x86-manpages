@@ -1,0 +1,1036 @@
+.nh
+.TH "X86-GETSEC[SENTER]" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+GETSEC[SENTER] - ENTER A MEASURED ENVIRONMENT
+.TS
+allbox;
+l l l 
+l l l .
+\fB\fCOpcode\fR	\fB\fCInstruction\fR	\fB\fCDescription\fR
+NP 0F 37 (EAX=4)	GETSEC[SENTER]	T{
+Launch a measured environment. EBX holds the SINIT authenticated code module physical base address. ECX holds the SINIT authenticated code module size (bytes). EDX controls the level of functionality supported by the measured environment launch.
+T}
+.TE
+
+.SH DESCRIPTION
+.PP
+The GETSEC[SENTER] instruction initiates the launch of a measured
+environment and places the initiating logical processor (ILP) into the
+authenticated code execution mode. The SENTER leaf of GETSEC is selected
+with EAX set to 4 at execution. The physical base address of the AC
+module to be loaded and authenticated is specified in EBX. The size of
+the module in bytes is specified in ECX. EDX controls the level of
+functionality supported by the measured environment launch. To enable
+the full functionality of the protected environment launch, EDX must be
+initialized to zero.
+
+.PP
+The authenticated code base address and size parameters (in bytes) are
+passed to the GETSEC[SENTER] instruction using EBX and ECX
+respectively. The ILP evaluates the contents of these registers
+according to the rules for the AC module address in GETSEC[ENTERACCS]\&.
+AC module execution follows the same rules, as set by
+GETSEC[ENTERACCS]\&.
+
+.PP
+The launching software must ensure that the TPM.ACCESS\_0.activeLocality
+bit is clear before executing the GETSEC[SENTER] instruction.
+
+.PP
+There are restrictions enforced by the processor for execution of the
+GETSEC[SENTER] instruction:
+
+.RS
+.IP \(bu 2
+Execution is not allowed unless the processor is in protected mode
+or IA\-32e mode with CPL = 0 and EFLAGS.VM = 0.
+.IP \(bu 2
+Processor cache must be available and not disabled using the CR0.CD
+and NW bits.
+.IP \(bu 2
+For enforcing consistency of operation with numeric exception
+reporting using Interrupt 16, CR0.NE must be set.
+.IP \(bu 2
+An Intel TXT\-capable chipset must be present as communicated to the
+processor by sampling of the power\-on configuration capability field
+after reset.
+.IP \(bu 2
+The processor can not be in authenticated code execution mode or
+already in a measured environment (as launched by a previous
+GETSEC[ENTERACCS] or GETSEC[SENTER] instruction).
+.IP \(bu 2
+To avoid potential operability conflicts between modes, the
+processor is not allowed to execute this instruction if it currently
+is in SMM or VMX operation.
+.IP \(bu 2
+To insure consistent handling of SIPI messages, the processor
+executing the GETSEC[SENTER] instruction must also be designated
+the BSP (boot\-strap processor) as defined by A32\_APIC\_BASE.BSP
+(Bit 8).
+.IP \(bu 2
+EDX must be initialized to a setting supportable by the processor.
+Unless enumeration by the GETSEC[PARAMETERS] leaf reports
+otherwise, only a value of zero is supported.
+
+.RE
+
+.PP
+Failure to abide by the above conditions results in the processor
+signaling a general protection violation.
+
+.PP
+This instruction leaf starts the launch of a measured environment by
+initiating a rendezvous sequence for all logical processors in the
+platform. The rendezvous sequence involves the initiating logical
+processor sending a message (by executing GETSEC[SENTER]) and other
+responding logical processors (RLPs) acknowledging the message, thus
+synchronizing the RLP(s) with the ILP.
+
+.PP
+In response to a message signaling the completion of rendezvous, RLPs
+clear the bootstrap processor indicator flag (IA32\_APIC\_BASE.BSP) and
+enter an SENTER sleep state. In this sleep state, RLPs enter an idle
+processor condition while waiting to be activated after a measured
+environment has been established by the system executive. RLPs in the
+SENTER sleep state can only be activated by the GETSEC leaf function
+WAKEUP in a measured environment.
+
+.PP
+A successful launch of the measured environment results in the
+initiating logical processor entering the authenticated code execution
+mode. Prior to reaching this point, the ILP performs the following steps
+internally:
+
+.RS
+.IP \(bu 2
+Inhibit processor response to the external events: INIT, A20M, NMI,
+and SMI.
+.IP \(bu 2
+Establish and check the location and size of the authenticated code
+module to be executed by the ILP.
+.IP \(bu 2
+Check for the existence of an Intel® TXT\-capable chipset.
+.IP \(bu 2
+Verify the current power management configuration is acceptable.
+.IP \(bu 2
+Broadcast a message to enable protection of memory and I/O from
+activities from other processor agents.
+.IP \(bu 2
+Load the designated AC module into authenticated code execution
+area.
+.IP \(bu 2
+Isolate the content of authenticated code execution area from
+further state modification by external agents.
+.IP \(bu 2
+Authenticate the AC module.
+.IP \(bu 2
+Updated the Trusted Platform Module (TPM) with the authenticated
+code module's hash.
+.IP \(bu 2
+Initialize processor state based on the authenticated code module
+header information.
+.IP \(bu 2
+Unlock the Intel® TXT\-capable chipset private configuration register
+space and TPM locality 3 space.
+.IP \(bu 2
+Begin execution in the authenticated code module at the defined
+entry point.
+
+.RE
+
+.PP
+As an integrity check for proper processor hardware operation, execution
+of GETSEC[SENTER] will also check the contents of all the machine
+check status registers (as reported by the MSRs IA32\_MCi\_STATUS) for
+any valid uncorrectable error condition. In addition, the global machine
+check status register IA32\_MCG\_STATUS MCIP bit must be cleared and the
+IERR processor package pin (or its equivalent) must be not asserted,
+indicating that no machine check exception processing is currently
+in\-progress. These checks are performed twice: once by the ILP prior to
+the broadcast of the rendezvous message to RLPs, and later in response
+to RLPs acknowledging the rendezvous message. Any outstanding valid
+uncorrectable machine check error condition present in the machine check
+status registers at the first check point will result in the ILP
+signaling a general protection violation. If an outstanding valid
+uncorrectable machine check error condition is present at the second
+check point, then this will result in the corresponding logical
+processor signaling the more severe TXT\-shutdown condition with an error
+code of 12.
+
+.PP
+Before loading and authentication of the target code module is
+performed, the processor also checks that the current voltage and bus
+ratio encodings correspond to known good values supportable by the
+processor. The MSR IA32\_PERF\_STATUS values are compared against either
+the processor supported maximum operating target setting, system reset
+setting, or the thermal monitor operating target. If the current
+settings do not meet any of these criteria then the SENTER function will
+attempt to change the voltage and bus ratio select controls in a
+processor\-specific manner. This adjustment may be to the thermal
+monitor, minimum (if different), or maximum operating target depending
+on the processor.
+
+.PP
+This implies that some thermal operating target parameters configured by
+BIOS may be overridden by SENTER. The measured environment software may
+need to take responsibility for restoring such settings that are deemed
+to be safe, but not necessarily recognized by SENTER. If an adjustment
+is not possible when an out of range setting is discovered, then the
+processor will abort the measured launch. This may be the case for
+chipset controlled settings of these values or if the controllability is
+not enabled on the processor. In this case it is the responsibility of
+the external software to program the chipset voltage ID and/or bus ratio
+select settings to known good values recognized by the processor, prior
+to executing SENTER.
+
+.PP
+.RS
+
+.PP
+For a mobile processor, an adjustment can be made according to the
+thermal monitor operating target. For a quad\-core processor the SENTER
+adjustment mechanism may result in a more conservative but non\-uniform
+voltage setting, depending on the pre\-SENTER settings per core.
+
+.RE
+
+.PP
+The ILP and RLPs mask the response to the assertion of the external
+signals INIT#, A20M, NMI#, and SMI#\&. The purpose of this masking
+control is to prevent exposure to existing external event handlers until
+a protected handler has been put in place to directly handle these
+events. Masked external pin events may be unmasked conditionally or
+unconditionally via the GETSEC[EXITAC], GETSEC[SEXIT],
+GETSEC[SMCTRL] or for specific VMX related operations such as a VM
+entry or the VMXOFF instruction (see respective GETSEC leaves and Intel®
+64 and IA\-32 Architectures Software Developer’s Manual, Volume 3C for
+more details). The state of the A20M pin is masked and forced internally
+to a de\-asserted state so that external assertion is not recognized.
+A20M masking as set by
+
+.PP
+GETSEC[SENTER] is undone only after taking down the measured
+environment with the GETSEC[SEXIT] instruction or processor reset.
+INTR is masked by simply clearing the EFLAGS.IF bit. It is the
+responsibility of system software to control the processor response to
+INTR through appropriate management of EFLAGS.
+
+.PP
+To prevent other (logical) processors from interfering with the ILP
+operating in authenticated code execution mode, memory (excluding
+implicit write\-back transactions) and I/O activities originating from
+other processor agents are blocked. This protection starts when the ILP
+enters into authenticated code execution mode. Only memory and I/O
+transactions initiated from the ILP are allowed to proceed. Exiting
+authenticated code execution mode is done by executing GETSEC[EXITAC]\&.
+The protection of memory and I/O activities remains in effect until the
+ILP executes GETSEC[EXITAC]\&.
+
+.PP
+Once the authenticated code module has been loaded into the
+authenticated code execution area, it is protected against further
+modification from external bus snoops. There is also a requirement that
+the memory type for the authenticated code module address range be WB
+(via initialization of the MTRRs prior to execution of this
+instruction). If this condition is not satisfied, it is a violation of
+security and the processor will force a TXT system reset (after writing
+an error code to the chipset LT.ERRORCODE register). This action is
+referred to as a Intel® TXT reset condition. It is performed when it is
+considered unreliable to signal an error through the conventional
+exception reporting mechanism.
+
+.PP
+To conform to the minimum granularity of MTRR MSRs for specifying the
+memory type, authenticated code RAM (ACRAM) is allocated to the
+processor in 4096 byte granular blocks. If an AC module size as
+specified in ECX is not a multiple of 4096 then the processor will
+allocate up to the next 4096 byte boundary for mapping as ACRAM with
+indeterminate data. This pad area will not be visible to the
+authenticated code module as external memory nor can it depend on the
+value of the data used to fill the pad area.
+
+.PP
+Once successful authentication has been completed by the ILP, the
+computed hash is stored in a trusted storage facility in the platform.
+The following trusted storage facility are supported:
+
+.RS
+.IP \(bu 2
+If the platform register FTM\_INTERFACE\_ID.[bits 3:0] = 0, the
+computed hash is stored to the platform’s TPM at PCR17 after this
+register is implicitly reset. PCR17 is a dedicated register for
+holding the computed hash of the authenticated code module loaded
+and subsequently executed by the GETSEC[SENTER]\&. As part of this
+process, the dynamic PCRs 18\-\&22 are reset so they can be utilized by
+subsequently software for registration of code and data modules.
+.IP \(bu 2
+If the platform register FTM\_INTERFACE\_ID.[bits 3:0] = 1, the
+computed hash is stored in a firmware trusted module (FTM) using a
+modified protocol similar to the protocol used to write to TPM’s
+PCR17.
+
+.RE
+
+.PP
+After successful execution of SENTER, either PCR17 (if FTM is not
+enabled) or the FTM (if enabled) contains the measurement of AC code and
+the SENTER launching parameters.
+
+.PP
+After authentication is completed successfully, the private
+configuration space of the Intel® TXT\-capable chipset is unlocked so
+that the authenticated code module and measured environment software can
+gain access to this normally restricted chipset state. The Intel®
+TXT\-capable chipset private configuration space can be locked later by
+software writing to the chipset LT.CMD.CLOSE\-PRIVATE register or
+unconditionally using the GETSEC[SEXIT] instruction.
+
+.PP
+The SENTER leaf function also initializes some processor architecture
+state for the ILP from contents held in the header of the authenticated
+code module. Since the authenticated code module is relocatable, all
+address references are relative to the base address passed in via EBX.
+The ILP GDTR base value is initialized to EBX + [GDTBasePtr] and GDTR
+limit set to [GDTLimit]\&. The CS selector is initialized to the value
+held in the AC module header field SegSel, while the DS, SS, and ES
+selectors are initialized to CS+8. The segment descriptor fields are
+initialized implicitly with BASE=0, LIMIT=FFFFFh, G=1, D=1, P=1, S=1,
+read/write/accessed for DS, SS, and ES, while execute/read/accessed for
+CS. Execution in the authenticated code module for the ILP begins with
+the EIP set to EBX + [EntryPoint]\&. AC module defined fields used for
+initializing processor state are consistency checked with a failure
+resulting in an TXT\-\&shutdown condition.
+
+.PP
+Table 6\-6 provides a summary of
+processor state initialization for the ILP and RLP(s) after successful
+completion of GETSEC[SENTER]\&. For both ILP and RLP(s), paging is
+disabled upon entry to the measured environment. It is up to the ILP to
+establish a trusted paging environment, with appropriate mappings, to
+meet protection requirements established during the launch of the
+measured environment. RLP state initialization is not completed until a
+subsequent wake\-\&up has been signaled by execution of the
+GETSEC[WAKEUP] function by the ILP.
+
+.TS
+allbox;
+l l l 
+l l l .
+\fB\fCRegister State\fR	\fB\fCILP after GETSEC[SENTER]\fR	\fB\fCRLP after GETSEC[WAKEUP]\fR
+CR0	T{
+PG←0, AM←0, WP←0; Others unchanged
+T}
+	T{
+PG←0, CD←0, NW←0, AM←0, WP←0; PE←1, NE←1
+T}
+CR4	00004000H	00004000H
+EFLAGS	00000002H	00000002H
+IA32\_EFER	0H	0
+EIP	[EntryPoint from MLE header1]	
+[
+LT.MLE.JOIN + 12
+]
+EBX	Unchanged [SINIT.BASE]	Unchanged
+EDX	SENTER control flags	Unchanged
+EBP	SINIT.BASE	Unchanged
+CS	Sel=[SINIT SegSel]T{
+, base=0, limit=FFFFFh, G=1, D=1, AR=9BH
+T}
+	Sel = 
+[
+LT.MLE.JOIN + 8
+]
+T{
+, base = 0, limit = FFFFFH, G = 1, D = 1, AR = 9BH
+T}
+DS, ES, SS	Sel=[SINIT SegSel]T{
+ +8, base=0, limit=FFFFFh, G=1, D=1, AR=93H
+T}
+	Sel = 
+[
+LT.MLE.JOIN + 8
+]
+T{
+ +8, base = 0, limit = FFFFFH, G = 1, D = 1, AR = 93H
+T}
+GDTR	Base= SINIT.base (EBX) + [SINIT.GDTBasePtr], Limit=[SINIT.GDTLimit]	Base = 
+[
+LT.MLE.JOIN + 4
+]
+, Limit = 
+[
+LT.MLE.JOIN
+]
+DR7	00000400H	00000400H
+IA32\_DEBUGCTL	0H	0H
+T{
+Performance counters and counter control registers
+T}
+	0H	0H
+IA32\_MISC\_ENABLE	See Table 6\-5	See 
+Table 6\-5
+IA32\_SMM\_MONITOR \_CTL	Bit 2←0	Bit 2←0
+.TE
+
+.PP
+Table 6\-6\&. Register State
+Initialization after GETSEC[SENTER] and GETSEC[WAKEUP]
+
+.PP
+.RS
+
+.PP
+1\&. See Intel® Trusted Execution Technology Measured Launched
+Environment Programming Guide for MLE header format.
+
+.PP
+Segmentation related processor state that has not been initialized by
+GETSEC[SENTER] requires appropriate initialization before use. Since
+a new GDT context has been established, the previous state of the
+segment selector values held in FS, GS, TR, and LDTR may no longer be
+valid. The IDTR will also require reloading with a new IDT context
+after launching the measured environment before exceptions or the
+external interrupts INTR and NMI can be handled. In the meantime, the
+programmer must take care in not executing an INT n instruction or any
+other condition that would result in an exception or trap signaling.
+
+.PP
+Debug exception and trap related signaling is also disabled as part of
+execution of GETSEC[SENTER]\&. This is achieved by clearing DR7, TF in
+EFLAGs, and the MSR IA32\_DEBUGCTL as defined in Table 6\-6\&. These can be reenabled once
+supporting exception handler(s), descriptor tables, and debug
+registers have been properly re\-\&initialized following SENTER. Also,
+any pending single\-\&step trap condition will be cleared at the
+completion of SENTER for both the ILP and RLP(s).
+
+.PP
+Performance related counters and counter control registers are cleared
+as part of execution of SENTER on both the ILP and RLP. This implies
+any active performance counters at the time of SENTER execution will
+be disabled. To reactive the processor performance counters, this
+state must be re\-initialized and re\-enabled.
+
+.PP
+Since MCE along with all other state bits (with the exception of SMXE)
+are cleared in CR4 upon execution of SENTER processing, any enabled
+machine check error condition that occurs will result in the processor
+performing the TXT\-
+
+.RE
+
+.PP
+shutdown action. This also applies to an RLP while in the SENTER sleep
+state. For each logical processor CR4.MCE must be reestablished with a
+valid machine check exception handler to otherwise avoid an TXT\-shutdown
+under such conditions.
+
+.PP
+The MSR IA32\_EFER is also unconditionally cleared as part of the
+processor state initialized by SENTER for both the ILP and RLP. Since
+paging is disabled upon entering authenticated code execution mode, a
+new paging environment will have to be re\-established if it is desired
+to enable IA\-32e mode while operating in authenticated code execution
+mode.
+
+.PP
+The miscellaneous feature control MSR, IA32\_MISC\_ENABLE, is
+initialized as part of the measured environment launch. Certain bits of
+this MSR are preserved because preserving these bits may be important to
+maintain previously established platform settings. See the footnote for
+Table 6\-5 The remaining bits are
+cleared for the purpose of establishing a more consistent environment
+for the execution of authenticated code modules. Among the impact of
+initializing this MSR, any previous condition established by the MONITOR
+instruction will be cleared.
+
+.PP
+Effect of MSR IA32\_FEATURE\_CONTROL MSR
+
+.PP
+Bits 15:8 of the IA32\_FEATURE\_CONTROL MSR affect the execution of
+GETSEC[SENTER]\&. These bits consist of two fields:
+
+.RS
+.IP \(bu 2
+Bit 15: a global enable control for execution of SENTER.
+.IP \(bu 2
+Bits 14:8: a parameter control field providing the ability to
+qualify SENTER execution based on the level of functionality
+specified with corresponding EDX parameter bits 6:0.
+
+.RE
+
+.PP
+The layout of these fields in the IA32\_FEATURE\_CONTROL MSR is shown in
+Table 6\-1\&.
+
+.PP
+Prior to the execution of GETSEC[SENTER], the lock bit of
+IA32\_FEATURE\_CONTROL MSR must be bit set to affirm the settings to be
+used. Once the lock bit is set, only a power\-up reset condition will
+clear this MSR. The IA32\_FEATURE\_CONTROL MSR must be configured in
+accordance to the intended usage at platform initialization. Note that
+this MSR is only available on SMX or VMX enabled processors. Otherwise,
+IA32\_FEATURE\_CONTROL is treated as reserved.
+
+.PP
+The Intel® Trusted Execution Technology Measured Launched Environment
+Programming Guide provides additional details and requirements for
+programming measured environment software to launch in an Intel TXT
+platform.
+
+.SH OPERATION IN A UNI\-PROCESSOR PLATFORM
+.PP
+(* The state of the internal flag ACMODEFLAG and SENTERFLAG persist
+across instruction boundary *)
+
+.PP
+GETSEC[SENTER] (ILP only):
+
+.PP
+IF (CR4.SMXE=0)
+
+.PP
+THEN #UD;
+
+.PP
+ELSE IF (in VMX non\-root operation)
+
+.PP
+THEN VM Exit (reason=”GETSEC instruction”);
+
+.PP
+ELSE IF (GETSEC leaf unsupported)
+
+.PP
+THEN #UD;
+
+.PP
+ELSE IF ((in VMX root operation) or
+
+.PP
+(CR0.PE=0) or (CR0.CD=1) or (CR0.NW=1) or (CR0.NE=0) or
+
+.PP
+(CPL\&gt;0) or (EFLAGS.VM=1) or
+
+.PP
+(IA32\_APIC\_BASE.BSP=0) or (TXT chipset not present) or
+
+.PP
+(SENTERFLAG=1) or (ACMODEFLAG=1) or (IN\_SMM=1) or
+
+.PP
+(TPM interface is not present) or
+
+.PP
+(EDX ≠ (SENTER\_EDX\_support\_mask \& EDX)) or
+
+.PP
+(IA32\_FEATURE\_CONTROL[0]=0) or (IA32\_FEATURE\_CONTROL[15]=0) or
+
+.PP
+((IA32\_FEATURE\_CONTROL[14:8] \& EDX[6:0]) ≠ EDX[6:0]))
+
+.PP
+THEN #GP(0);
+
+.PP
+IF (GETSEC[PARAMETERS]\&.Parameter\_Type = 5, MCA\_Handling (bit 6) = 0)
+
+.PP
+FOR I = 0 to IA32\_MCG\_CAP.COUNT\-1 DO
+
+.PP
+IF IA32\_MC[I]\_STATUS = uncorrectable error
+
+.PP
+THEN #GP(0);
+
+.PP
+FI;
+
+.PP
+OD;
+
+.PP
+FI;
+
+.PP
+IF (IA32\_MCG\_STATUS.MCIP=1) or (IERR pin is asserted)
+
+.PP
+THEN #GP(0);
+
+.PP
+ACBASE← EBX; ACSIZE← ECX; IF (((ACBASE MOD 4096) ≠ 0) or ((ACSIZE MOD
+64) ≠ 0 ) or (ACSIZE \&lt; minimum
+
+.PP
+module size) or (ACSIZE \&gt; AC RAM capacity) or ((ACBASE+ACSIZE) \&gt;
+(2^32 \-1)))
+
+.PP
+THEN #GP(0);
+
+.PP
+Mask SMI, INIT, A20M, and NMI external pin events;
+
+.PP
+SignalTXTMsg(SENTER);
+
+.PP
+DO
+
+.PP
+WHILE (no SignalSENTER message);
+
+.PP
+TXT\_SENTER\_\_MSG\_EVENT (ILP \& RLP):
+
+.PP
+Mask and clear SignalSENTER event;
+
+.PP
+Unmask SignalSEXIT event;
+
+.PP
+IF (in VMX operation)
+
+.PP
+THEN TXT\-SHUTDOWN(#IllegalEvent);
+
+.PP
+FOR I = 0 to IA32\_MCG\_CAP.COUNT\-1 DO
+
+.PP
+IF IA32\_MC[I]\_STATUS = uncorrectable error
+
+.PP
+THEN TXT\-SHUTDOWN(#UnrecovMCError);
+
+.PP
+FI;
+
+.PP
+OD;
+
+.PP
+IF (IA32\_MCG\_STATUS.MCIP=1) or (IERR pin is asserted)
+
+.PP
+THEN TXT\-SHUTDOWN(#UnrecovMCError);
+
+.PP
+IF (Voltage or bus ratio status are NOT at a known good state)
+
+.PP
+THEN IF (Voltage select and bus ratio are internally adjustable)
+
+.PP
+THEN
+
+.PP
+Make product\-specific adjustment on operating parameters;
+
+.PP
+ELSE
+
+.PP
+TXT\-SHUTDOWN(#IIlegalVIDBRatio);
+
+.PP
+FI;
+
+.PP
+IA32\_MISC\_ENABLE← (IA32\_MISC\_ENABLE \& MASK\_CONST*) (* The
+hexadecimal value of MASK\_CONST may vary due to processor
+implementations *)
+
+.PP
+A20M← 0; IA32\_DEBUGCTL← 0; Invalidate processor TLB(s);
+
+.PP
+Drain outgoing transactions;
+
+.PP
+Clear performance monitor counters and control;
+
+.PP
+SENTERFLAG← 1; SignalTXTMsg(SENTERAck);
+
+.PP
+IF (logical processor is not ILP)
+
+.PP
+THEN GOTO RLP\_SENTER\_ROUTINE;
+
+.PP
+(* ILP waits for all logical processors to ACK *)
+
+.PP
+DO
+
+.PP
+DONE← TXT.READ(LT.STS); WHILE (not DONE);
+
+.PP
+SignalTXTMsg(SENTERContinue);
+
+.PP
+SignalTXTMsg(ProcessorHold);
+
+.PP
+FOR I=ACBASE to ACBASE+ACSIZE\-1 DO
+
+.PP
+ACRAM[I\-ACBASE]\&.ADDR← I; ACRAM[I\-ACBASE]\&.DATA← LOAD(I); OD;
+
+.PP
+IF (ACRAM memory type ≠ WB)
+
+.PP
+THEN TXT\-SHUTDOWN(#BadACMMType);
+
+.PP
+IF (AC module header version is not supported) OR (ACRAM[ModuleType] ≠
+2)
+
+.PP
+THEN TXT\-SHUTDOWN(#UnsupportedACM);
+
+.PP
+KEY← GETKEY(ACRAM, ACBASE); KEYHASH← HASH(KEY); CSKEYHASH←
+LT.READ(LT.PUBLIC.KEY); IF (KEYHASH ≠ CSKEYHASH)
+
+.PP
+THEN TXT\-SHUTDOWN(#AuthenticateFail);
+
+.PP
+SIGNATURE← DECRYPT(ACRAM, ACBASE, KEY); (* The value of
+SIGNATURE\_LEN\_CONST is implementation\-specific*)
+
+.PP
+FOR I=0 to SIGNATURE\_LEN\_CONST \- 1 DO
+
+.PP
+ACRAM[SCRATCH.I]← SIGNATURE[I]; COMPUTEDSIGNATURE← HASH(ACRAM,
+ACBASE, ACSIZE); FOR I=0 to SIGNATURE\_LEN\_CONST \- 1 DO
+
+.PP
+ACRAM[SCRATCH.SIGNATURE\_LEN\_CONST+I]← COMPUTEDSIGNATURE[I]; IF
+(SIGNATURE ≠ COMPUTEDSIGNATURE)
+
+.PP
+THEN TXT\-SHUTDOWN(#AuthenticateFail);
+
+.PP
+ACMCONTROL← ACRAM[CodeControl]; IF ((ACMCONTROL.0 = 0) and
+(ACMCONTROL.1 = 1) and (snoop hit to modified line detected on ACRAM
+load))
+
+.PP
+THEN TXT\-SHUTDOWN(#UnexpectedHITM);
+
+.PP
+IF (ACMCONTROL reserved bits are set)
+
+.PP
+THEN TXT\-SHUTDOWN(#BadACMFormat);
+
+.PP
+IF ((ACRAM[GDTBasePtr] \&lt; (ACRAM[HeaderLen] * 4 + Scratch\_size))
+OR
+
+.PP
+((ACRAM[GDTBasePtr] + ACRAM[GDTLimit]) \&gt;= ACSIZE))
+
+.PP
+THEN TXT\-SHUTDOWN(#BadACMFormat);
+
+.PP
+IF ((ACMCONTROL.0 = 1) and (ACMCONTROL.1 = 1) and (snoop hit to modified
+
+.PP
+line detected on ACRAM load))
+
+.PP
+THEN ACEntryPoint← ACBASE+ACRAM[ErrorEntryPoint]; ELSE
+
+.PP
+ACEntryPoint← ACBASE+ACRAM[EntryPoint]; IF ((ACEntryPoint \&gt;=
+ACSIZE) or (ACEntryPoint \&lt; (ACRAM[HeaderLen] * 4 +
+Scratch\_size)))
+
+.PP
+THEN TXT\-SHUTDOWN(#BadACMFormat);
+
+.PP
+IF ((ACRAM[SegSel] \&gt; (ACRAM[GDTLimit] \- 15)) or (ACRAM[SegSel]
+\&lt; 8))
+
+.PP
+THEN TXT\-SHUTDOWN(#BadACMFormat);
+
+.PP
+IF ((ACRAM[SegSel]\&.TI=1) or (ACRAM[SegSel]\&.RPL≠0))
+
+.PP
+THEN TXT\-SHUTDOWN(#BadACMFormat);
+
+.PP
+IF (FTM\_INTERFACE\_ID.[3:0] = 1 ) (* Alternate FTM Interface has
+been enabled *)
+
+.PP
+THEN (* TPM\_LOC\_CTRL\_4 is located at 0FED44008H,
+TMP\_DATA\_BUFFER\_4 is located at 0FED44080H *)
+
+.PP
+WRITE(TPM\_LOC\_CTRL\_4) ← 01H; (* Modified HASH.START protocol *) (*
+Write to firmware storage *)
+
+.PP
+WRITE(TPM\_DATA\_BUFFER\_4) ← SIGNATURE\_LEN\_CONST + 4; FOR I=0 to
+SIGNATURE\_LEN\_CONST \- 1 DO
+
+.PP
+WRITE(TPM\_DATA\_BUFFER\_4 + 2 + I )← ACRAM[SCRATCH.I];
+WRITE(TPM\_DATA\_BUFFER\_4 + 2 + SIGNATURE\_LEN\_CONST) ← EDX;
+WRITE(FTM.LOC\_CTRL) ← 06H; (* Modified protocol combining HASH.DATA
+and HASH.END *) ELSE IF (FTM\_INTERFACE\_ID.[3:0] = 0 ) (* Use
+standard TPM Interface *)
+
+.PP
+ACRAM[SCRATCH.SIGNATURE\_LEN\_CONST]← EDX; WRITE(TPM.HASH.START)← 0;
+FOR I=0 to SIGNATURE\_LEN\_CONST + 3 DO
+
+.PP
+WRITE(TPM.HASH.DATA)← ACRAM[SCRATCH.I]; WRITE(TPM.HASH.END)← 0;
+
+.PP
+ACMODEFLAG← 1; CR0.[PG.AM.WP]← 0; CR4← 00004000h; EFLAGS← 00000002h;
+IA32\_EFER← 0; EBP← ACBASE; GDTR.BASE← ACBASE+ACRAM[GDTBasePtr];
+GDTR.LIMIT← ACRAM[GDTLimit]; CS.SEL← ACRAM[SegSel]; CS.BASE← 0;
+CS.LIMIT← FFFFFh; CS.G← 1; CS.D← 1; CS.AR← 9Bh; DS.SEL←
+ACRAM[SegSel]+8; DS.BASE← 0; DS.LIMIT← FFFFFh; DS.G← 1; DS.D← 1;
+DS.AR← 93h; SS← DS; ES← DS; DR7← 00000400h; IA32\_DEBUGCTL← 0;
+SignalTXTMsg(UnlockSMRAM);
+
+.PP
+SignalTXTMsg(OpenPrivate);
+
+.PP
+SignalTXTMsg(OpenLocality3);
+
+.PP
+EIP← ACEntryPoint; END;
+
+.PP
+RLP\_SENTER\_ROUTINE: (RLP only)
+
+.PP
+Mask SMI, INIT, A20M, and NMI external pin events
+
+.PP
+Unmask SignalWAKEUP event;
+
+.PP
+Wait for SignalSENTERContinue message;
+
+.PP
+IA32\_APIC\_BASE.BSP← 0; GOTO SENTER sleep state;
+
+.PP
+END;
+
+.SH FLAGS AFFECTED
+.PP
+All flags are cleared.
+
+.SH USE OF PREFIXES
+.PP
+LOCK Causes #UD.
+
+.PP
+REP* Cause #UD (includes REPNE/REPNZ and REP/REPE/REPZ).
+
+.PP
+Operand size Causes #UD.
+
+.PP
+NP 66/F2/F3 prefixes are not allowed.
+
+.PP
+Segmentoverrides Ignored.
+
+.PP
+Address size Ignored.
+
+.PP
+REX Ignored.
+
+.SH PROTECTED MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#UD	If CR4.SMXE = 0.
+	If GETSEC
+[
+SENTER
+]
+T{
+ is not reported as supported by GETSEC
+T}
+[
+CAPABILITIES
+]
+\&.
+#GP(0)	T{
+IfCR0.CD=1orCR0.NW=1orCR0.NE=0orCR0.PE=0orCPL
+T}
+\&gt;
+0orEFLAGS.VM=1.
+	If in VMX root operation.
+	T{
+If the initiating processor is not designated as the bootstrap processor via the MSR bit IA32
+T}
+\_
+APIC
+\_
+BASE.BSP.
+	T{
+If an Intel® TXT\-capable chipset is not present.
+T}
+	T{
+If an Intel® TXT\-capable chipset interface to TPM is not detected as present.
+T}
+	T{
+If a protected partition is already active or the processor is already in authenticated code mode.
+T}
+	If the processor is in SMM.
+	T{
+If a valid uncorrectable machine check error is logged in IA32
+T}
+\_
+MC
+[
+I
+]
+
+\_
+STATUS.
+	T{
+If the authenticated code base is not on a 4096 byte boundary.
+T}
+	T{
+If the authenticated code size 
+T}
+\&gt;
+T{
+ processor's authenticated code execution area storage capacity.
+T}
+	T{
+If the authenticated code size is not modulo 64.
+T}
+.TE
+
+.SH REAL\-ADDRESS MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#UD	If CR4.SMXE = 0.
+	If GETSEC
+[
+SENTER
+]
+T{
+ is not reported as supported by GETSEC
+T}
+[
+CAPABILITIES
+]
+\&.
+#GP(0)	GETSEC
+[
+SENTER
+]
+T{
+ is not recognized in real\-address mode.
+T}
+.TE
+
+.SH VIRTUAL\-8086 MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#UD	If CR4.SMXE = 0.
+	If GETSEC
+[
+SENTER
+]
+T{
+ is not reported as supported by GETSEC
+T}
+[
+CAPABILITIES
+]
+\&.
+#GP(0)	GETSEC
+[
+SENTER
+]
+T{
+ is not recognized in virtual\-8086 mode.
+T}
+.TE
+
+.SH COMPATIBILITY MODE EXCEPTIONS
+.PP
+All protected mode exceptions apply.
+
+.TS
+allbox;
+l l 
+l l .
+#GP	T{
+IF AC code module does not reside in physical address below 2^32 \-1.
+T}
+.TE
+
+.SH 64\-BIT MODE EXCEPTIONS
+.PP
+All protected mode exceptions apply.
+
+.TS
+allbox;
+l l 
+l l .
+#GP	T{
+IF AC code module does not reside in physical address below 2^32 \-1.
+T}
+.TE
+
+.SH VM\-EXIT CONDITION
+.PP
+Reason (GETSEC) IF in VMX non\-root operation.
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+Copyleft TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

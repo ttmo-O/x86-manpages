@@ -1,0 +1,306 @@
+.nh
+.TH "X86-GETSEC[EXITAC]" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+GETSEC[EXITAC] - EXIT AUTHENTICATED CODE EXECUTION MODE
+.TS
+allbox;
+l l l 
+l l l .
+\fB\fCOpcode\fR	\fB\fCInstruction\fR	\fB\fCDescription\fR
+NP 0F 37 (EAX=3)	GETSEC[EXITAC]	T{
+Exit authenticated code execution mode. RBX holds the Near Absolute Indirect jump target and EDX hold the exit parameter flags.
+T}
+.TE
+
+.SH DESCRIPTION
+.PP
+The GETSEC[EXITAC] leaf function exits the ILP out of authenticated
+code execution mode established by GETSEC[ENTERACCS] or
+GETSEC[SENTER]\&. The EXITAC leaf of GETSEC is selected with EAX set to
+3 at entry. EBX (or RBX, if in 64\-\&bit mode) holds the near jump target
+offset for where the processor execution resumes upon exiting
+authenticated code execution mode. EDX contains additional parameter
+control information. Currently only an input value of 0 in EDX is
+supported. All other EDX settings are considered reserved and result in
+a general protection violation.
+
+.PP
+GETSEC[EXITAC] can only be executed if the processor is in protected
+mode with CPL = 0 and EFLAGS.VM = 0. The processor must also be in
+authenticated code execution mode. To avoid potential operability
+conflicts between modes, the processor is not allowed to execute this
+instruction if it is in SMM or in VMX operation. A violation of these
+conditions results in a general protection violation.
+
+.PP
+Upon completion of the GETSEC[EXITAC] operation, the processor unmasks
+responses to external event signals INIT#, NMI#, and SMI#\&. This
+unmasking is performed conditionally, based on whether the authenticated
+code execution mode was entered via execution of GETSEC[SENTER] or
+GETSEC[ENTERACCS]\&. If the processor is in authenticated code execution
+mode due to the execution of GETSEC[SENTER], then these external event
+signals will remain masked. In this case, A20M is kept disabled in the
+measured environment until the measured environment executes
+GETSEC[SEXIT]\&. INIT# is unconditionally unmasked by EXITAC. Note that
+any events that are pending, but have been blocked while in
+authenticated code execution mode, will be recognized at the completion
+of the GETSEC[EXITAC] instruction if the pin event is unmasked.
+
+.PP
+The intent of providing the ability to optionally leave the pin events
+SMI#, and NMI# masked is to support the completion of a measured
+environment bring\-up that makes use of VMX. In this envisioned security
+usage scenario, these events will remain masked until an appropriate
+virtual machine has been established in order to field servicing of
+these events in a safer manner. Details on when and how events are
+masked and unmasked in VMX operation are described in Intel® 64 and
+IA\-32 Architectures Software Developer’s Manual, Volume 3C. It should be
+cautioned that if no VMX environment is to be activated following
+GETSEC[EXITAC], that these events will remain masked until the
+measured environment is exited with GETSEC[SEXIT]\&. If this is not
+desired then the GETSEC function SMCTRL(0) can be used for unmasking
+SMI# in this context. NMI# can be correspondingly unmasked by
+execution of IRET.
+
+.PP
+A successful exit of the authenticated code execution mode requires the
+ILP to perform additional steps as outlined below:
+
+.RS
+.IP \(bu 2
+Invalidate the contents of the internal authenticated code execution
+area.
+.IP \(bu 2
+Invalidate processor TLBs.
+.IP \(bu 2
+Clear the internal processor AC Mode indicator flag.
+.IP \(bu 2
+Re\-lock the TPM locality 3 space.
+.IP \(bu 2
+Unlock the Intel® TXT\-capable chipset memory and I/O protections to
+allow memory and I/O activity by other processor agents.
+.IP \(bu 2
+Perform a near absolute indirect jump to the designated instruction
+location.
+
+.RE
+
+.PP
+The content of the authenticated code execution area is invalidated by
+hardware in order to protect it from further use or visibility. This
+internal processor storage area can no longer be used or relied upon
+after GETSEC[EXITAC]\&. Data structures need to be re\-\&established
+outside of the authenticated code execution area if they are to be
+referenced after EXITAC. Since addressed memory content formerly mapped
+to the authenticated code execution area may no longer be coherent with
+external system memory after EXITAC, processor TLBs in support of linear
+to physical address translation are also invalidated.
+
+.PP
+Upon completion of GETSEC[EXITAC] a near absolute indirect transfer is
+performed with EIP loaded with the contents of EBX (based on the current
+operating mode size). In 64\-bit mode, all 64 bits of RBX are loaded into
+RIP if REX.W precedes GETSEC[EXITAC]\&. Otherwise RBX is treated as 32
+bits even while in 64\-\&bit mode. Conventional CS limit checking is
+performed as part of this control transfer. Any exception conditions
+generated as part of this control transfer will be directed to the
+existing IDT; thus it is recommended that an IDTR should also be
+established prior to execution of the EXITAC function if there is a need
+for fault handling. In addition, any segmentation related (and paging)
+data structures to be used after EXITAC should be re\-\&established or
+validated by the authenticated code prior to EXITAC.
+
+.PP
+In addition, any segmentation related (and paging) data structures to be
+used after EXITAC need to be re\-established and mapped outside of the
+authenticated RAM designated area by the authenticated code prior to
+EXITAC. Any data structure held within the authenticated RAM allocated
+area will no longer be accessible after completion by EXITAC.
+
+.SH OPERATION
+.PP
+.RS
+
+.nf
+(* The state of the internal flag ACMODEFLAG and SENTERFLAG persist across instruction boundary *)
+IF (CR4.SMXE=0)
+    THEN #UD;
+ELSIF ( in VMX non\-root operation)
+    THEN VM Exit (reason=”GETSEC instruction”);
+ELSIF (GETSEC leaf unsupported)
+    THEN #UD;
+ELSIF ((in VMX operation) or ( (in 64\-bit mode) and ( RBX is non\-canonical) )
+    (CR0.PE=0) or (CPL>0) or (EFLAGS.VM=1) or
+    (ACMODEFLAG=0) or (IN\_SMM=1)) or (EDX ≠ 0))
+    THEN #GP(0);
+IF (OperandSize = 32)
+    THEN tempEIP← EBX;
+ELSIF (OperandSize = 64)
+    THEN tempEIP← RBX;
+ELSE
+    tempEIP← EBX AND 0000FFFFH;
+IF (tempEIP > code segment limit)
+    THEN #GP(0);
+Invalidate ACRAM contents;
+Invalidate processor TLB(s);
+Drain outgoing messages;
+SignalTXTMsg(CloseLocality3);
+SignalTXTMsg(LockSMRAM);
+SignalTXTMsg(ProcessorRelease);
+Unmask INIT;
+IF (SENTERFLAG=0)
+    THEN Unmask SMI, INIT, NMI, and A20M pin event;
+ELSEIF (IA32\_SMM\_MONITOR\_CTL[0] = 0)
+    THEN Unmask SMI pin event;
+ACMODEFLAG← 0;
+EIP← tempEIP;
+END;
+
+.fi
+.RE
+
+.SH FLAGS AFFECTED
+.PP
+None.
+
+.SH USE OF PREFIXES
+.PP
+LOCK Causes #UD.
+
+.PP
+REP* Cause #UD (includes REPNE/REPNZ and REP/REPE/REPZ).
+
+.PP
+Operand size Causes #UD.
+
+.PP
+NP 66/F2/F3 prefixes are not allowed.
+
+.PP
+Segmentoverrides Ignored.
+
+.PP
+Address size Ignored.
+
+.PP
+REX.W Sets 64\-bit mode Operand size attribute.
+
+.SH PROTECTED MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#UD	If CR4.SMXE = 0.
+	If GETSEC
+[
+EXITAC
+]
+T{
+ is not reported as supported by GETSEC
+T}
+[
+CAPABILITIES
+]
+\&.
+#GP(0)	If CR0.PE = 0 or CPL
+\&gt;
+0 or EFLAGS.VM =1.
+	If in VMX root operation.
+	T{
+If the processor is not currently in authenticated code execution mode.
+T}
+	If the processor is in SMM.
+	T{
+If any reserved bit position is set in the EDX parameter register.
+T}
+.TE
+
+.SH REAL\-ADDRESS MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#UD	If CR4.SMXE = 0.
+	If GETSEC
+[
+EXITAC
+]
+T{
+ is not reported as supported by GETSEC
+T}
+[
+CAPABILITIES
+]
+\&.
+#GP(0)	GETSEC
+[
+EXITAC
+]
+T{
+ is not recognized in real\-address mode.
+T}
+.TE
+
+.SH VIRTUAL\-8086 MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#UD	If CR4.SMXE = 0.
+	If GETSEC
+[
+EXITAC
+]
+T{
+ is not reported as supported by GETSEC
+T}
+[
+CAPABILITIES
+]
+\&.
+#GP(0)	GETSEC
+[
+EXITAC
+]
+T{
+ is not recognized in virtual\-8086 mode.
+T}
+.TE
+
+.SH COMPATIBILITY MODE EXCEPTIONS
+.PP
+All protected mode exceptions apply.
+
+.SH 64\-BIT MODE EXCEPTIONS
+.PP
+All protected mode exceptions apply.
+
+.TS
+allbox;
+l l 
+l l .
+#GP(0)	T{
+If the target address in RBX is not in a canonical form.
+T}
+.TE
+
+.SH VM\-EXIT CONDITION
+.PP
+Reason (GETSEC) IF in VMX non\-root operation.
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+Copyleft TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

@@ -1,0 +1,202 @@
+.nh
+.TH "X86-CVTSD2SI" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+CVTSD2SI - CONVERT SCALAR DOUBLE-PRECISION FLOATING-POINT VALUE TO DOUBLEWORD INTEGER
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp/En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+T{
+F2 0F 2D /r CVTSD2SI r32, xmm1/m64
+T}
+	A	V/V	SSE2	T{
+Convert one double\-precision floating\-point value from xmm1/m64 to one signed doubleword integer r32.
+T}
+T{
+F2 REX.W 0F 2D /r CVTSD2SI r64, xmm1/m64
+T}
+	A	V/N.E.	SSE2	T{
+Convert one double\-precision floating\-point value from xmm1/m64 to one signed quadword integer sign\-extended into r64.
+T}
+T{
+VEX.LIG.F2.0F.W0 2D /r 1 VCVTSD2SI r32, xmm1/m64
+T}
+	A	V/V	AVX	T{
+Convert one double\-precision floating\-point value from xmm1/m64 to one signed doubleword integer r32.
+T}
+T{
+VEX.LIG.F2.0F.W1 2D /r 1 VCVTSD2SI r64, xmm1/m64
+T}
+	A	V/N.E.2	AVX	T{
+Convert one double\-precision floating\-point value from xmm1/m64 to one signed quadword integer sign\-extended into r64.
+T}
+T{
+EVEX.LIG.F2.0F.W0 2D /r VCVTSD2SI r32, xmm1/m64{er}
+T}
+	B	V/V	AVX512F	T{
+Convert one double\-precision floating\-point value from xmm1/m64 to one signed doubleword integer r32.
+T}
+T{
+EVEX.LIG.F2.0F.W1 2D /r VCVTSD2SI r64, xmm1/m64{er}
+T}
+	B	V/N.E.2	AVX512F	T{
+Convert one double\-precision floating\-point value from xmm1/m64 to one signed quadword integer sign\-extended into r64.
+T}
+.TE
+
+.PP
+.RS
+
+.PP
+1\&. Software should ensure VCVTSD2SI is encoded with VEX.L=0. Encoding
+VCVTSD2SI with VEX.L=1 may encounter unpredictable behavior across
+different processor generations.
+
+.PP
+2\&. VEX.W1/EVEX.W1 in non\-64 bit is ignored; the instructions behaves
+as if the W0 version is used.
+
+.RE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+Op/En	Tuple Type	Operand 1	Operand 2	Operand 3	Operand 4
+A	NA	ModRM:reg (w)	ModRM:r/m (r)	NA	NA
+B	Tuple1 Fixed	ModRM:reg (w)	ModRM:r/m (r)	NA	NA
+.TE
+
+.SH DESCRIPTION
+.PP
+Converts a double\-precision floating\-point value in the source operand
+(the second operand) to a signed double\-word integer in the destination
+operand (first operand). The source operand can be an XMM register or a
+64\-bit memory location. The destination operand is a general\-purpose
+register. When the source operand is an XMM register, the
+double\-precision floating\-point value is contained in the low quadword
+of the register.
+
+.PP
+When a conversion is inexact, the value returned is rounded according to
+the rounding control bits in the MXCSR register.
+
+.PP
+If a converted result exceeds the range limits of signed doubleword
+integer (in non\-64\-bit modes or 64\-bit mode with REX.W/VEX.W/EVEX.W=0),
+the floating\-point invalid exception is raised, and if this exception is
+masked, the indefinite integer value (80000000H) is returned.
+
+.PP
+If a converted result exceeds the range limits of signed quadword
+integer (in 64\-bit mode and REX.W/VEX.W/EVEX.W = 1), the floating\-point
+invalid exception is raised, and if this exception is masked, the
+indefinite integer value (80000000\_00000000H) is returned.
+
+.PP
+Legacy SSE instruction: Use of the REX.W prefix promotes the instruction
+to produce 64\-bit data in 64\-bit mode. See the summary chart at the
+beginning of this section for encoding data and limits.
+
+.PP
+Note: VEX.vvvv and EVEX.vvvv are reserved and must be 1111b, otherwise
+instructions will #UD.
+
+.PP
+Software should ensure VCVTSD2SI is encoded with VEX.L=0. Encoding
+VCVTSD2SI with VEX.L=1 may encounter unpredictable behavior across
+different processor generations.
+
+.SH OPERATION
+.SS VCVTSD2SI (EVEX encoded version)
+.PP
+.RS
+
+.nf
+IF SRC *is register* AND (EVEX.b = 1)
+    THEN
+        SET\_RM(EVEX.RC);
+    ELSE
+        SET\_RM(MXCSR.RM);
+FI;
+IF 64\-Bit Mode and OperandSize = 64
+    THEN DEST[63:0] ← Convert\_Double\_Precision\_Floating\_Point\_To\_Integer(SRC[63:0]);
+    ELSE DEST[31:0] ← Convert\_Double\_Precision\_Floating\_Point\_To\_Integer(SRC[63:0]);
+FI
+
+.fi
+.RE
+
+.SS (V)CVTSD2SI
+.PP
+.RS
+
+.nf
+IF 64\-Bit Mode and OperandSize = 64
+THEN
+    DEST[63:0] ←Convert\_Double\_Precision\_Floating\_Point\_To\_Integer(SRC[63:0]);
+ELSE
+    DEST[31:0] ←Convert\_Double\_Precision\_Floating\_Point\_To\_Integer(SRC[63:0]);
+FI;
+
+.fi
+.RE
+
+.SH INTEL C/C++ COMPILER INTRINSIC EQUIVALENT
+.PP
+.RS
+
+.nf
+VCVTSD2SI int \_mm\_cvtsd\_i32(\_\_m128d);
+
+VCVTSD2SI int \_mm\_cvt\_roundsd\_i32(\_\_m128d, int r);
+
+VCVTSD2SI \_\_int64 \_mm\_cvtsd\_i64(\_\_m128d);
+
+VCVTSD2SI \_\_int64 \_mm\_cvt\_roundsd\_i64(\_\_m128d, int r);
+
+CVTSD2SI \_\_int64 \_mm\_cvtsd\_si64(\_\_m128d);
+
+CVTSD2SI int \_mm\_cvtsd\_si32(\_\_m128d a)
+
+.fi
+.RE
+
+.SH SIMD FLOATING\-POINT EXCEPTIONS
+.PP
+Invalid, Precision
+
+.SH OTHER EXCEPTIONS
+.PP
+VEX\-encoded instructions, see Exceptions Type 3;
+
+.PP
+EVEX\-encoded instructions, see Exceptions Type E3NF.
+
+.TS
+allbox;
+l l 
+l l .
+#UD	T{
+If VEX.vvvv != 1111B or EVEX.vvvv != 1111B.
+T}
+.TE
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+Copyleft TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

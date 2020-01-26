@@ -1,0 +1,287 @@
+.nh
+.TH "X86-VFMSUB132SS-VFMSUB213SS-VFMSUB231SS" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+VFMSUB132SS-VFMSUB213SS-VFMSUB231SS - FUSED MULTIPLY-SUBTRACT OF SCALAR SINGLE- PRECISION FLOATING-POINT VALUES
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp / En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+T{
+VEX.LIG.66.0F38.W0 9B /r VFMSUB132SS xmm1, xmm2, xmm3/m32
+T}
+	A	V/V	FMA	T{
+Multiply scalar single\-precision floating\-point value from xmm1 and xmm3/m32, subtract xmm2 and put result in xmm1.
+T}
+T{
+VEX.LIG.66.0F38.W0 AB /r VFMSUB213SS xmm1, xmm2, xmm3/m32
+T}
+	A	V/V	FMA	T{
+Multiply scalar single\-precision floating\-point value from xmm1 and xmm2, subtract xmm3/m32 and put result in xmm1.
+T}
+T{
+VEX.LIG.66.0F38.W0 BB /r VFMSUB231SS xmm1, xmm2, xmm3/m32
+T}
+	A	V/V	FMA	T{
+Multiply scalar single\-precision floating\-point value from xmm2 and xmm3/m32, subtract xmm1 and put result in xmm1.
+T}
+T{
+EVEX.LIG.66.0F38.W0 9B /r VFMSUB132SS xmm1 {k1}{z}, xmm2, xmm3/m32{er}
+T}
+	B	V/V	AVX512F	T{
+Multiply scalar single\-precision floating\-point value from xmm1 and xmm3/m32, subtract xmm2 and put result in xmm1.
+T}
+T{
+EVEX.LIG.66.0F38.W0 AB /r VFMSUB213SS xmm1 {k1}{z}, xmm2, xmm3/m32{er}
+T}
+	B	V/V	AVX512F	T{
+Multiply scalar single\-precision floating\-point value from xmm1 and xmm2, subtract xmm3/m32 and put result in xmm1.
+T}
+T{
+EVEX.LIG.66.0F38.W0 BB /r VFMSUB231SS xmm1 {k1}{z}, xmm2, xmm3/m32{er}
+T}
+	B	V/V	AVX512F	T{
+Multiply scalar single\-precision floating\-point value from xmm2 and xmm3/m32, subtract xmm1 and put result in xmm1.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+Op/En	Tuple Type	Operand 1	Operand 2	Operand 3	Operand 4
+A	NA	ModRM:reg (r, w)	VEX.vvvv (r)	ModRM:r/m (r)	NA
+B	Tuple1 Scalar	ModRM:reg (r, w)	EVEX.vvvv (r)	ModRM:r/m (r)	NA
+.TE
+
+.SS Description
+.PP
+Performs a SIMD multiply\-subtract computation on the low packed
+single\-precision floating\-point values using three source operands and
+writes the multiply\-subtract result in the destination operand. The
+destination operand is also the first source operand. The second operand
+must be a XMM register. The third source operand can be a XMM register
+or a 32\-bit memory location.
+
+.PP
+VFMSUB132SS: Multiplies the low packed single\-precision floating\-point
+value from the first source operand to the low packed single\-precision
+floating\-point value in the third source operand. From the infinite
+precision intermediate result, subtracts the low packed single\-precision
+floating\-point values in the second source operand, performs rounding
+and stores the resulting packed single\-precision floating\-point value to
+the destination operand (first source operand).
+
+.PP
+VFMSUB213SS: Multiplies the low packed single\-precision floating\-point
+value from the second source operand to the low packed single\-precision
+floating\-point value in the first source operand. From the infinite
+precision intermediate result, subtracts the low packed single\-precision
+floating\-point value in the third source operand, performs rounding and
+stores the resulting packed single\-precision floating\-point value to the
+destination operand (first source operand).
+
+.PP
+VFMSUB231SS: Multiplies the low packed single\-precision floating\-point
+value from the second source to the low packed single\-precision
+floating\-point value in the third source operand. From the infinite
+precision intermediate result, subtracts the low packed single\-precision
+floating\-point value in the first source operand, performs rounding and
+stores the resulting packed single\-precision floating\-point value to the
+destination operand (first source operand).
+
+.PP
+VEX.128 and EVEX encoded version: The destination operand (also first
+source operand) is encoded in reg\_field. The second source operand is
+encoded in VEX.vvvv/EVEX.vvvv. The third source operand is encoded in
+rm\_field. Bits 127:32 of the destination are unchanged. Bits
+MAXVL\-1:128 of the destination register are zeroed.
+
+.PP
+EVEX encoded version: The low doubleword element of the destination is
+updated according to the writemask.
+
+.PP
+Compiler tools may optionally support a complementary mnemonic for each
+instruction mnemonic listed in the opcode/instruction column of the
+summary table. The behavior of the complementary mnemonic in situations
+involving NANs are governed by the definition of the instruction
+mnemonic defined in the opcode/instruction column.
+
+.SS Operation
+.PP
+.RS
+
+.nf
+In the operations below, “*” and “\-” symbols represent multiplication and subtraction with infinite precision inputs and outputs (no
+rounding).
+
+.fi
+.RE
+
+.SS VFMSUB132SS DEST, SRC2, SRC3 (EVEX encoded version)
+.PP
+.RS
+
+.nf
+IF (EVEX.b = 1) and SRC3 *is a register*
+    THEN
+        SET\_RM(EVEX.RC);
+    ELSE
+        SET\_RM(MXCSR.RM);
+FI;
+IF k1[0] or *no writemask*
+    THEN DEST[31:0]←RoundFPControl(DEST[31:0]*SRC3[31:0] \- SRC2[31:0])
+    ELSE
+        IF *merging\-masking* ; merging\-masking
+            THEN *DEST[31:0] remains unchanged*
+            ELSE ; zeroing\-masking
+                THEN DEST[31:0]←0
+        FI;
+FI;
+DEST[127:32] ← DEST[127:32]
+DEST[MAXVL\-1:128] ← 0
+
+.fi
+.RE
+
+.SS VFMSUB213SS DEST, SRC2, SRC3 (EVEX encoded version)
+.PP
+.RS
+
+.nf
+IF (EVEX.b = 1) and SRC3 *is a register*
+    THEN
+        SET\_RM(EVEX.RC);
+    ELSE
+        SET\_RM(MXCSR.RM);
+FI;
+IF k1[0] or *no writemask*
+    THEN DEST[31:0]←RoundFPControl(SRC2[31:0]*DEST[31:0] \- SRC3[31:0])
+    ELSE
+        IF *merging\-masking* ; merging\-masking
+            THEN *DEST[31:0] remains unchanged*
+            ELSE ; zeroing\-masking
+                THEN DEST[31:0]←0
+        FI;
+FI;
+DEST[127:32] ← DEST[127:32]
+DEST[MAXVL\-1:128] ← 0
+
+.fi
+.RE
+
+.SS VFMSUB231SS DEST, SRC2, SRC3 (EVEX encoded version)
+.PP
+.RS
+
+.nf
+IF (EVEX.b = 1) and SRC3 *is a register*
+    THEN
+        SET\_RM(EVEX.RC);
+    ELSE
+        SET\_RM(MXCSR.RM);
+FI;
+IF k1[0] or *no writemask*
+    THEN DEST[31:0]←RoundFPControl(SRC2[31:0]*SRC3[63:0] \- DEST[31:0])
+    ELSE
+        IF *merging\-masking* ; merging\-masking
+            THEN *DEST[31:0] remains unchanged*
+            ELSE ; zeroing\-masking
+                THEN DEST[31:0]←0
+        FI;
+FI;
+DEST[127:32] ← DEST[127:32]
+DEST[MAXVL\-1:128] ← 0
+
+.fi
+.RE
+
+.SS VFMSUB132SS DEST, SRC2, SRC3 (VEX encoded version)
+.PP
+.RS
+
+.nf
+DEST[31:0]←RoundFPControl\_MXCSR(DEST[31:0]*SRC3[31:0] \- SRC2[31:0])
+DEST[127:32] ←DEST[127:32]
+DEST[MAXVL\-1:128] ←0
+
+.fi
+.RE
+
+.SS VFMSUB213SS DEST, SRC2, SRC3 (VEX encoded version)
+.PP
+.RS
+
+.nf
+DEST[31:0]←RoundFPControl\_MXCSR(SRC2[31:0]*DEST[31:0] \- SRC3[31:0])
+DEST[127:32] ←DEST[127:32]
+DEST[MAXVL\-1:128] ←0
+
+.fi
+.RE
+
+.SS VFMSUB231SS DEST, SRC2, SRC3 (VEX encoded version)
+.PP
+.RS
+
+.nf
+DEST[31:0]←RoundFPControl\_MXCSR(SRC2[31:0]*SRC3[31:0] \- DEST[31:0])
+DEST[127:32] ←DEST[127:32]
+DEST[MAXVL\-1:128] ←0
+
+.fi
+.RE
+
+.SS Intel C/C++ Compiler Intrinsic Equivalent
+.PP
+.RS
+
+.nf
+VFMSUBxxxSS \_\_m128 \_mm\_fmsub\_round\_ss(\_\_m128 a, \_\_m128 b, \_\_m128 c, int r);
+
+VFMSUBxxxSS \_\_m128 \_mm\_mask\_fmsub\_ss(\_\_m128 a, \_\_mmask8 k, \_\_m128 b, \_\_m128 c);
+
+VFMSUBxxxSS \_\_m128 \_mm\_maskz\_fmsub\_ss(\_\_mmask8 k, \_\_m128 a, \_\_m128 b, \_\_m128 c);
+
+VFMSUBxxxSS \_\_m128 \_mm\_mask3\_fmsub\_ss(\_\_m128 a, \_\_m128 b, \_\_m128 c, \_\_mmask8 k);
+
+VFMSUBxxxSS \_\_m128 \_mm\_mask\_fmsub\_round\_ss(\_\_m128 a, \_\_mmask8 k, \_\_m128 b, \_\_m128 c, int r);
+
+VFMSUBxxxSS \_\_m128 \_mm\_maskz\_fmsub\_round\_ss(\_\_mmask8 k, \_\_m128 a, \_\_m128 b, \_\_m128 c, int r);
+
+VFMSUBxxxSS \_\_m128 \_mm\_mask3\_fmsub\_round\_ss(\_\_m128 a, \_\_m128 b, \_\_m128 c, \_\_mmask8 k, int r);
+
+VFMSUBxxxSS \_\_m128 \_mm\_fmsub\_ss (\_\_m128 a, \_\_m128 b, \_\_m128 c);
+
+.fi
+.RE
+
+.SS SIMD Floating\-Point Exceptions
+.PP
+Overflow, Underflow, Invalid, Precision, Denormal
+
+.SS Other Exceptions
+.PP
+VEX\-encoded instructions, see Exceptions Type 3.
+
+.PP
+EVEX\-encoded instructions, see Exceptions Type E3.
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+Copyleft TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

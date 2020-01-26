@@ -1,0 +1,315 @@
+.nh
+.TH "X86-XSAVES" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+XSAVES - SAVE PROCESSOR EXTENDED STATES SUPERVISOR
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode / Instruction\fR	\fB\fCOp/En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+NP 0F C7 /5 XSAVES mem	M	V/V	XSS	T{
+Save state components specified by EDX:EAX to mem with compaction, optimizing if possible.
+T}
+T{
+NP REX.W + 0F C7 /5 XSAVES64 mem
+T}
+	M	V/N.E.	XSS	T{
+Save state components specified by EDX:EAX to mem with compaction, optimizing if possible.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l 
+l l l l l .
+Op/En	Operand 1	Operand 2	Operand 3	Operand 4
+M	ModRM:r/m (w)	NA	NA	NA
+.TE
+
+.SH DESCRIPTION
+.PP
+Performs a full or partial save of processor state components to the
+XSAVE area located at the memory address specified by the destination
+operand. The implicit EDX:EAX register pair specifies a 64\-bit
+instruction mask. The specific state components saved correspond to the
+bits set in the requested\-feature bitmap (RFBM), the logicalAND of
+EDX:EAX and the logical\-OR of XCR0 with the IA32\_XSS MSR. XSAVES may be
+executed only if CPL = 0.
+
+.PP
+The format of the XSAVE area is detailed in Section 13.4, “XSAVE Area,”
+of Intel® 64 and IA\-32 Architectures Software Developer’s Manual, Volume
+1.
+
+.PP
+Section 13.11, “Operation of XSAVES,” of Intel® 64 and IA\-32
+Architectures Software Developer’s Manual, Volume 1 provides a detailed
+description of the operation of the XSAVES instruction. The following
+items provide a highlevel outline:
+
+.RS
+.IP \(bu 2
+Execution of XSAVES is similar to that of XSAVEC. XSAVES differs
+from XSAVEC in that it can save state components corresponding to
+bits set in the IA32\_XSS MSR and that it may use the modified
+optimization.
+.IP \(bu 2
+XSAVES saves state component i has not been modified since the last
+execution of XRSTOR or XRSTORS; and (2) this execution of XSAVES
+correspond to that last execution of XRSTOR or XRSTORS as determined
+by XRSTOR\_INFO (see the Operation section below).
+.IP \(bu 2
+XSAVES does not modify bytes 511:464 of the legacy region of the
+XSAVE area (see Section 13.4.1, “Legacy Region of an XSAVE Area” of
+Intel® 64 and IA\-32 Architectures Software Developer’s Manual,
+Volume 1).
+.IP \(bu 2
+XSAVES writes the logical AND of RFBM and XINUSE to the XSTATE\_BV
+field of the XSAVE header.2 (See Section 13.4.2, “XSAVE Header” of
+Intel® 64 and IA\-32 Architectures Software Developer’s Manual,
+Volume 1.) XSAVES sets bit 63 of the XCOMP\_BV field and sets bits
+62:0 of that field to RFBM[62:0]\&. XSAVES does not write to any
+parts of the XSAVE header other than the XSTATE\_BV and XCOMP\_BV
+fields.
+.IP \(bu 2
+XSAVES always uses the compacted format of the extended region of
+the XSAVE area (see Section 13.4.3, “Extended Region of an XSAVE
+Area” of Volume 1).
+
+.RE
+
+.PP
+.RS
+
+.PP
+1\&. There is an exception for state component 1 (SSE). MXCSR is part
+of SSE state, but XINUSE[1] may be 0 even if MXCSR does not have its
+initial value of 1F80H. In this case, the init optimization does not
+apply and XSAVEC will save SSE state as long as RFBM[1] = 1 and the
+modified optimization is not being applied.
+
+.PP
+2\&. There is an exception for state component 1 (SSE). MXCSR is part
+of SSE state, but XINUSE[1] may be 0 even if MXCSR does not have its
+initial value of 1F80H. In this case, XSAVES sets XSTATE\_BV[1] to 1
+as long as RFBM[1] = 1.
+
+.RE
+
+.PP
+Use of a destination operand not aligned to 64\-byte boundary (in either
+64\-bit or 32\-bit modes) results in a general\-protection (#GP)
+exception. In 64\-bit mode, the upper 32 bits of RDX and RAX are ignored.
+
+.PP
+See Section 13.6, “Processor Tracking of XSAVE\-Managed State,” of Intel®
+64 and IA\-32 Architectures Software Developer’s Manual, Volume 1 for
+discussion of the bitmap XMODIFIED and of the quantity XRSTOR\_INFO.
+
+.SH OPERATION
+.PP
+.RS
+
+.nf
+RFBM ← (XCR0 OR IA32\_XSS) AND EDX:EAX;
+                                /* bitwise logical OR and AND */
+IF in VMX non\-root operation
+    THEN VMXNR ← 1;
+    ELSE VMXNR ← 0;
+FI;
+LAXA ← linear address of XSAVE area;
+COMPMASK ← RFBM OR 80000000\_00000000H;
+TO\_BE\_SAVED ← RFBM AND XINUSE;
+IF XRSTOR\_INFO = CPL,VMXNR,LAXA,COMPMASK
+    THEN TO\_BE\_SAVED ← TO\_BE\_SAVED AND XMODIFIED;
+FI;
+If MXCSR ≠ 1F80H AND RFBM[1]
+    TO\_BE\_SAVED[1] = 1;
+FI;
+IF TO\_BE\_SAVED[0] = 1
+    THEN store x87 state into legacy region of XSAVE area;
+FI;
+IF TO\_BE\_SAVED[1] = 1
+    THEN store SSE state into legacy region of XSAVE area; // this step saves the XMM registers, MXCSR, and MXCSR\_MASK
+FI;
+NEXT\_FEATURE\_OFFSET = 576;
+                            // Legacy area and XSAVE header consume 576 bytes
+FOR i ← 2 TO 62
+    IF RFBM[i] = 1
+        THEN
+            IF TO\_BE\_SAVED[i]
+                THEN
+                    save XSAVE state component i at offset NEXT\_FEATURE\_OFFSET from base of XSAVE area;
+                    IF i = 8 // state component 8 is for PT state
+                        THEN IA32\_RTIT\_CTL.TraceEn[bit 0] ← 0;
+                    FI;
+            FI;
+            NEXT\_FEATURE\_OFFSET = NEXT\_FEATURE\_OFFSET + n (n enumerated by CPUID(EAX=0DH,ECX=i):EAX);
+    FI;
+ENDFOR;
+XSTATE\_BV field in XSAVE header ← TO\_BE\_SAVED;
+XCOMP\_BV field in XSAVE header ← COMPMASK;
+
+.fi
+.RE
+
+.SH FLAGS AFFECTED
+.PP
+None.
+
+.SH INTEL C/C++ COMPILER INTRINSIC EQUIVALENT
+.PP
+.RS
+
+.nf
+XSAVES: void \_xsaves( void * , unsigned \_\_int64);
+
+XSAVES64: void \_xsaves64( void * , unsigned \_\_int64);
+
+.fi
+.RE
+
+.SH PROTECTED MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP(0)	If CPL 
+\&gt;
+ 0.
+	T{
+If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit.
+T}
+	T{
+If a memory operand is not aligned on a 64\-byte boundary, regardless of segment.
+T}
+#SS(0)	T{
+If a memory operand effective address is outside the SS segment limit.
+T}
+#PF(fault\-code)	If a page fault occurs.
+#NM	If CR0.TS
+[
+bit 3
+]
+ = 1.
+#UD	If CPUID.01H:ECX.XSAVE
+[
+bit 26
+]
+T{
+ = 0 or CPUID.(EAX=0DH,ECX=1):EAX.XSS
+T}
+[
+bit 3
+]
+ = 0.
+	If CR4.OSXSAVE
+[
+bit 18
+]
+ = 0.
+	If the LOCK prefix is used.
+.TE
+
+.SH REAL\-ADDRESS MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP	T{
+If a memory operand is not aligned on a 64\-byte boundary, regardless of segment.
+T}
+	T{
+If any part of the operand lies outside the effective address space from 0 to FFFFH.
+T}
+#NM	If CR0.TS
+[
+bit 3
+]
+ = 1.
+#UD	If CPUID.01H:ECX.XSAVE
+[
+bit 26
+]
+T{
+ = 0 or CPUID.(EAX=0DH,ECX=1):EAX.XSS
+T}
+[
+bit 3
+]
+ = 0.
+	If CR4.OSXSAVE
+[
+bit 18
+]
+ = 0.
+	If the LOCK prefix is used.
+.TE
+
+.SH VIRTUAL\-8086 MODE EXCEPTIONS
+.PP
+Same exceptions as in protected mode.
+
+.SH COMPATIBILITY MODE EXCEPTIONS
+.PP
+Same exceptions as in protected mode.
+
+.SH 64\-BIT MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP(0)	If CPL 
+\&gt;
+ 0.
+	T{
+If the memory address is in a non\-canonical form.
+T}
+	T{
+If a memory operand is not aligned on a 64\-byte boundary, regardless of segment.
+T}
+#SS(0)	T{
+If a memory address referencing the SS segment is in a non\-canonical form.
+T}
+#PF(fault\-code)	If a page fault occurs.
+#NM	If CR0.TS
+[
+bit 3
+]
+ = 1.
+#UD	If CPUID.01H:ECX.XSAVE
+[
+bit 26
+]
+T{
+ = 0 or CPUID.(EAX=0DH,ECX=1):EAX.XSS
+T}
+[
+bit 3
+]
+ = 0.
+	If CR4.OSXSAVE
+[
+bit 18
+]
+ = 0.
+	If the LOCK prefix is used.
+.TE
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+Copyleft TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

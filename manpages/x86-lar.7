@@ -1,0 +1,296 @@
+.nh
+.TH "X86-LAR" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+LAR - LOAD ACCESS RIGHTS BYTE
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+\fB\fCOpcode\fR	\fB\fCInstruction\fR	\fB\fCOp/En\fR	\fB\fC64\-Bit Mode\fR	\fB\fCCompat/Leg Mode\fR	\fB\fCDescription\fR
+0F 02 /r	LAR r16, r16/m16	RM	Valid	Valid	r16/m16
+0F 02 /r	LAR reg, r32/m161	RM	Valid	Valid	r32/m16
+.TE
+
+.PP
+.RS
+
+.PP
+1\&. For all loads (regardless of source or destination sizing) only
+bits 16\-0 are used. Other bits are ignored.
+
+.RE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l 
+l l l l l .
+Op/En	Operand 1	Operand 2	Operand 3	Operand 4
+RM	ModRM:reg (w)	ModRM:r/m (r)	NA	NA
+.TE
+
+.SH DESCRIPTION
+.PP
+Loads the access rights from the segment descriptor specified by the
+second operand (source operand) into the first operand (destination
+operand) and sets the ZF flag in the flag register. The source operand
+(which can be a register or a memory location) contains the segment
+selector for the segment descriptor being accessed. If the source
+operand is a memory address, only 16 bits of data are accessed. The
+destination operand is a general\-purpose register.
+
+.PP
+The processor performs access checks as part of the loading process.
+Once loaded in the destination register, software can perform additional
+checks on the access rights information.
+
+.PP
+The access rights for a segment descriptor include fields located in the
+second doubleword (bytes 4–7) of the segment descriptor. The following
+fields are loaded by the LAR instruction:
+
+.RS
+.IP \(bu 2
+Bits 7:0 are returned as 0
+.IP \(bu 2
+Bits 11:8 return the segment type.
+.IP \(bu 2
+Bit 12 returns the S flag.
+.IP \(bu 2
+Bits 14:13 return the DPL.
+.IP \(bu 2
+Bit 15 returns the P flag.
+.IP \(bu 2
+The following fields are returned only if the operand size is
+greater than 16 bits:
+.RS
+.IP \(bu 2
+Bits 19:16 are undefined.
+.IP \(bu 2
+Bits 19:16 are undefined.
+.IP \(bu 2
+Bit 20 returns the software\-available bit in the descriptor.
+.IP \(bu 2
+Bit 20 returns the software\-available bit in the descriptor.
+.IP \(bu 2
+Bit 21 returns the L flag.
+.IP \(bu 2
+Bit 21 returns the L flag.
+.IP \(bu 2
+Bit 22 returns the D/B flag.
+.IP \(bu 2
+Bit 22 returns the D/B flag.
+.IP \(bu 2
+Bit 23 returns the G flag.
+.IP \(bu 2
+Bit 23 returns the G flag.
+.IP \(bu 2
+Bits 31:24 are returned as 0.
+.IP \(bu 2
+Bits 31:24 are returned as 0.
+
+.RE
+
+
+.RE
+
+.PP
+This instruction performs the following checks before it loads the
+access rights in the destination register:
+
+.RS
+.IP \(bu 2
+Checks that the segment selector is not NULL.
+.IP \(bu 2
+Checks that the segment selector points to a descriptor that is
+within the limits of the GDT or LDT being accessed
+.IP \(bu 2
+Checks that the descriptor type is valid for this instruction. All
+code and data segment descriptors are valid for (can be accessed
+with) the LAR instruction. The valid system segment and gate
+descriptor types are given in Table 3\-53.
+.IP \(bu 2
+If the segment is not a conforming code segment, it checks that the
+specified segment descriptor is visible at the CPL (that is, if the
+CPL and the RPL of the segment selector are less than or equal to
+the DPL of the segment selector).
+
+.RE
+
+.PP
+If the segment descriptor cannot be accessed or is an invalid type for
+the instruction, the ZF flag is cleared and no access rights are loaded
+in the destination operand.
+
+.PP
+The LAR instruction can only be executed in protected mode and IA\-32e
+mode.
+
+.PP
+Type
+
+.PP
+Protected Mode
+
+.PP
+IA\-32e Mode
+
+.PP
+Name
+
+.PP
+Valid
+
+.PP
+Name
+
+.PP
+Valid
+
+.PP
+0 1 2 3 4 5 6 7 8 9 A B C D E F
+
+.PP
+Reserved Available 16\-bit TSS LDT Busy 16\-bit TSS 16\-bit call gate
+16\-bit/32\-bit task gate 16\-bit interrupt gate 16\-bit trap gate Reserved
+Available 32\-bit TSS Reserved Busy 32\-bit TSS 32\-bit call gate Reserved
+32\-bit interrupt gate 32\-bit trap gate
+
+.PP
+No Yes Yes Yes Yes Yes No No No Yes No Yes Yes No No No
+
+.PP
+Reserved Reserved LDT Reserved Reserved Reserved Reserved Reserved
+Reserved Available 64\-bit TSS Reserved Busy 64\-bit TSS 64\-bit call gate
+Reserved 64\-bit interrupt gate 64\-bit trap gate
+
+.PP
+No No Yes No No No No No No Yes No Yes Yes No No No
+
+.PP
+Table 3\-53. Segment and Gate Types
+
+.SH OPERATION
+.PP
+.RS
+
+.nf
+IF Offset(SRC) > descriptor table limit
+    THEN
+        ZF ← 0;
+    ELSE
+        SegmentDescriptor ← descriptor referenced by SRC;
+        IF SegmentDescriptor(Type) ≠ conforming code segment
+        and (CPL > DPL) or (RPL > DPL)
+        or SegmentDescriptor(Type) is not valid for instruction
+            THEN
+                ZF ← 0;
+            ELSE
+                DEST ← access rights from SegmentDescriptor as given in Description section;
+                ZF ← 1;
+        FI;
+FI;
+
+.fi
+.RE
+
+.SH FLAGS AFFECTED
+.PP
+The ZF flag is set to 1 if the access rights are loaded successfully;
+otherwise, it is cleared to 0.
+
+.SH PROTECTED MODE EXCEPTIONS
+.PP
+#GP(0)
+
+.PP
+If a memory operand effective address is outside the CS, DS, ES, FS, or
+GS segment limit.
+
+.PP
+If the DS, ES, FS, or GS register is used to access memory and it
+contains a NULL segment selector.
+
+.PP
+#SS(0)
+
+.PP
+If a memory operand effective address is outside the SS segment limit.
+
+.PP
+#PF(fault\-code)
+
+.PP
+If a page fault occurs.
+
+.PP
+#AC(0)
+
+.PP
+If alignment checking is enabled and the memory operand effective
+address is unaligned while the current privilege level is 3.
+
+.PP
+#UD
+
+.PP
+If the LOCK prefix is used.
+
+.SH REAL\-ADDRESS MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#UD	T{
+The LAR instruction is not recognized in real\-address mode.
+T}
+.TE
+
+.SH VIRTUAL\-8086 MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#UD	T{
+The LAR instruction cannot be executed in virtual\-8086 mode.
+T}
+.TE
+
+.SH COMPATIBILITY MODE EXCEPTIONS
+.PP
+Same exceptions as in protected mode.
+
+.SH 64\-BIT MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#SS(0)	T{
+If the memory operand effective address referencing the SS segment is in a non\-canonical form.
+T}
+#GP(0)	T{
+If the memory operand effective address is in a non\-canonical form.
+T}
+#PF(fault\-code)	If a page fault occurs.
+#AC(0)	T{
+If alignment checking is enabled and the memory operand effective address is unaligned while the current privilege level is 3.
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+Copyleft TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

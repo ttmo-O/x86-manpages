@@ -1,0 +1,318 @@
+.nh
+.TH "X86-CMOVCC" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+CMOVCC - CONDITIONAL MOVE
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+\fB\fCOpcode\fR	\fB\fCInstruction\fR	\fB\fCOp/En\fR	\fB\fC64\-Bit Mode\fR	\fB\fCCompat/Leg Mode\fR	\fB\fCDescription\fR
+0F 47 /r	CMOVA r16, r/m16	RM	Valid	Valid	Move if above (CF=0 and ZF=0).
+0F 47 /r	CMOVA r32, r/m32	RM	Valid	Valid	Move if above (CF=0 and ZF=0).
+REX.W + 0F 47 /r	CMOVA r64, r/m64	RM	Valid	N.E.	Move if above (CF=0 and ZF=0).
+0F 43 /r	CMOVAE r16, r/m16	RM	Valid	Valid	Move if above or equal (CF=0).
+0F 43 /r	CMOVAE r32, r/m32	RM	Valid	Valid	Move if above or equal (CF=0).
+REX.W + 0F 43 /r	CMOVAE r64, r/m64	RM	Valid	N.E.	Move if above or equal (CF=0).
+0F 42 /r	CMOVB r16, r/m16	RM	Valid	Valid	Move if below (CF=1).
+0F 42 /r	CMOVB r32, r/m32	RM	Valid	Valid	Move if below (CF=1).
+REX.W + 0F 42 /r	CMOVB r64, r/m64	RM	Valid	N.E.	Move if below (CF=1).
+0F 46 /r	CMOVBE r16, r/m16	RM	Valid	Valid	T{
+Move if below or equal (CF=1 or ZF=1).
+T}
+0F 46 /r	CMOVBE r32, r/m32	RM	Valid	Valid	T{
+Move if below or equal (CF=1 or ZF=1).
+T}
+REX.W + 0F 46 /r	CMOVBE r64, r/m64	RM	Valid	N.E.	T{
+Move if below or equal (CF=1 or ZF=1).
+T}
+0F 42 /r	CMOVC r16, r/m16	RM	Valid	Valid	Move if carry (CF=1).
+0F 42 /r	CMOVC r32, r/m32	RM	Valid	Valid	Move if carry (CF=1).
+REX.W + 0F 42 /r	CMOVC r64, r/m64	RM	Valid	N.E.	Move if carry (CF=1).
+0F 44 /r	CMOVE r16, r/m16	RM	Valid	Valid	Move if equal (ZF=1).
+0F 44 /r	CMOVE r32, r/m32	RM	Valid	Valid	Move if equal (ZF=1).
+REX.W + 0F 44 /r	CMOVE r64, r/m64	RM	Valid	N.E.	Move if equal (ZF=1).
+0F 4F /r	CMOVG r16, r/m16	RM	Valid	Valid	T{
+Move if greater (ZF=0 and SF=OF).
+T}
+0F 4F /r	CMOVG r32, r/m32	RM	Valid	Valid	T{
+Move if greater (ZF=0 and SF=OF).
+T}
+REX.W + 0F 4F /r	CMOVG r64, r/m64	RM	V/N.E.	NA	T{
+Move if greater (ZF=0 and SF=OF).
+T}
+0F 4D /r	CMOVGE r16, r/m16	RM	Valid	Valid	T{
+Move if greater or equal (SF=OF).
+T}
+0F 4D /r	CMOVGE r32, r/m32	RM	Valid	Valid	T{
+Move if greater or equal (SF=OF).
+T}
+REX.W + 0F 4D /r	CMOVGE r64, r/m64	RM	Valid	N.E.	T{
+Move if greater or equal (SF=OF).
+T}
+0F 4C /r	CMOVL r16, r/m16	RM	Valid	Valid	Move if less (SF≠ OF).
+0F 4C /r	CMOVL r32, r/m32	RM	Valid	Valid	Move if less (SF≠ OF).
+REX.W + 0F 4C /r	CMOVL r64, r/m64	RM	Valid	N.E.	Move if less (SF≠ OF).
+0F 4E /r	CMOVLE r16, r/m16	RM	Valid	Valid	T{
+Move if less or equal (ZF=1 or SF≠ OF).
+T}
+0F 4E /r	CMOVLE r32, r/m32	RM	Valid	Valid	T{
+Move if less or equal (ZF=1 or SF≠ OF).
+T}
+REX.W + 0F 4E /r	CMOVLE r64, r/m64	RM	Valid	N.E.	T{
+Move if less or equal (ZF=1 or SF≠ OF).
+T}
+0F 46 /r	CMOVNA r16, r/m16	RM	Valid	Valid	T{
+Move if not above (CF=1 or ZF=1).
+T}
+0F 46 /r	CMOVNA r32, r/m32	RM	Valid	Valid	T{
+Move if not above (CF=1 or ZF=1).
+T}
+REX.W + 0F 46 /r	CMOVNA r64, r/m64	RM	Valid	N.E.	T{
+Move if not above (CF=1 or ZF=1).
+T}
+0F 42 /r	CMOVNAE r16, r/m16	RM	Valid	Valid	T{
+Move if not above or equal (CF=1).
+T}
+0F 42 /r	CMOVNAE r32, r/m32	RM	Valid	Valid	T{
+Move if not above or equal (CF=1).
+T}
+REX.W + 0F 42 /r	CMOVNAE r64, r/m64	RM	Valid	N.E.	T{
+Move if not above or equal (CF=1).
+T}
+0F 43 /r	CMOVNB r16, r/m16	RM	Valid	Valid	Move if not below (CF=0).
+0F 43 /r	CMOVNB r32, r/m32	RM	Valid	Valid	Move if not below (CF=0).
+REX.W + 0F 43 /r	CMOVNB r64, r/m64	RM	Valid	N.E.	Move if not below (CF=0).
+0F 47 /r	CMOVNBE r16, r/m16	RM	Valid	Valid	T{
+Move if not below or equal (CF=0 and ZF=0).
+T}
+0F 47 /r	CMOVNBE r32, r/m32	RM	Valid	Valid	T{
+Move if not below or equal (CF=0 and ZF=0).
+T}
+REX.W + 0F 47 /r	CMOVNBE r64, r/m64	RM	Valid	N.E.	T{
+Move if not below or equal (CF=0 and ZF=0).
+T}
+0F 43 /r	CMOVNC r16, r/m16	RM	Valid	Valid	Move if not carry (CF=0).
+0F 43 /r	CMOVNC r32, r/m32	RM	Valid	Valid	Move if not carry (CF=0).
+REX.W + 0F 43 /r	CMOVNC r64, r/m64	RM	Valid	N.E.	Move if not carry (CF=0).
+0F 45 /r	CMOVNE r16, r/m16	RM	Valid	Valid	Move if not equal (ZF=0).
+0F 45 /r	CMOVNE r32, r/m32	RM	Valid	Valid	Move if not equal (ZF=0).
+REX.W + 0F 45 /r	CMOVNE r64, r/m64	RM	Valid	N.E.	Move if not equal (ZF=0).
+0F 4E /r	CMOVNG r16, r/m16	RM	Valid	Valid	T{
+Move if not greater (ZF=1 or SF≠ OF).
+T}
+0F 4E /r	CMOVNG r32, r/m32	RM	Valid	Valid	T{
+Move if not greater (ZF=1 or SF≠ OF).
+T}
+REX.W + 0F 4E /r	CMOVNG r64, r/m64	RM	Valid	N.E.	T{
+Move if not greater (ZF=1 or SF≠ OF).
+T}
+0F 4C /r	CMOVNGE r16, r/m16	RM	Valid	Valid	T{
+Move if not greater or equal (SF≠ OF).
+T}
+0F 4C /r	CMOVNGE r32, r/m32	RM	Valid	Valid	T{
+Move if not greater or equal (SF≠ OF).
+T}
+REX.W + 0F 4C /r	CMOVNGE r64, r/m64	RM	Valid	N.E.	T{
+Move if not greater or equal (SF≠ OF).
+T}
+0F 4D /r	CMOVNL r16, r/m16	RM	Valid	Valid	Move if not less (SF=OF).
+0F 4D /r	CMOVNL r32, r/m32	RM	Valid	Valid	Move if not less (SF=OF).
+REX.W + 0F 4D /r	CMOVNL r64, r/m64	RM	Valid	N.E.	Move if not less (SF=OF).
+0F 4F /r	CMOVNLE r16, r/m16	RM	Valid	Valid	T{
+Move if not less or equal (ZF=0 and SF=OF).
+T}
+0F 4F /r	CMOVNLE r32, r/m32	RM	Valid	Valid	T{
+Move if not less or equal (ZF=0 and SF=OF).
+T}
+REX.W + 0F 4F /r	CMOVNLE r64, r/m64	RM	Valid	N.E.	T{
+Move if not less or equal (ZF=0 and SF=OF).
+T}
+0F 41 /r	CMOVNO r16, r/m16	RM	Valid	Valid	Move if not overflow (OF=0).
+0F 41 /r	CMOVNO r32, r/m32	RM	Valid	Valid	Move if not overflow (OF=0).
+REX.W + 0F 41 /r	CMOVNO r64, r/m64	RM	Valid	N.E.	Move if not overflow (OF=0).
+0F 4B /r	CMOVNP r16, r/m16	RM	Valid	Valid	Move if not parity (PF=0).
+0F 4B /r	CMOVNP r32, r/m32	RM	Valid	Valid	Move if not parity (PF=0).
+REX.W + 0F 4B /r	CMOVNP r64, r/m64	RM	Valid	N.E.	Move if not parity (PF=0).
+0F 49 /r	CMOVNS r16, r/m16	RM	Valid	Valid	Move if not sign (SF=0).
+0F 49 /r	CMOVNS r32, r/m32	RM	Valid	Valid	Move if not sign (SF=0).
+REX.W + 0F 49 /r	CMOVNS r64, r/m64	RM	Valid	N.E.	Move if not sign (SF=0).
+0F 45 /r	CMOVNZ r16, r/m16	RM	Valid	Valid	Move if not zero (ZF=0).
+0F 45 /r	CMOVNZ r32, r/m32	RM	Valid	Valid	Move if not zero (ZF=0).
+REX.W + 0F 45 /r	CMOVNZ r64, r/m64	RM	Valid	N.E.	Move if not zero (ZF=0).
+0F 40 /r	CMOVO r16, r/m16	RM	Valid	Valid	Move if overflow (OF=1).
+0F 40 /r	CMOVO r32, r/m32	RM	Valid	Valid	Move if overflow (OF=1).
+REX.W + 0F 40 /r	CMOVO r64, r/m64	RM	Valid	N.E.	Move if overflow (OF=1).
+0F 4A /r	CMOVP r16, r/m16	RM	Valid	Valid	Move if parity (PF=1).
+0F 4A /r	CMOVP r32, r/m32	RM	Valid	Valid	Move if parity (PF=1).
+REX.W + 0F 4A /r	CMOVP r64, r/m64	RM	Valid	N.E.	Move if parity (PF=1).
+0F 4A /r	CMOVPE r16, r/m16	RM	Valid	Valid	Move if parity even (PF=1).
+0F 4A /r	CMOVPE r32, r/m32	RM	Valid	Valid	Move if parity even (PF=1).
+REX.W + 0F 4A /r	CMOVPE r64, r/m64	RM	Valid	N.E.	Move if parity even (PF=1).
+0F 4B /r	CMOVPO r16, r/m16	RM	Valid	Valid	Move if parity odd (PF=0).
+0F 4B /r	CMOVPO r32, r/m32	RM	Valid	Valid	Move if parity odd (PF=0).
+REX.W + 0F 4B /r	CMOVPO r64, r/m64	RM	Valid	N.E.	Move if parity odd (PF=0).
+0F 48 /r	CMOVS r16, r/m16	RM	Valid	Valid	Move if sign (SF=1).
+0F 48 /r	CMOVS r32, r/m32	RM	Valid	Valid	Move if sign (SF=1).
+REX.W + 0F 48 /r	CMOVS r64, r/m64	RM	Valid	N.E.	Move if sign (SF=1).
+0F 44 /r	CMOVZ r16, r/m16	RM	Valid	Valid	Move if zero (ZF=1).
+0F 44 /r	CMOVZ r32, r/m32	RM	Valid	Valid	Move if zero (ZF=1).
+REX.W + 0F 44 /r	CMOVZ r64, r/m64	RM	Valid	N.E.	Move if zero (ZF=1).
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l 
+l l l l l .
+Op/En	Operand 1	Operand 2	Operand 3	Operand 4
+RM	ModRM:reg (r, w)	ModRM:r/m (r)	NA	NA
+.TE
+
+.SH DESCRIPTION
+.PP
+The CMOVcc instruction.
+
+.PP
+These instructions can move 16\-bit, 32\-bit or 64\-bit values from memory
+to a general\-purpose register or from one general\-purpose register to
+another. Conditional moves of 8\-bit register operands are not supported.
+
+.PP
+The condition for each CMOVcc mnemonic is given in the description
+column of the above table. The terms “less” and “greater” are used for
+comparisons of signed integers and the terms “above” and “below” are
+used for unsigned integers.
+
+.PP
+Because a particular state of the status flags can sometimes be
+interpreted in two ways, two mnemonics are defined for some opcodes. For
+example, the CMOVA (conditional move if above) instruction and the
+CMOVNBE (conditional move if not below or equal) instruction are
+alternate mnemonics for the opcode 0F 47H.
+
+.PP
+The CMOVcc instructions are supported by checking the processor’s
+feature information with the CPUID instruction (see “CPUID—CPU
+Identification” in this chapter).
+
+.PP
+In 64\-bit mode, the instruction’s default operation size is 32 bits. Use
+of the REX.R prefix permits access to additional registers (R8\-R15). Use
+of the REX.W prefix promotes operation to 64 bits. See the summary chart
+at the beginning of this section for encoding data and limits.
+
+.SH OPERATION
+.PP
+.RS
+
+.nf
+temp ← SRC
+IF condition TRUE
+    THEN
+        DEST ← temp;
+    FI;
+ELSE
+    IF (OperandSize = 32 and IA\-32e mode active)
+        THEN
+            DEST[63:32] ← 0;
+    FI;
+FI;
+
+.fi
+.RE
+
+.SH FLAGS AFFECTED
+.PP
+None.
+
+.SH PROTECTED MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP(0)	T{
+If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit.
+T}
+	T{
+If the DS, ES, FS, or GS register contains a NULL segment selector.
+T}
+#SS(0)	T{
+If a memory operand effective address is outside the SS segment limit.
+T}
+#PF(fault\-code)	If a page fault occurs.
+#AC(0)	T{
+If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3.
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH REAL\-ADDRESS MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP	T{
+If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit.
+T}
+#SS	T{
+If a memory operand effective address is outside the SS segment limit.
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH VIRTUAL\-8086 MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP(0)	T{
+If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit.
+T}
+#SS(0)	T{
+If a memory operand effective address is outside the SS segment limit.
+T}
+#PF(fault\-code)	If a page fault occurs.
+#AC(0)	T{
+If alignment checking is enabled and an unaligned memory reference is made.
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH COMPATIBILITY MODE EXCEPTIONS
+.PP
+Same exceptions as in protected mode.
+
+.SH 64\-BIT MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#SS(0)	T{
+If a memory address referencing the SS segment is in a non\-canonical form.
+T}
+#GP(0)	T{
+If the memory address is in a non\-canonical form.
+T}
+#PF(fault\-code)	If a page fault occurs.
+#AC(0)	T{
+If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3.
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+Copyleft TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

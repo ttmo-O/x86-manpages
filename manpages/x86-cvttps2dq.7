@@ -1,0 +1,267 @@
+.nh
+.TH "X86-CVTTPS2DQ" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+CVTTPS2DQ - CONVERT WITH TRUNCATION PACKED SINGLE-PRECISION FLOATING-POINT VALUES TO PACKED SIGNED DOUBLEWORD INTEGER VALUES
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp/En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+T{
+F3 0F 5B /r CVTTPS2DQ xmm1, xmm2/m128
+T}
+	A	V/V	SSE2	T{
+Convert four packed single\-precision floating\-point values from xmm2/mem to four packed signed doubleword values in xmm1 using truncation.
+T}
+T{
+VEX.128.F3.0F.WIG 5B /r VCVTTPS2DQ xmm1, xmm2/m128
+T}
+	A	V/V	AVX	T{
+Convert four packed single\-precision floating\-point values from xmm2/mem to four packed signed doubleword values in xmm1 using truncation.
+T}
+T{
+VEX.256.F3.0F.WIG 5B /r VCVTTPS2DQ ymm1, ymm2/m256
+T}
+	A	V/V	AVX	T{
+Convert eight packed single\-precision floating\-point values from ymm2/mem to eight packed signed doubleword values in ymm1 using truncation.
+T}
+T{
+EVEX.128.F3.0F.W0 5B /r VCVTTPS2DQ xmm1 {k1}{z}, xmm2/m128/m32bcst
+T}
+	B	V/V	AVX512VL AVX512F	T{
+Convert four packed single precision floating\-point values from xmm2/m128/m32bcst to four packed signed doubleword values in xmm1 using truncation subject to writemask k1.
+T}
+T{
+EVEX.256.F3.0F.W0 5B /r VCVTTPS2DQ ymm1 {k1}{z}, ymm2/m256/m32bcst
+T}
+	B	V/V	AVX512VL AVX512F	T{
+Convert eight packed single precision floating\-point values from ymm2/m256/m32bcst to eight packed signed doubleword values in ymm1 using truncation subject to writemask k1.
+T}
+T{
+EVEX.512.F3.0F.W0 5B /r VCVTTPS2DQ zmm1 {k1}{z}, zmm2/m512/m32bcst {sae}
+T}
+	B	V/V	AVX512F	T{
+Convert sixteen packed single\-precision floating\-point values from zmm2/m512/m32bcst to sixteen packed signed doubleword values in zmm1 using truncation subject to writemask k1.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+Op/En	Tuple Type	Operand 1	Operand 2	Operand 3	Operand 4
+A	NA	ModRM:reg (w)	ModRM:r/m (r)	NA	NA
+B	Full	ModRM:reg (w)	ModRM:r/m (r)	NA	NA
+.TE
+
+.SH DESCRIPTION
+.PP
+Converts four, eight or sixteen packed single\-precision floating\-point
+values in the source operand to four, eight or sixteen signed doubleword
+integers in the destination operand.
+
+.PP
+When a conversion is inexact, a truncated (round toward zero) value is
+returned. If a converted result is larger than the maximum signed
+doubleword integer, the floating\-point invalid exception is raised, and
+if this exception is masked, the indefinite integer value (80000000H) is
+returned.
+
+.PP
+EVEX encoded versions: The source operand is a ZMM/YMM/XMM register, a
+512/256/128\-bit memory location or a 512/256/128\-bit vector broadcasted
+from a 32\-bit memory location. The destination operand is a ZMM/YMM/XMM
+register conditionally updated with writemask k1.
+
+.PP
+VEX.256 encoded version: The source operand is a YMM register or 256\-
+bit memory location. The destination operand is a YMM register. The
+upper bits (MAXVL\-1:256) of the corresponding ZMM register destination
+are zeroed.
+
+.PP
+VEX.128 encoded version: The source operand is an XMM register or 128\-
+bit memory location. The destination operand is a XMM register. The
+upper bits (MAXVL\-1:128) of the corresponding ZMM register destination
+are zeroed.
+
+.PP
+128\-bit Legacy SSE version: The source operand is an XMM register or
+128\- bit memory location. The destination operand is an XMM register.
+The upper bits (MAXVL\-1:128) of the corresponding ZMM register
+destination are unmodified.
+
+.PP
+Note: VEX.vvvv and EVEX.vvvv are reserved and must be 1111b otherwise
+instructions will #UD.
+
+.SH OPERATION
+.SS VCVTTPS2DQ (EVEX encoded versions) when src operand is a register
+.PP
+.RS
+
+.nf
+(KL, VL) = (4, 128), (8, 256), (16, 512)
+FOR j←0 TO KL\-1
+    i←j * 32
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+31:i]←
+            Convert\_Single\_Precision\_Floating\_Point\_To\_Integer\_Truncate(SRC[i+31:i])
+        ELSE
+            IF *merging\-masking* ; merging\-masking
+                THEN *DEST[i+31:i] remains unchanged*
+                ELSE ; zeroing\-masking
+                    DEST[i+31:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS VCVTTPS2DQ (EVEX encoded versions) when src operand is a memory source
+.PP
+.RS
+
+.nf
+(KL, VL) = (4, 128), (8, 256), (16, 512)
+FOR j←0 TO 15
+    i←j * 32
+    IF k1[j] OR *no writemask*
+        THEN
+            IF (EVEX.b = 1)
+                THEN
+                    DEST[i+31:i] ←
+            Convert\_Single\_Precision\_Floating\_Point\_To\_Integer\_Truncate(SRC[31:0])
+                ELSE
+                    DEST[i+31:i] ←
+            Convert\_Single\_Precision\_Floating\_Point\_To\_Integer\_Truncate(SRC[i+31:i])
+            FI;
+        ELSE
+            IF *merging\-masking* ; merging\-masking
+                THEN *DEST[i+31:i] remains unchanged*
+                ELSE ; zeroing\-masking
+                    DEST[i+31:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS VCVTTPS2DQ (VEX.256 encoded version)
+.PP
+.RS
+
+.nf
+DEST[31:0] ←Convert\_Single\_Precision\_Floating\_Point\_To\_Integer\_Truncate(SRC[31:0])
+DEST[63:32] ←Convert\_Single\_Precision\_Floating\_Point\_To\_Integer\_Truncate(SRC[63:32])
+DEST[95:64] ←Convert\_Single\_Precision\_Floating\_Point\_To\_Integer\_Truncate(SRC[95:64])
+DEST[127:96] ←Convert\_Single\_Precision\_Floating\_Point\_To\_Integer\_Truncate(SRC[127:96)
+DEST[159:128] ←Convert\_Single\_Precision\_Floating\_Point\_To\_Integer\_Truncate(SRC[159:128])
+DEST[191:160] ←Convert\_Single\_Precision\_Floating\_Point\_To\_Integer\_Truncate(SRC[191:160])
+DEST[223:192] ←Convert\_Single\_Precision\_Floating\_Point\_To\_Integer\_Truncate(SRC[223:192])
+DEST[255:224] ←Convert\_Single\_Precision\_Floating\_Point\_To\_Integer\_Truncate(SRC[255:224])
+
+.fi
+.RE
+
+.SS VCVTTPS2DQ (VEX.128 encoded version)
+.PP
+.RS
+
+.nf
+DEST[31:0] ←Convert\_Single\_Precision\_Floating\_Point\_To\_Integer\_Truncate(SRC[31:0])
+DEST[63:32] ←Convert\_Single\_Precision\_Floating\_Point\_To\_Integer\_Truncate(SRC[63:32])
+DEST[95:64] ←Convert\_Single\_Precision\_Floating\_Point\_To\_Integer\_Truncate(SRC[95:64])
+DEST[127:96] ←Convert\_Single\_Precision\_Floating\_Point\_To\_Integer\_Truncate(SRC[127:96])
+DEST[MAXVL\-1:128] ←0
+
+.fi
+.RE
+
+.SS CVTTPS2DQ (128\-bit Legacy SSE version)
+.PP
+.RS
+
+.nf
+DEST[31:0] ←Convert\_Single\_Precision\_Floating\_Point\_To\_Integer\_Truncate(SRC[31:0])
+DEST[63:32] ←Convert\_Single\_Precision\_Floating\_Point\_To\_Integer\_Truncate(SRC[63:32])
+DEST[95:64] ←Convert\_Single\_Precision\_Floating\_Point\_To\_Integer\_Truncate(SRC[95:64])
+DEST[127:96] ←Convert\_Single\_Precision\_Floating\_Point\_To\_Integer\_Truncate(SRC[127:96])
+DEST[MAXVL\-1:128] (unmodified)
+
+.fi
+.RE
+
+.SH INTEL C/C++ COMPILER INTRINSIC EQUIVALENT
+.PP
+.RS
+
+.nf
+VCVTTPS2DQ \_\_m512i \_mm512\_cvttps\_epi32( \_\_m512 a);
+
+VCVTTPS2DQ \_\_m512i \_mm512\_mask\_cvttps\_epi32( \_\_m512i s, \_\_mmask16 k, \_\_m512 a);
+
+VCVTTPS2DQ \_\_m512i \_mm512\_maskz\_cvttps\_epi32( \_\_mmask16 k, \_\_m512 a);
+
+VCVTTPS2DQ \_\_m512i \_mm512\_cvtt\_roundps\_epi32( \_\_m512 a, int sae);
+
+VCVTTPS2DQ \_\_m512i \_mm512\_mask\_cvtt\_roundps\_epi32( \_\_m512i s, \_\_mmask16 k, \_\_m512 a, int sae);
+
+VCVTTPS2DQ \_\_m512i \_mm512\_maskz\_cvtt\_roundps\_epi32( \_\_mmask16 k, \_\_m512 a, int sae);
+
+VCVTTPS2DQ \_\_m256i \_mm256\_mask\_cvttps\_epi32( \_\_m256i s, \_\_mmask8 k, \_\_m256 a);
+
+VCVTTPS2DQ \_\_m256i \_mm256\_maskz\_cvttps\_epi32( \_\_mmask8 k, \_\_m256 a);
+
+VCVTTPS2DQ \_\_m128i \_mm\_mask\_cvttps\_epi32( \_\_m128i s, \_\_mmask8 k, \_\_m128 a);
+
+VCVTTPS2DQ \_\_m128i \_mm\_maskz\_cvttps\_epi32( \_\_mmask8 k, \_\_m128 a);
+
+VCVTTPS2DQ \_\_m256i \_mm256\_cvttps\_epi32 (\_\_m256 a)
+
+CVTTPS2DQ \_\_m128i \_mm\_cvttps\_epi32 (\_\_m128 a)
+
+.fi
+.RE
+
+.SH SIMD FLOATING\-POINT EXCEPTIONS
+.PP
+Invalid, Precision
+
+.SH OTHER EXCEPTIONS
+.PP
+VEX\-encoded instructions, see Exceptions Type 2; additionally
+
+.PP
+EVEX\-encoded instructions, see Exceptions Type E2.
+
+.TS
+allbox;
+l l 
+l l .
+#UD	T{
+If VEX.vvvv != 1111B or EVEX.vvvv != 1111B.
+T}
+.TE
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+Copyleft TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

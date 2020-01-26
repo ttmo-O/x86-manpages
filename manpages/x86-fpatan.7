@@ -1,0 +1,375 @@
+.nh
+.TH "X86-FPATAN" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+FPATAN - PARTIAL ARCTANGENT
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode*\fR	\fB\fCInstruction\fR	\fB\fC64\-Bit Mode\fR	\fB\fCCompat/Leg Mode\fR	\fB\fCDescription\fR
+D9 F3	FPATAN	Valid	Valid	T{
+Replace ST(1) with arctan(ST(1)/ST(0)) and pop the register stack.
+T}
+.TE
+
+.PP
+NOTES:
+
+.PP
+* SeeIA\-32ArchitectureCompatibilitysectionbelow.
+
+.SH DESCRIPTION
+.PP
+Computes the arctangent of the source operand in register ST(1) divided
+by the source operand in register ST(0), stores the result in ST(1), and
+pops the FPU register stack. The result in register ST(0) has the same
+sign as the source operand ST(1) and a magnitude less than +π.
+
+.PP
+The FPATAN instruction returns the angle between the X axis and the line
+from the origin to the point (X,Y), where Y (the ordinate) is ST(1) and
+X (the abscissa) is ST(0). The angle depends on the sign of X and Y
+independently, not just on the sign of the ratio Y/X. This is because a
+point (−X,Y) is in the second quadrant, resulting in an angle between
+π/2 and π, while a point (X,−Y) is in the fourth quadrant, resulting in
+an angle between 0 and −π/2. A point (−X,−Y) is in the third quadrant,
+giving an angle between −π/2 and −π.
+
+.PP
+The following table shows the results obtained when computing the
+arctangent of various classes of numbers, assuming that underflow does
+not occur.
+
+.PP
+ST(0)
+
+.PP
+ST(1)
+
+.PP
+−∞
+
+.PP
+−F
+
+.PP
+−0
+
+.PP
++0
+
+.PP
++F
+
+.PP
++∞
+
+.PP
+NaN
+
+.PP
+−∞
+
+.PP
+− 3π/4*
+
+.PP
+− π/2
+
+.PP
+− π/2
+
+.PP
+− π/2
+
+.PP
+− π/2
+
+.PP
+− π/4*
+
+.PP
+NaN
+
+.PP
+−F
+
+.PP
+\-p
+
+.PP
+−π to −π/2
+
+.PP
+−π/2
+
+.PP
+−π/2
+
+.PP
+−π/2 to −0
+
+.PP
+\-0
+
+.PP
+NaN
+
+.PP
+−0
+
+.PP
+\-p
+
+.PP
+\-p
+
+.PP
+\-p*
+
+.PP
+− 0*
+
+.PP
+−0
+
+.PP
+−0
+
+.PP
+NaN
+
+.PP
++0
+
+.PP
++p
+
+.PP
++p
+
+.PP
++ π*
+
+.PP
++ 0*
+
+.PP
++0
+
+.PP
++0
+
+.PP
+NaN
+
+.PP
++F
+
+.PP
++p
+
+.PP
++π to +π/2
+
+.PP
++ π/2
+
+.PP
++π/2
+
+.PP
++π/2 to +0
+
+.PP
++0
+
+.PP
+NaN
+
+.PP
++∞
+
+.PP
++3π/4*
+
+.PP
++π/2
+
+.PP
++π/2
+
+.PP
++π/2
+
+.PP
++ π/2
+
+.PP
++ π/4*
+
+.PP
+NaN
+
+.PP
+NaN
+
+.PP
+NaN
+
+.PP
+NaN
+
+.PP
+NaN
+
+.PP
+NaN
+
+.PP
+NaN
+
+.PP
+NaN
+
+.PP
+NaN
+
+.PP
+Table 3\-30. FPATAN Results
+
+.PP
+.RS
+
+.PP
+F Meansfinitefloating\-pointvalue.
+
+.PP
+*
+Table8\-10intheIntel®64andIA\-32ArchitecturesSoftwareDeveloper’sManual,Volume1,specifiesthattheratios0/0and∞/∞
+generate the floating\-point invalid arithmetic\-operation exception
+and, if this exception is masked, the floating\-point QNaN indefinite
+value is returned. With the FPATAN instruction, the 0/0 or ∞/∞ value
+is actually not calculated using division. Instead, the arctangent of
+the two variables is derived from a standard mathematical formulation
+that is generalized to allow complex numbers as arguments. In this
+complex variable formulation, arctangent(0,0) etc. has well defined
+values. These values are needed to develop a library to compute
+transcendental functions with complex arguments, based on the FPU
+functions that only allow floating\-point values as arguments.
+
+.RE
+
+.PP
+There is no restriction on the range of source operands that FPATAN can
+accept.
+
+.PP
+This instruction’s operation is the same in non\-64\-bit modes and 64\-bit
+mode.
+
+.SH IA\-32 ARCHITECTURE COMPATIBILITY
+.PP
+The source operands for this instruction are restricted for the 80287
+math coprocessor to the following range:
+
+.PP
+0 ≤ |ST(1)| \&lt; |ST(0)| \&lt; +∞
+
+.SH OPERATION
+.PP
+.RS
+
+.nf
+ST(1) ← arctan(ST(1) / ST(0));
+PopRegisterStack;
+
+.fi
+.RE
+
+.SH FPU FLAGS AFFECTED
+.TS
+allbox;
+l l 
+l l .
+C1	T{
+Set to 0 if stack underflow occurred.
+T}
+	T{
+Set if result was rounded up; cleared otherwise.
+T}
+C0, C2, C3	Undefined.
+.TE
+
+.SH FLOATING\-POINT EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#IS	Stack underflow occurred.
+#IA	T{
+Source operand is an SNaN value or unsupported format.
+T}
+#D	T{
+Source operand is a denormal value.
+T}
+#U	T{
+Result is too small for destination format.
+T}
+#P	T{
+Value cannot be represented exactly in destination format.
+T}
+.TE
+
+.SH PROTECTED MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#NM	CR0.EM
+[
+bit 2
+]
+ or CR0.TS
+[
+bit 3
+]
+ = 1.
+#MF	T{
+If there is a pending x87 FPU exception.
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH REAL\-ADDRESS MODE EXCEPTIONS
+.PP
+Same exceptions as in protected mode.
+
+.SH VIRTUAL\-8086 MODE EXCEPTIONS
+.PP
+Same exceptions as in protected mode.
+
+.SH COMPATIBILITY MODE EXCEPTIONS
+.PP
+Same exceptions as in protected mode.
+
+.SH 64\-BIT MODE EXCEPTIONS
+.PP
+Same exceptions as in protected mode.
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+Copyleft TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

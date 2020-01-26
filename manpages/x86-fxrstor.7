@@ -1,0 +1,285 @@
+.nh
+.TH "X86-FXRSTOR" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+FXRSTOR - RESTORE X87 FPU, MMX, XMM, AND MXCSR STATE
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp/En\fR	\fB\fC64\-Bit Mode\fR	\fB\fCCompat/Leg Mode\fR	\fB\fCDescription\fR
+NP 0F AE /1 FXRSTOR m512byte	M	Valid	Valid	T{
+Restore the x87 FPU, MMX, XMM, and MXCSR register state from m512byte.
+T}
+T{
+NP REX.W + 0F AE /1 FXRSTOR64 m512byte
+T}
+	M	Valid	N.E.	T{
+Restore the x87 FPU, MMX, XMM, and MXCSR register state from m512byte.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l 
+l l l l l .
+Op/En	Operand 1	Operand 2	Operand 3	Operand 4
+M	ModRM:r/m (r)	NA	NA	NA
+.TE
+
+.SH DESCRIPTION
+.PP
+Reloads the x87 FPU, MMX technology, XMM, and MXCSR registers from the
+512\-byte memory image specified in the source operand. This data should
+have been written to memory previously using the FXSAVE instruction, and
+in the same format as required by the operating modes. The first byte of
+the data should be located on a 16\-byte boundary. There are three
+distinct layouts of the FXSAVE state map: one for legacy and
+compatibility mode, a second format for 64\-bit mode FXSAVE/FXRSTOR with
+REX.W=0, and the third format is for 64\-bit mode with
+FXSAVE64/FXRSTOR64. Table 3\-47 shows the layout of the 64\-bit mode state
+information when REX.W is clear (FXSAVE/FXRSTOR).
+
+.PP
+The state image referenced with an FXRSTOR instruction must have been
+saved using an FXSAVE instruction or be in the same format as required
+by Table 3\-47. Referencing a state image saved with an FSAVE, FNSAVE
+instruction or incompatible field layout will result in an incorrect
+state restoration.
+
+.PP
+The FXRSTOR instruction does not flush pending x87 FPU exceptions. To
+check and raise exceptions when loading x87 FPU state information with
+the FXRSTOR instruction, use an FWAIT instruction after the FXRSTOR
+instruction.
+
+.PP
+If the OSFXSR bit in control register CR4 is not set, the FXRSTOR
+instruction may not restore the states of the XMM and MXCSR registers.
+This behavior is implementation dependent.
+
+.PP
+If the MXCSR state contains an unmasked exception with a corresponding
+status flag also set, loading the register with the FXRSTOR instruction
+will not result in a SIMD floating\-point error condition being
+generated. Only the next occurrence of this unmasked exception will
+result in the exception being generated.
+
+.PP
+Bits 16 through 32 of the MXCSR register are defined as reserved and
+should be set to 0. Attempting to write a 1 in any of these bits from
+the saved state image will result in a general protection exception
+(#GP) being generated.
+
+.PP
+Bytes 464:511 of an FXSAVE image are available for software use. FXRSTOR
+ignores the content of bytes 464:511 in an FXSAVE state image.
+
+.SH OPERATION
+.PP
+.RS
+
+.nf
+IF 64\-Bit Mode
+    THEN
+        (x87 FPU, MMX, XMM15\-XMM0, MXCSR)
+                Load(SRC);
+    ELSE
+            (x87 FPU, MMX, XMM7\-XMM0, MXCSR) ← Load(SRC);
+FI;
+
+.fi
+.RE
+
+.SH X87 FPU AND SIMD FLOATING\-POINT EXCEPTIONS
+.PP
+None.
+
+.SH PROTECTED MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP(0)	T{
+For an illegal memory operand effective address in the CS, DS, ES, FS or GS segments.
+T}
+	T{
+If a memory operand is not aligned on a 16\-byte boundary, regardless of segment. (See alignment check exception 
+T}
+[
+
+#
+AC
+]
+ below.)
+	T{
+For an attempt to set reserved bits in MXCSR.
+T}
+#SS(0)	T{
+For an illegal address in the SS segment.
+T}
+#PF(fault\-code)	For a page fault.
+#NM	If CR0.TS
+[
+bit 3
+]
+ = 1.
+	If CR0.EM
+[
+bit 2
+]
+ = 1.
+#UD	If CPUID.01H:EDX.FXSR
+[
+bit 24
+]
+ = 0.
+	T{
+If instruction is preceded by a LOCK prefix.
+T}
+#AC	T{
+If this exception is disabled a general protection exception (
+T}
+#
+T{
+GP) is signaled if the memory operand is not aligned on a 16\-byte boundary, as described above. If the alignment check exception (
+T}
+#
+T{
+AC) is enabled (and the CPL is 3), signaling of 
+T}
+#
+T{
+AC is not guaranteed and may vary with implementation, as follows. In all implementations where 
+T}
+#
+T{
+AC is not signaled, a general protection exception is signaled in its place. In addition, the width of the alignment check may also vary with implementation. For instance, for a given implementation, an alignment check exception might be signaled for a 2\-byte misalignment, whereas a general protection exception might be signaled for all other misalignments (4\-, 8\-, or 16\-byte misalignments).
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH REAL\-ADDRESS MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP	T{
+If a memory operand is not aligned on a 16\-byte boundary, regardless of segment.
+T}
+	T{
+If any part of the operand lies outside the effective address space from 0 to FFFFH.
+T}
+	T{
+For an attempt to set reserved bits in MXCSR.
+T}
+#NM	If CR0.TS
+[
+bit 3
+]
+ = 1.
+	If CR0.EM
+[
+bit 2
+]
+ = 1.
+#UD	If CPUID.01H:EDX.FXSR
+[
+bit 24
+]
+ = 0.
+	If the LOCK prefix is used.
+.TE
+
+.SH VIRTUAL\-8086 MODE EXCEPTIONS
+.PP
+Same exceptions as in real address mode.
+
+.TS
+allbox;
+l l 
+l l .
+#PF(fault\-code)	For a page fault.
+#AC	T{
+For unaligned memory reference.
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH COMPATIBILITY MODE EXCEPTIONS
+.PP
+Same exceptions as in protected mode.
+
+.SH 64\-BIT MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#SS(0)	T{
+If a memory address referencing the SS segment is in a non\-canonical form.
+T}
+#GP(0)	T{
+If the memory address is in a non\-canonical form.
+T}
+	T{
+If memory operand is not aligned on a 16\-byte boundary, regardless of segment.
+T}
+	T{
+For an attempt to set reserved bits in MXCSR.
+T}
+#PF(fault\-code)	For a page fault.
+#NM	If CR0.TS
+[
+bit 3
+]
+ = 1.
+	If CR0.EM
+[
+bit 2
+]
+ = 1.
+#UD	If CPUID.01H:EDX.FXSR
+[
+bit 24
+]
+ = 0.
+	T{
+If instruction is preceded by a LOCK prefix.
+T}
+#AC	T{
+If this exception is disabled a general protection exception (
+T}
+#
+T{
+GP) is signaled if the memory operand is not aligned on a 16\-byte boundary, as described above. If the alignment check exception (
+T}
+#
+T{
+AC) is enabled (and the CPL is 3), signaling of 
+T}
+#
+T{
+AC is not guaranteed and may vary with implementation, as follows. In all implementations where 
+T}
+#
+T{
+AC is not signaled, a general protection exception is signaled in its place. In addition, the width of the alignment check may also vary with implementation. For instance, for a given implementation, an alignment check exception might be signaled for a 2\-byte misalignment, whereas a general protection exception might be signaled for all other misalignments (4\-, 8\-, or 16\-byte misalignments).
+T}
+.TE
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+Copyleft TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

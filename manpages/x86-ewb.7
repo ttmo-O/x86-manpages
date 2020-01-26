@@ -1,0 +1,717 @@
+.nh
+.TH "X86-EWB" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+EWB - INVALIDATE AN EPC PAGE AND WRITE OUT TO MAIN MEMORY
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp/En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+EAX = 0BH ENCLS[EWB]	IR	V/V	SGX1	T{
+This leaf function invalidates an EPC page and writes it out to main memory.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.PP
+Op/En
+
+.PP
+EAX
+
+.PP
+RBX
+
+.PP
+RCX
+
+.PP
+RDX
+
+.PP
+IR
+
+.PP
+EWB (In)
+
+.PP
+Error code (Out)
+
+.PP
+Address of an PAGEINFO (In)
+
+.PP
+Address of the EPC page (In)
+
+.PP
+Address of a VA slot (In)
+
+.SS Description
+.PP
+This leaf function copies a page from the EPC to regular main memory. As
+part of the copying process, the page is cryptographically protected.
+This instruction can only be executed when current privilege level is 0.
+
+.PP
+The table below provides additional information on the memory parameter
+of EPA leaf function.
+
+.SH EWB MEMORY PARAMETER SEMANTICS
+.TS
+allbox;
+l l l l l 
+l l l l l .
+PAGEINFO	PAGEINFO.SRCPGE	PAGEINFO.PCMD	EPCPAGE	VASLOT
+Non\-EPC R/W access	Non\-EPC R/W access	Non\-EPC R/W access	EPC R/W access	EPC R/W access
+.TE
+
+.PP
+The error codes are:
+
+.TS
+allbox;
+l l 
+l l .
+\fB\fCError Code (see Table 40\-4)\fR	\fB\fCDescription\fR
+No Error	EWB successful.
+SGX\_PAGE\_NOT\_BLOCKED	T{
+If page is not marked as blocked.
+T}
+SGX\_NOT\_TRACKED	T{
+If EWB is racing with ETRACK instruction.
+T}
+SGX\_VA\_SLOT\_OCCUPIED	T{
+Version array slot contained valid entry.
+T}
+SGX\_CHILD\_PRESENT	T{
+Child page present while attempting to page out enclave.
+T}
+.TE
+
+.PP
+Table 40\-51\&. EWB Return Value in RAX
+
+.SS Concurrency Restrictions
+.PP
+Leaf
+
+.PP
+Parameter
+
+.PP
+Base Concurrency Restrictions
+
+.PP
+Access
+
+.PP
+On Conflict
+
+.PP
+SGX\_CONFLICT VM Exit Qualification
+
+.PP
+EWB
+
+.PP
+Source [DS:RCX]
+
+.PP
+Exclusive
+
+.PP
+#GP
+
+.PP
+EPC\_PAGE\_CONFLICT\_EXCEPTION
+
+.PP
+VA [DS:RDX]
+
+.PP
+Shared
+
+.PP
+#GP
+
+.PP
+Table 40\-52\&. Base Concurrency
+Restrictions of EWB
+
+.PP
+Leaf
+
+.PP
+Parameter
+
+.PP
+Additional Concurrency Restrictions
+
+.PP
+vs. EACCEPT, EACCEPTCOPY, EMODPE, EMODPR, EMODT
+
+.PP
+vs. EADD, EEXTEND, EINIT
+
+.PP
+vs. ETRACK, ETRACKC
+
+.PP
+Access
+
+.PP
+On Conflict
+
+.PP
+Access
+
+.PP
+On Conflict
+
+.PP
+Access
+
+.PP
+On Conflict
+
+.PP
+EWB
+
+.PP
+Source [DS:RCX]
+
+.PP
+Concurrent
+
+.PP
+Concurrent
+
+.PP
+Concurrent
+
+.PP
+VA [DS:RDX]
+
+.PP
+Concurrent
+
+.PP
+Concurrent
+
+.PP
+Exclusive
+
+.PP
+Table 40\-53\&. Additional Concurrency
+Restrictions of EWB
+
+.SS Operation
+.SH TEMP VARIABLES IN EWB OPERATIONAL FLOW
+.TS
+allbox;
+l l l l 
+l l l l .
+\fB\fCName\fR	\fB\fCType\fR	\fB\fCSize (Bytes)\fR	\fB\fCDescription\fR
+TMP\_SRCPGE	Memory page	4096	TMP\_PCMD	PCMD	128	TMP\_SECS	SECS	4096	TMP\_BPEPOCH	UINT64	8	TMP\_BPREFCOUNT	UINT64	8	TMP\_HEADER	MAC Header	128	TMP\_PCMD\_ENCLAVEID	UINT64	8	TMP\_VER	UINT64	8	TMP\_PK	UINT128	16	.TE
+
+.PP
+IF ( (DS:RBX is not 32Byte Aligned) or (DS:RCX is not 4KByte Aligned) )
+
+.PP
+THEN #GP(0); FI;
+
+.PP
+IF (DS:RCX does not resolve within an EPC)
+
+.PP
+THEN #PF(DS:RCX); FI;
+
+.PP
+IF (DS:RDX is not 8Byte Aligned)
+
+.PP
+THEN #GP(0); FI;
+
+.PP
+IF (DS:RDX does not resolve within an EPC)
+
+.PP
+THEN #PF(DS:RDX); FI;
+
+.PP
+(* EPCPAGE and VASLOT should not resolve to the same EPC page*)
+
+.PP
+IF (DS:RCX and DS:RDX resolve to the same EPC page)
+
+.PP
+THEN #GP(0); FI;
+
+.PP
+TMP\_SRCPGE ← DS:RBX.SRCPGE;
+
+.PP
+(* Note PAGEINFO.PCMD is overlaid on top of PAGEINFO.SECINFO *)
+
+.PP
+TMP\_PCMD ← DS:RBX.PCMD;
+
+.PP
+If (DS:RBX.LINADDR ≠ 0) OR (DS:RBX.SECS ≠ 0)
+
+.PP
+THEN #GP(0); FI;
+
+.PP
+IF ( (DS:TMP\_PCMD is not 128Byte Aligned) or (DS:TMP\_SRCPGE is not
+4KByte Aligned) )
+
+.PP
+THEN #GP(0); FI;
+
+.PP
+(* Check for concurrent Intel SGX instruction access to the page *)
+
+.PP
+IF (Other Intel SGX instruction is accessing page)
+
+.PP
+THEN
+
+.PP
+IF (\&lt;\&lt;VMX non\-root operation\&gt;\&gt; AND
+\&lt;\&lt;ENABLE\_EPC\_VIRTUALIZATION\_EXTENSIONS\&gt;\&gt;)
+
+.PP
+THEN
+
+.PP
+VMCS.Exit\_reason ← SGX\_CONFLICT;
+
+.PP
+VMCS.Exit\_qualification.code ← EPC\_PAGE\_CONFLICT\_EXCEPTION;
+
+.PP
+VMCS.Exit\_qualification.error ← 0;
+
+.PP
+VMCS.Guest\-physical\_address←\&lt;\&lt; translation of DS:RCX produced by
+paging \&gt;\&gt;;
+
+.PP
+VMCS.Guest\-linear\_address ← DS:RCX;
+
+.PP
+Deliver VMEXIT;
+
+.PP
+ELSE
+
+.PP
+#GP(0);
+
+.PP
+FI;
+
+.PP
+FI;
+
+.PP
+(*Check if the VA Page is being removed or changed*)
+
+.PP
+IF (VA Page is being modified)
+
+.PP
+THEN #GP(0); FI;
+
+.PP
+(* Verify that EPCPAGE and VASLOT page are valid EPC pages and DS:RDX
+is VA *)
+
+.PP
+IF (EPCM(DS:RCX).VALID = 0)
+
+.PP
+THEN #PF(DS:RCX); FI;
+
+.PP
+IF ( (EPCM(DS:RDX \& \~0FFFH).VALID = 0) or (EPCM(DS:RDX \& \~FFFH).PT is
+not PT\_VA) )
+
+.PP
+THEN #PF(DS:RDX); FI;
+
+.PP
+(* Perform page\-type\-specific exception checks *)
+
+.PP
+IF ( (EPCM(DS:RCX).PT is PT\_REG) or (EPCM(DS:RCX).PT is PT\_TCS) or
+(EPCM(DS:RCX).PT is PT\_TRIM ) )
+
+.PP
+THEN
+
+.PP
+TMP\_SECS = Obtain SECS through EPCM(DS:RCX)
+
+.PP
+(* Check that EBLOCK has occurred correctly *)
+
+.PP
+IF (EBLOCK is not correct)
+
+.PP
+THEN #GP(0); FI;
+
+.PP
+FI;
+
+.PP
+RFLAGS.ZF,CF,PF,AF,OF,SF ← 0;
+
+.PP
+RAX←0;
+
+.PP
+(* Perform page\-type\-specific checks *)
+
+.PP
+IF ( (EPCM(DS:RCX).PT is PT\_REG) or (EPCM(DS:RCX).PT is PT\_TCS) or
+(EPCM(DS:RCX).PT is PT\_TRIM ))
+
+.PP
+THEN
+
+.PP
+(* check to see if the page is evictable *)
+
+.PP
+IF (EPCM(DS:RCX).BLOCKED = 0)
+
+.PP
+THEN
+
+.PP
+RAX←SGX\_PAGE NOT\_BLOCKED;
+
+.PP
+RFLAGS.ZF ← 1;
+
+.PP
+GOTO ERROR\_EXIT;
+
+.PP
+FI;
+
+.PP
+(* Check if tracking done correctly *)
+
+.PP
+IF (Tracking not correct)
+
+.PP
+THEN
+
+.PP
+RAX ← SGX\_NOT\_TRACKED;
+
+.PP
+RFLAGS.ZF ← 1;
+
+.PP
+GOTO ERROR\_EXIT;
+
+.PP
+FI;
+
+.PP
+(* Obtain EID to establish cryptographic binding between the paged\-out
+page and the enclave *)
+
+.PP
+TMP\_HEADER.EID ← TMP\_SECS.EID;
+
+.PP
+(* Obtain EID as an enclave handle for software *)
+
+.PP
+TMP\_PCMD\_ENCLAVEID ← TMP\_SECS.EID;
+
+.PP
+ELSE IF (EPCM(DS:RCX).PT is PT\_SECS)
+
+.PP
+(*check that there are no child pages inside the enclave *)
+
+.PP
+IF (DS:RCX has an EPC page associated with it)
+
+.PP
+THEN
+
+.PP
+RAX ← SGX\_CHILD\_PRESENT;
+
+.PP
+RFLAGS.ZF ← 1;
+
+.PP
+GOTO ERROR\_EXIT;
+
+.PP
+FI:
+
+.PP
+(* treat SECS as having a child page when VIRTCHILDCNT is non\-zero *)
+
+.PP
+IF (\&lt;\&lt;in VMX non\-root operation\&gt;\&gt; AND
+
+.PP
+\&lt;\&lt;ENABLE\_EPC\_VIRTUALIZATION\_EXTENSIONS\&gt;\&gt; AND
+
+.PP
+(SECS(DS:RCX).VIRTCHILDCNT ≠ 0))
+
+.PP
+THEN
+
+.PP
+RFLAGS.ZF ← 1;
+
+.PP
+RAX ← SGX\_CHILD\_PRESENT;
+
+.PP
+GOTO ERROR\_EXIT;
+
+.PP
+FI;
+
+.PP
+TMP\_HEADER.EID ← 0;
+
+.PP
+(* Obtain EID as an enclave handle for software *)
+
+.PP
+TMP\_PCMD\_ENCLAVEID ← (DS:RCX).EID;
+
+.PP
+ELSE IF (EPCM(DS:RCX).PT is PT\_VA)
+
+.PP
+TMP\_HEADER.EID←0; // Zero is not a special value
+
+.PP
+(* No enclave handle for VA pages*)
+
+.PP
+TMP\_PCMD\_ENCLAVEID ← 0;
+
+.PP
+FI;
+
+.PP
+(* Zero out TMP\_HEADER*)
+
+.PP
+TMP\_HEADER[ sizeof(TMP\_HEADER)\-1 : 0]←0;
+
+.PP
+TMP\_HEADER.LINADDR ← EPCM(DS:RCX).ENCLAVEADDRESS;
+
+.PP
+TMP\_HEADER.SECINFO.FLAGS.PT ← EPCM(DS:RCX).PT;
+
+.PP
+TMP\_HEADER.SECINFO.FLAGS.RWX ← EPCM(DS:RCX).RWX;
+
+.PP
+TMP\_HEADER.SECINFO.FLAGS.PENDING ← EPCM(DS:RCX).PENDING;
+
+.PP
+TMP\_HEADER.SECINFO.FLAGS.MODIFIED ← EPCM(DS:RCX).MODIFIED;
+
+.PP
+TMP\_HEADER.SECINFO.FLAGS.PR ← EPCM(DS:RCX).PR;
+
+.PP
+(* Encrypt the page, DS:RCX could be encrypted in place. AES\-GCM
+produces 2 values, {ciphertext, MAC}. *)
+
+.PP
+(* AES\-GCM input parameters: key, GCM Counter, MAC\_HDR,
+MAC\_HDR\_SIZE, SRC, SRC\_SIZE)*)
+
+.PP
+{DS:TMP\_SRCPGE, DS:TMP\_PCMD.MAC}←AES\_GCM\_ENC(CR\_BASE\_PK),
+(TMP\_VER \&lt;\&lt; 32),
+
+.PP
+TMP\_HEADER, 128, DS:RCX, 4096);
+
+.PP
+(* Write the output *)
+
+.PP
+Zero out DS:TMP\_PCMD.SECINFO
+
+.PP
+DS:TMP\_PCMD.SECINFO.FLAGS.PT ← EPCM(DS:RCX).PT;
+
+.PP
+DS:TMP\_PCMD.SECINFO.FLAGS.RWX ← EPCM(DS:RCX).RWX;
+
+.PP
+DS:TMP\_PCMD.SECINFO.FLAGS.PENDING ← EPCM(DS:RCX).PENDING;
+
+.PP
+DS:TMP\_PCMD.SECINFO.FLAGS.MODIFIED ← EPCM(DS:RCX).MODIFIED;
+
+.PP
+DS:TMP\_PCMD.SECINFO.FLAGS.PR ← EPCM(DS:RCX).PR;
+
+.PP
+DS:TMP\_PCMD.RESERVED ← 0;
+
+.PP
+DS:TMP\_PCMD.ENCLAVEID ← TMP\_PCMD\_ENCLAVEID;
+
+.PP
+DS:RBX.LINADDR ← EPCM(DS:RCX).ENCLAVEADDRESS;
+
+.PP
+(*Check if version array slot was empty *)
+
+.PP
+IF ([DS.RDX])
+
+.PP
+THEN
+
+.PP
+RAX ← SGX\_VA\_SLOT\_OCCUPIED
+
+.PP
+RFLAGS.CF ← 1;
+
+.PP
+FI;
+
+.PP
+(* Write version to Version Array slot *)
+
+.PP
+[DS.RDX] ← TMP\_VER;
+
+.PP
+(* Free up EPCM Entry *)
+
+.PP
+EPCM.(DS:RCX).VALID ← 0;
+
+.PP
+ERROR\_EXIT:
+
+.SS Flags Affected
+.PP
+ZF is set if page is not blocked, not tracked, or a child is present.
+Otherwise cleared.
+
+.PP
+CF is set if VA slot is previously occupied, Otherwise cleared.
+
+.SS Protected Mode Exceptions
+.PP
+#GP(0)
+
+.PP
+If a memory operand effective address is outside the DS segment limit.
+
+.PP
+If a memory operand is not properly aligned.
+
+.PP
+If the EPC page and VASLOT resolve to the same EPC page.
+
+.PP
+If another Intel SGX instruction is concurrently accessing either the
+target EPC, VA, or SECS pages.
+
+.PP
+If the tracking resource is in use.
+
+.PP
+If the EPC page or the version array page is invalid.
+
+.PP
+If the parameters fail consistency checks.
+
+.PP
+#PF(error
+
+.PP
+code) If a page fault occurs in accessing memory operands.
+
+.PP
+If a memory operand is not an EPC page.
+
+.PP
+If one of the EPC memory operands has incorrect page type.
+
+.SS 64\-Bit Mode Exceptions
+.PP
+#GP(0)
+
+.PP
+If a memory operand is non\-canonical form.
+
+.PP
+If a memory operand is not properly aligned.
+
+.PP
+If the EPC page and VASLOT resolve to the same EPC page.
+
+.PP
+If another Intel SGX instruction is concurrently accessing either the
+target EPC, VA, or SECS pages.
+
+.PP
+If the tracking resource is in use.
+
+.PP
+If the EPC page or the version array page in invalid.
+
+.PP
+If the parameters fail consistency checks.
+
+.PP
+#PF(error
+
+.PP
+code) If a page fault occurs in accessing memory operands.
+
+.PP
+If a memory operand is not an EPC page.
+
+.PP
+If one of the EPC memory operands has incorrect page type.
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+Copyleft TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

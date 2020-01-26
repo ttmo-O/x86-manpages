@@ -1,0 +1,244 @@
+.nh
+.TH "X86-BNDMOV" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+BNDMOV - MOVE BOUNDS
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp/En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+T{
+66 0F 1A /r BNDMOV bnd1, bnd2/m64
+T}
+	RM	NE/V	MPX	T{
+Move lower and upper bound from bnd2/m64 to bound register bnd1.
+T}
+T{
+66 0F 1A /r BNDMOV bnd1, bnd2/m128
+T}
+	RM	V/NE	MPX	T{
+Move lower and upper bound from bnd2/m128 to bound register bnd1.
+T}
+T{
+66 0F 1B /r BNDMOV bnd1/m64, bnd2
+T}
+	MR	NE/V	MPX	T{
+Move lower and upper bound from bnd2 to bnd1/m64.
+T}
+T{
+66 0F 1B /r BNDMOV bnd1/m128, bnd2
+T}
+	MR	V/NE	MPX	T{
+Move lower and upper bound from bnd2 to bound register bnd1/m128.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l 
+l l l l .
+Op/En	Operand 1	Operand 2	Operand 3
+RM	ModRM:reg (w)	ModRM:r/m (r)	NA
+MR	ModRM:r/m (w)	ModRM:reg (r)	NA
+.TE
+
+.SH DESCRIPTION
+.PP
+BNDMOV moves a pair of lower and upper bound values from the source
+operand (the second operand) to the destination (the first operand).
+Each operation is 128\-bit move. The exceptions are same as the MOV
+instruction. The memory format for loading/store bounds in 64\-bit mode
+is shown in Figure 3\-5.
+
+.PP
+BNDMOV to memory in 64\-bit modeUpper Bound (UB)Lower Bound (LB)1680
+ByteoffsetBNDMOV to memory in 32\-bit modeUpper Bound (UB)Lower Bound
+(LB)16840 Byteoffset
+
+.PP
+Figure 3\-5. Memory Layout of BNDMOV to/from Memory
+
+.PP
+This instruction does not change flags.
+
+.SH OPERATION
+.SS BNDMOV register to register
+.PP
+.RS
+
+.nf
+DEST.LB ← SRC.LB;
+DEST.UB ← SRC.UB;
+
+.fi
+.RE
+
+.SS BNDMOV from memory
+.PP
+.RS
+
+.nf
+IF 64\-bit mode THEN
+        DEST.LB ← LOAD\_QWORD(SRC);
+        DEST.UB ← LOAD\_QWORD(SRC+8);
+    ELSE
+        DEST.LB ← LOAD\_DWORD\_ZERO\_EXT(SRC);
+        DEST.UB ← LOAD\_DWORD\_ZERO\_EXT(SRC+4);
+FI;
+
+.fi
+.RE
+
+.SS BNDMOV to memory
+.PP
+.RS
+
+.nf
+IF 64\-bit mode THEN
+        DEST[63:0] ← SRC.LB;
+        DEST[127:64] ← SRC.UB;
+    ELSE
+        DEST[31:0] ← SRC.LB;
+        DEST[63:32] ← SRC.UB;
+FI;
+
+.fi
+.RE
+
+.SH INTEL C/C++ COMPILER INTRINSIC EQUIVALENT
+.PP
+.RS
+
+.nf
+BNDMOV void * \_bnd\_copy\_ptr\_bounds(const void *q, const void *r)
+
+.fi
+.RE
+
+.SH FLAGS AFFECTED
+.PP
+None
+
+.SH PROTECTED MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#UD	T{
+If the LOCK prefix is used but the destination is not a memory operand.
+T}
+	T{
+If ModRM.r/m encodes BND4\-BND7 when Intel MPX is enabled.
+T}
+	T{
+If 67H prefix is not used and CS.D=0.
+T}
+	T{
+If 67H prefix is used and CS.D=1.
+T}
+#SS(0)	T{
+If the memory operand effective address is outside the SS segment limit.
+T}
+#GP(0)	T{
+If the memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit.
+T}
+	T{
+If the destination operand points to a non\-writable segment
+T}
+	T{
+If the DS, ES, FS, or GS segment register contains a NULL segment selector.
+T}
+#AC(0)	T{
+If alignment checking is enabled and an unaligned memory reference is made while CPL is 3.
+T}
+#PF(fault	code) If a page fault occurs.
+.TE
+
+.SH REAL\-ADDRESS MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#UD	T{
+If the LOCK prefix is used but the destination is not a memory operand.
+T}
+	T{
+If ModRM.r/m encodes BND4\-BND7 when Intel MPX is enabled.
+T}
+	If 16\-bit addressing is used.
+#GP(0)	T{
+If the memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit.
+T}
+#SS	T{
+If the memory operand effective address is outside the SS segment limit.
+T}
+.TE
+
+.SH VIRTUAL\-8086 MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#UD	T{
+If the LOCK prefix is used but the destination is not a memory operand.
+T}
+	T{
+If ModRM.r/m encodes BND4\-BND7 when Intel MPX is enabled.
+T}
+	If 16\-bit addressing is used.
+#GP(0)	T{
+If the memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit.
+T}
+#SS(0)	T{
+If the memory operand effective address is outside the SS segment limit.
+T}
+#AC(0)	T{
+If alignment checking is enabled and an unaligned memory reference is made while CPL is 3.
+T}
+#PF(fault	code) If a page fault occurs.
+.TE
+
+.SH COMPATIBILITY MODE EXCEPTIONS
+.PP
+Same exceptions as in protected mode.
+
+.SH 64\-BIT MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#UD	T{
+If the LOCK prefix is used but the destination is not a memory operand.
+T}
+	T{
+If ModRM.r/m and REX encodes BND4\-BND15 when Intel MPX is enabled.
+T}
+#SS(0)	T{
+If the memory address referencing the SS segment is in a non\-canonical form.
+T}
+#GP(0)	T{
+If the memory address is in a non\-canonical form.
+T}
+#AC(0)	T{
+If alignment checking is enabled and an unaligned memory reference is made while CPL is 3.
+T}
+#PF(fault	code) If a page fault occurs.
+.TE
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+Copyleft TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

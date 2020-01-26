@@ -1,0 +1,197 @@
+.nh
+.TH "X86-UMONITOR" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+UMONITOR - USER LEVEL SET UP MONITOR ADDRESS
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode / Instruction\fR	\fB\fCOp/En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+T{
+F3 0F AE /6 UMONITOR r16/r32/r64
+T}
+	A	V/V	WAITPKG	T{
+Sets up a linear address range to be monitored by hardware and activates the monitor. The address range should be a write\-back memory caching type. The address is contained in r16/r32/r64.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING1
+.PP
+.RS
+
+.PP
+1\&. The Mod field of the ModR/M byte must have value 11B.
+
+.RE
+
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+\fB\fCOp/En\fR	\fB\fCTuple\fR	\fB\fCOperand 1\fR	\fB\fCOperand 2\fR	\fB\fCOperand 3\fR	\fB\fCOperand 4\fR
+A	NA	ModRM:r/m (r)	NA	NA	NA
+.TE
+
+.SH DESCRIPTION
+.PP
+The UMONITOR instruction arms address monitoring hardware using an
+address specified in the source register (the address range that the
+monitoring hardware checks for store operations can be determined by
+using the CPUID monitor leaf function, EAX=05H). A store to an address
+within the specified address range triggers the monitoring hardware. The
+state of monitor hardware is used by UMWAIT.
+
+.PP
+The content of the source register is an effective address. By default,
+the DS segment is used to create a linear address that is monitored.
+Segment overrides can be used. The address range must use memory of the
+write\-back type. Only write\-back memory is guaranteed to correctly
+trigger the monitoring hardware. Additional information on determining
+what address range to use in order to prevent false wake\-ups is
+described in Chapter 8, “MultipleProcessor Management” of the Intel® 64
+and IA\-32 Architectures Software Developer’s Manual, Volume 3A.
+
+.PP
+The UMONITOR instruction is ordered as a load operation with respect to
+other memory transactions. The instruction is subject to the permission
+checking and faults associated with a byte load. Like a load, UMONITOR
+sets the A\-bit but not the D\-bit in page tables.
+
+.PP
+UMONITOR and UMWAIT are available when CPUID.7.0:ECX.WAITPKG[bit 5] is
+enumerated as 1. UMONITOR and UMWAIT may be executed at any privilege
+level. Except for the width of the source register, the instruction’s
+operation is the same in non\-64\-bit modes and in 64\-bit mode.
+
+.PP
+UMONITOR does not interoperate with the legacy MWAIT instruction. If
+UMONITOR was executed prior to executing MWAIT and following the most
+recent execution of the legacy MONITOR instruction, MWAIT will not enter
+an optimized state. Execution will continue to the instruction following
+MWAIT.
+
+.PP
+The UMONITOR instruction causes a transactional abort when used inside a
+transactional region.
+
+.PP
+The width of the source register (16b, 32b or 64b) is determined by the
+effective addressing width, which is affected in the standard way by the
+machine mode settings and 67 prefix.
+
+.SH OPERATION
+.PP
+.RS
+
+.nf
+UMONITOR sets up an address range for the monitor hardware using the content of source register as an effective
+address and puts the monitor hardware in armed state. A store to the specified address range will trigger the
+monitor hardware.
+
+.fi
+.RE
+
+.SH INTEL C/C++ COMPILER INTRINSIC EQUIVALENT
+.PP
+.RS
+
+.nf
+UMONITOR void \_umonitor(void *address);
+
+.fi
+.RE
+
+.SH NUMERIC EXCEPTIONS
+.PP
+None
+
+.SH PROTECTED MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP(0)	T{
+If the specified segment is not SS and the source register is outside the specified segment limit.
+T}
+	T{
+If the specified segment register contains a NULL segment selector.
+T}
+#SS(0)	T{
+If the specified segment is SS and the source register is outside the SS segment limit.
+T}
+#PF(fault\-code)	For a page fault.
+#UD	If CPUID.7.0:ECX.WAITPKG
+[
+bit 5
+]
+=0.
+.TE
+
+.SH REAL ADDRESS MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP	T{
+If the specified segment is not SS and the source register is outside of the effective address space from 0 to FFFFH.
+T}
+#SS	T{
+If the specified segment is SS and the source register is outside of the effective address space from 0 to FFFFH.
+T}
+#UD	If CPUID.7.0:ECX.WAITPKG
+[
+bit 5
+]
+=0.
+.TE
+
+.SH VIRTUAL 8086 MODE EXCEPTIONS
+.PP
+Same exceptions as in real address mode; additionally:
+
+.TS
+allbox;
+l l 
+l l .
+#PF(fault\-code)	For a page fault.
+.TE
+
+.SH COMPATIBILITY MODE EXCEPTIONS
+.PP
+Same exceptions as in protected mode.
+
+.SH 64\-BIT MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP(0)	T{
+If the specified segment is not SS and the linear address is in non\-canonical form.
+T}
+#SS(0)	T{
+If the specified segment is SS and the source register is in non\-canonical form.
+T}
+#PF(fault\-code)	For a page fault.
+#UD	If CPUID.7.0:ECX.WAITPKG
+[
+bit 5
+]
+=0.
+.TE
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+Copyleft TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

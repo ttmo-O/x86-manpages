@@ -1,0 +1,582 @@
+.nh
+.TH "X86-EACCEPT" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+EACCEPT - ACCEPT CHANGES TO AN EPC PAGE
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp/En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+EAX = 05H ENCLU[EACCEPT]	IR	V/V	SGX2	T{
+This leaf function accepts changes made by system software to an EPC page in the running enclave.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.PP
+Op/En
+
+.PP
+EAX
+
+.PP
+RBX
+
+.PP
+RCX
+
+.PP
+IR
+
+.PP
+EACCEPT (In)
+
+.PP
+Return Error Code (Out)
+
+.PP
+Address of a SECINFO (In)
+
+.PP
+Address of the destination EPC page (In)
+
+.SS Description
+.PP
+This leaf function accepts changes to a page in the running enclave by
+verifying that the security attributes specified in the SECINFO match
+the security attributes of the page in the EPCM. This instruction leaf
+can only be executed when inside the enclave.
+
+.PP
+RBX contains the effective address of a SECINFO structure while RCX
+contains the effective address of an EPC page. The table below provides
+additional information on the memory parameter of the EACCEPT leaf
+function.
+
+.SH EACCEPT MEMORY PARAMETER SEMANTICS
+.TS
+allbox;
+l l 
+l l .
+SECINFO	EPCPAGE (Destination)
+T{
+Read access permitted by Non Enclave
+T}
+	T{
+Read access permitted by Enclave
+T}
+.TE
+
+.PP
+The instruction faults if any of the following:
+
+.SH EACCEPT FAULTING CONDITIONS
+.TS
+allbox;
+l l 
+l l .
+T{
+The operands are not properly aligned.
+T}
+	T{
+RBX does not contain an effective address in an EPC page in the running enclave.
+T}
+T{
+The EPC page is locked by another thread.
+T}
+	T{
+RCX does not contain an effective address of an EPC page in the running enclave.
+T}
+The EPC page is not valid.	Page type is PT
+\_
+REG and MODIFIED bit is 0.
+T{
+SECINFO contains an invalid request.
+T}
+	Page type is PT
+\_
+TCS or PT
+\_
+T{
+TRIM and PENDING bit is 0 and MODIFIED bit is 1.
+T}
+T{
+If security attributes of the SECINFO page make the page inaccessible.
+T}
+	.TE
+
+.PP
+The error codes are:
+
+.TS
+allbox;
+l l 
+l l .
+\fB\fCError Code (see Table 40\-4)\fR	\fB\fCDescription\fR
+No Error	EACCEPT successful.
+SGX\_PAGE\_ATTRIBUTES\_MISMATCH	T{
+The attributes of the target EPC page do not match the expected values.
+T}
+SGX\_NOT\_TRACKED	T{
+The OS did not complete an ETRACK on the target page.
+T}
+.TE
+
+.PP
+Table 40\-54\&. EACCEPT Return Value in
+RAX
+
+.SS Concurrency Restrictions
+.PP
+Leaf
+
+.PP
+Parameter
+
+.PP
+Base Concurrency Restrictions
+
+.PP
+Access
+
+.PP
+On Conflict
+
+.PP
+SGX\_CONFLICT VM Exit Qualification
+
+.PP
+EACCEPT
+
+.PP
+Target [DS:RCX]
+
+.PP
+Shared
+
+.PP
+#GP
+
+.PP
+SECINFO [DS:RBX]
+
+.PP
+Concurrent
+
+.PP
+Table 40\-55\&. Base Concurrency
+Restrictions of EACCEPT
+
+.PP
+Leaf
+
+.PP
+Parameter
+
+.PP
+Additional Concurrency Restrictions
+
+.PP
+vs. EACCEPT, EACCEPTCOPY, EMODPE, EMODPR, EMODT
+
+.PP
+vs. EADD, EEXTEND, EINIT
+
+.PP
+vs. ETRACK, ETRACKC
+
+.PP
+Access
+
+.PP
+On Conflict
+
+.PP
+Access
+
+.PP
+On Conflict
+
+.PP
+Access
+
+.PP
+On Conflict
+
+.PP
+EACCEPT
+
+.PP
+Target [DS:RCX]
+
+.PP
+Exclusive
+
+.PP
+#GP
+
+.PP
+Concurrent
+
+.PP
+Concurrent
+
+.PP
+SECINFO [DS:RBX]
+
+.PP
+Concurrent
+
+.PP
+Concurrent
+
+.PP
+Concurrent
+
+.PP
+Table 40\-56\&. Additional Concurrency
+Restrictions of EACCEPT
+
+.SS Operation
+.SH TEMP VARIABLES IN EACCEPT OPERATIONAL FLOW
+.TS
+allbox;
+l l l l 
+l l l l .
+\fB\fCName\fR	\fB\fCType\fR	\fB\fCSize (bits)\fR	\fB\fCDescription\fR
+TMP\_SECS	Effective Address	32/64	T{
+Physical address of SECS to which EPC operands belongs.
+T}
+SCRATCH\_SECINFO	SECINFO	512	T{
+Scratch storage for holding the contents of DS:RBX.
+T}
+.TE
+
+.PP
+IF (DS:RBX is not 64Byte Aligned)
+
+.PP
+THEN #GP(0); FI;
+
+.PP
+IF (DS:RBX is not within CR\_ELRANGE)
+
+.PP
+THEN #GP(0); FI;
+
+.PP
+IF (DS:RBX does not resolve within an EPC)
+
+.PP
+THEN #PF(DS:RBX); FI;
+
+.PP
+IF ( (EPCM(DS:RBX \&\~FFFH).VALID = 0) or (EPCM(DS:RBX \&\~FFFH).R = 0) or
+(EPCM(DS:RBX \&\~FFFH).PENDING ≠ 0) or
+
+.PP
+(EPCM(DS:RBX \&\~FFFH).MODIFIED ≠ 0) or (EPCM(DS:RBX \&\~FFFH).BLOCKED ≠ 0)
+or
+
+.PP
+(EPCM(DS:RBX \&\~FFFH).PT ≠ PT\_REG) or (EPCM(DS:RBX \&\~FFFH).ENCLAVESECS ≠
+CR\_ACTIVE\_SECS) or
+
+.PP
+(EPCM(DS:RBX \&\~FFFH).ENCLAVEADDRESS ≠ (DS:RBX \& FFFH)) )
+
+.PP
+THEN #PF(DS:RBX); FI;
+
+.PP
+(* Copy 64 bytes of contents *)
+
+.PP
+SCRATCH\_SECINFO ← DS:RBX;
+
+.PP
+(* Check for misconfigured SECINFO flags*)
+
+.PP
+IF (SCRATCH\_SECINFO reserved fields are not zero )
+
+.PP
+THEN #GP(0); FI;
+
+.PP
+IF (DS:RCX is not 4KByte Aligned)
+
+.PP
+THEN #GP(0); FI;
+
+.PP
+IF (DS:RCX is not within CR\_ELRANGE)
+
+.PP
+THEN #GP(0); FI;
+
+.PP
+IF (DS:RCX does not resolve within an EPC)
+
+.PP
+THEN #PF(DS:RCX); FI;
+
+.PP
+(* Check that the combination of requested PT, PENDING and MODIFIED is
+legal *)
+
+.PP
+IF (NOT (((SCRATCH\_SECINFO.FLAGS.PT is PT\_REG) and
+
+.PP
+((SCRATCH\_SECINFO.FLAGS.PR is 1) or
+
+.PP
+(SCRATCH\_SECINFO.FLAGS.PENDING is 1)) and
+
+.PP
+(SCRATCH\_SECINFO.FLAGS.MODIFIED is 0)) or
+
+.PP
+((SCRATCH\_SECINFO.FLAGS.PT is PT\_TCS or PT\_TRIM) and
+
+.PP
+(SCRATCH\_SECINFO.FLAGS.PR is 0) and
+
+.PP
+(SCRATCH\_SECINFO.FLAGS.PENDING is 0) and
+
+.PP
+(SCRATCH\_SECINFO.FLAGS.MODIFIED is 1) )))
+
+.PP
+THEN #GP(0); FI
+
+.PP
+(* Check security attributes of the destination EPC page *)
+
+.PP
+If ( (EPCM(DS:RCX).VALID is 0) or (EPCM(DS:RCX).BLOCKED is not 0) or
+
+.PP
+((EPCM(DS:RCX).PT is not PT\_REG) and (EPCM(DS:RCX).PT is not PT\_TCS)
+and (EPCM(DS:RCX).PT is not PT\_TRIM)) or
+
+.PP
+(EPCM(DS:RCX).ENCLAVESECS ≠ CR\_ACTIVE\_SECS))
+
+.PP
+THEN #PF((DS:RCX); FI;
+
+.PP
+(* Check the destination EPC page for concurrency *)
+
+.PP
+IF ( EPC page in use )
+
+.PP
+THEN #GP(0); FI;
+
+.PP
+(* Re\-Check security attributes of the destination EPC page *)
+
+.PP
+IF ( (EPCM(DS:RCX).VALID is 0) or (EPCM(DS:RCX).ENCLAVESECS ≠
+CR\_ACTIVE\_SECS) )
+
+.PP
+THEN #PF(DS:RCX); FI;
+
+.PP
+(* Verify that accept request matches current EPC page settings *)
+
+.PP
+IF ( (EPCM(DS:RCX).ENCLAVEADDRESS ≠ DS:RCX) or (EPCM(DS:RCX).PENDING ≠
+SCRATCH\_SECINFO.FLAGS.PENDING) or
+
+.PP
+(EPCM(DS:RCX).MODIFIED ≠ SCRATCH\_SECINFO.FLAGS.MODIFIED) or
+(EPCM(DS:RCX).R ≠ SCRATCH\_SECINFO.FLAGS.R) or
+
+.PP
+(EPCM(DS:RCX).W ≠ SCRATCH\_SECINFO.FLAGS.W) or (EPCM(DS:RCX).X ≠
+SCRATCH\_SECINFO.FLAGS.X) or
+
+.PP
+(EPCM(DS:RCX).PT ≠ SCRATCH\_SECINFO.FLAGS.PT) )
+
+.PP
+THEN
+
+.PP
+RFLAGS.ZF ← 1;
+
+.PP
+RAX ← SGX\_PAGE\_ATTRIBUTES\_MISMATCH;
+
+.PP
+GOTO DONE;
+
+.PP
+FI;
+
+.PP
+(* Check that all required threads have left enclave *)
+
+.PP
+IF (Tracking not correct)
+
+.PP
+THEN
+
+.PP
+RFLAGS.ZF ← 1;
+
+.PP
+RAX ← SGX\_NOT\_TRACKED;
+
+.PP
+GOTO DONE;
+
+.PP
+FI;
+
+.PP
+(* Get pointer to the SECS to which the EPC page belongs *)
+
+.PP
+TMP\_SECS = \&lt;\&lt; Obtain physical address of SECS through
+EPCM(DS:RCX)\&gt;\&gt;
+
+.PP
+(* For TCS pages, perform additional checks *)
+
+.PP
+IF (SCRATCH\_SECINFO.FLAGS.PT = PT\_TCS)
+
+.PP
+IF (DS:RCX.RESERVED ≠ 0) #GP(0); FI;
+
+.PP
+FI;
+
+.PP
+(* Check that TCS.FLAGS.DBGOPTIN, TCS stack, and TCS status are
+correctly initialized *) IF ( ((DS:RCX).FLAGS.DBGOPTIN is not 0) or
+((DS:RCX).CSSA ≥ (DS:RCX).NSSA) or ((DS:RCX).AEP is not 0) or
+((DS:RCX).STATE is not 0)) THEN #GP(0); FI;
+
+.PP
+(* Check consistency of FS \& GS Limit *)
+
+.PP
+IF ( (TMP\_SECS.ATTRIBUTES.MODE64BIT is 0) and ((DS:RCX.FSLIMIT \& FFFH ≠
+FFFH) or (DS:RCX.GSLIMIT \& FFFH ≠ FFFH)) )
+
+.PP
+THEN #GP(0); FI;
+
+.PP
+(* Clear PENDING/MODIFIED flags to mark accept operation complete *)
+
+.PP
+EPCM(DS:RCX).PENDING ← 0;
+
+.PP
+EPCM(DS:RCX).MODIFIED ← 0;
+
+.PP
+EPCM(DS:RCX).PR ← 0;
+
+.PP
+(* Clear EAX and ZF to indicate successful completion *)
+
+.PP
+RFLAGS.ZF ← 0;
+
+.PP
+RAX←0;
+
+.PP
+DONE:
+
+.PP
+RFLAGS.CF,PF,AF,OF,SF ← 0;
+
+.SS Flags Affected
+.PP
+Sets ZF if page cannot be accepted, otherwise cleared. Clears CF, PF,
+AF, OF, SF
+
+.SS Protected Mode Exceptions
+.PP
+#GP(0)
+
+.PP
+If executed outside an enclave.
+
+.PP
+If a memory operand effective address is outside the DS segment limit.
+
+.PP
+If a memory operand is not properly aligned.
+
+.PP
+If a memory operand is locked.
+
+.PP
+#PF(error
+
+.PP
+code) If a page fault occurs in accessing memory operands.
+
+.PP
+If a memory operand is not an EPC page.
+
+.PP
+If EPC page has incorrect page type or security attributes.
+
+.SS 64\-Bit Mode Exceptions
+.PP
+#GP(0)
+
+.PP
+If executed outside an enclave.
+
+.PP
+If a memory operand is non\-canonical form.
+
+.PP
+If a memory operand is not properly aligned.
+
+.PP
+If a memory operand is locked.
+
+.PP
+#PF(error
+
+.PP
+code) If a page fault occurs in accessing memory operands.
+
+.PP
+If a memory operand is not an EPC page.
+
+.PP
+If EPC page has incorrect page type or security attributes.
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+Copyleft TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

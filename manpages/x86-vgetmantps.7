@@ -1,0 +1,266 @@
+.nh
+.TH "X86-VGETMANTPS" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+VGETMANTPS - EXTRACT FLOAT32 VECTOR OF NORMALIZED MANTISSAS FROM FLOAT32 VECTOR
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp/En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+T{
+EVEX.128.66.0F3A.W0 26 /r ib VGETMANTPS xmm1 {k1}{z}, xmm2/m128/m32bcst, imm8
+T}
+	A	V/V	AVX512VL AVX512F	T{
+Get normalized mantissa from float32 vector xmm2/m128/m32bcst and store the result in xmm1, using imm8 for sign control and mantissa interval normalization, under writemask.
+T}
+T{
+EVEX.256.66.0F3A.W0 26 /r ib VGETMANTPS ymm1 {k1}{z}, ymm2/m256/m32bcst, imm8
+T}
+	A	V/V	AVX512VL AVX512F	T{
+Get normalized mantissa from float32 vector ymm2/m256/m32bcst and store the result in ymm1, using imm8 for sign control and mantissa interval normalization, under writemask.
+T}
+T{
+EVEX.512.66.0F3A.W0 26 /r ib VGETMANTPS zmm1 {k1}{z}, zmm2/m512/m32bcst{sae}, imm8
+T}
+	A	V/V	AVX512F	T{
+Get normalized mantissa from float32 vector zmm2/m512/m32bcst and store the result in zmm1, using imm8 for sign control and mantissa interval normalization, under writemask.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+Op/En	Tuple Type	Operand 1	Operand 2	Operand 3	Operand 4
+A	Full	ModRM:reg (w)	ModRM:r/m (r)	Imm8	NA
+.TE
+
+.SS Description
+.PP
+Convert single\-precision floating values in the source operand (the
+second operand) to SP FP values with the mantissa normalization and sign
+control specified by the imm8 byte, see Figure 5\-15. The converted
+results are written to the destination operand (the first operand) using
+writemask k1. The normalized mantissa is specified by interv
+(imm8[1:0]) and the sign control (sc) is specified by bits 3:2 of the
+immediate byte.
+
+.PP
+The destination operand is a ZMM/YMM/XMM register updated under the
+writemask. The source operand can be a ZMM/YMM/XMM register, a
+512/256/128\-bit memory location, or a 512/256/128\-bit vector broadcasted
+from a 32\-bit memory location.
+
+.PP
+For each input SP FP value x, The conversion operation is:
+
+.PP
+k|x.significand|
+
+.PP
+where:
+
+.PP
+1 |x.significand| \&lt; 2
+
+.PP
+Unbiased exponent k depends on the interval range defined by interv and
+whether the exponent of the source is even or odd. The sign of the final
+result is determined by sc and the source sign.
+
+.PP
+if interv != 0 then k = \-1, otherwise K = 0. The encoded value of
+imm8[1:0] and sign control are shown
+
+.PP
+in Figure 5\-15.
+
+.PP
+Each converted SP FP result is encoded according to the sign control,
+the unbiased exponent k (adding bias) and a mantissa normalized to the
+range specified by interv.
+
+.PP
+The GetMant() function follows Table 5\-16 when dealing with
+floating\-point special numbers.
+
+.PP
+This instruction is writemasked, so only those elements with the
+corresponding bit set in vector mask register k1 are computed and stored
+into the destination. Elements in zmm1 with the corresponding bit clear
+in k1 retain their previous values.
+
+.PP
+Note: EVEX.vvvv is reserved and must be 1111b, VEX.L must be 0;
+otherwise instructions will #UD.
+
+.SS Operation
+.PP
+.RS
+
+.nf
+GetNormalizeMantissaSP(SRC[31:0] , SignCtrl[1:0], Interv[1:0])
+{
+    // Extracting the SRC sign, exponent and mantissa fields
+    Dst.sign←SignCtrl[0] ? 0 : Src[31]; // Get sign bit
+    Dst.exp←SRC[30:23]; ; Get original exponent value
+    Dst.fraction←SRC[22:0];; Get original fraction value
+    ZeroOperand←(Dst.exp = 0) AND (Dst.fraction = 0);
+    DenormOperand←(Dst.exp = 0h) AND (Dst.fraction != 0);
+    InfiniteOperand←(Dst.exp = 0FFh) AND (Dst.fraction = 0);
+    NaNOperand←(Dst.exp = 0FFh) AND (Dst.fraction != 0);
+    // Check for NAN operand
+    IF (NaNOperand)
+    { IF (SRC = SNaN) {Set #IE;}
+        Return QNAN(SRC);
+    }
+    // Check for Zero and Infinite operands
+    IF ((ZeroOperand) OR (InfiniteOperand)
+    { Dst.exp←07Fh;
+                        // Override exponent with BIAS
+        Return ((Dst.sign<<31) | (Dst.exp<<23) | (Dst.fraction));
+    }
+    // Check for negative operand (including \-0.0)
+    IF ((Src[31] = 1) AND SignCtrl[1])
+    { Set #IE;
+        Return QNaN\_Indefinite;
+    }
+    // Checking for denormal operands
+    IF (DenormOperand)
+    { IF (MXCSR.DAZ=1) Dst.fraction←0;// Zero out fraction
+        ELSE
+        {
+            // Jbit is the hidden integral bit. Zero in case of denormal operand.
+            Src.Jbit←0;
+                    // Zero Src Jbit
+            Dst.exp←07Fh;
+                    // Override exponent with BIAS
+            WHILE (Src.Jbit = 0) {
+                    // normalize mantissa
+                Src.Jbit←Dst.fraction[22]; // Get the fraction MSB
+                Dst.fraction←(Dst.fraction << 1);
+                                // Start normalizing the mantissa
+                Dst.exp\-\-; // Adjust the exponent
+            }
+            SET #DE; // Set DE bit
+        }
+    }
+    // Checking for exponent response
+    Unbiased.exp←Dst.exp – 07Fh;
+                        // subtract the bias from exponent
+    IsOddExp←Unbiased.exp[0];
+                        // recognized unbiased ODD exponent
+    SignalingBit ← Dst.fraction[22];
+    CASE (interv[1:0])
+        00: Dst.exp←07Fh;
+                            // This is the bias
+        01: Dst.exp←(IsOddExp) ? 07Eh : 07Fh;
+                                // either bias\-1, or bias
+        10: Dst.exp←07Eh;
+                            // bias\-1
+        11: Dst.exp←(SignalingBit) ? 07Eh : 07Fh;
+                                // either bias\-1, or bias
+    ESAC
+    // Form the final destination
+    DEST[31:0]←(Dst.sign << 31) OR (Dst.exp << 23) OR (Dst.fraction);
+    Return (DEST);
+}
+
+.fi
+.RE
+
+.SS VGETMANTPS (EVEX encoded versions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (4, 128), (8, 256), (16, 512)
+SignCtrl[1:0] ← IMM8[3:2];
+Interv[1:0] ← IMM8[1:0];
+FOR j←0 TO KL\-1
+    i←j * 32
+    IF k1[j] OR *no writemask*
+        THEN
+            IF (EVEX.b = 1) AND (SRC *is memory*)
+                THEN
+                    DEST[i+31:i] ← GetNormalizedMantissaSP(SRC[31:0], SignCtrl, Interv)
+                ELSE
+                    DEST[i+31:i] ← GetNormalizedMantissaSP(SRC[i+31:i], SignCtrl, Interv)
+            FI;
+        ELSE
+            IF *merging\-masking* ; merging\-masking
+                THEN *DEST[i+31:i] remains unchanged*
+                ELSE ; zeroing\-masking
+                    DEST[i+31:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS Intel C/C++ Compiler Intrinsic Equivalent
+.PP
+.RS
+
+.nf
+VGETMANTPS \_\_m512 \_mm512\_getmant\_ps( \_\_m512 a, enum intv, enum sgn);
+
+VGETMANTPS \_\_m512 \_mm512\_mask\_getmant\_ps(\_\_m512 s, \_\_mmask16 k, \_\_m512 a, enum intv, enum sgn;
+
+VGETMANTPS \_\_m512 \_mm512\_maskz\_getmant\_ps(\_\_mmask16 k, \_\_m512 a, enum intv, enum sgn);
+
+VGETMANTPS \_\_m512 \_mm512\_getmant\_round\_ps( \_\_m512 a, enum intv, enum sgn, int r);
+
+VGETMANTPS \_\_m512 \_mm512\_mask\_getmant\_round\_ps(\_\_m512 s, \_\_mmask16 k, \_\_m512 a, enum intv, enum sgn, int r);
+
+VGETMANTPS \_\_m512 \_mm512\_maskz\_getmant\_round\_ps(\_\_mmask16 k, \_\_m512 a, enum intv, enum sgn, int r);
+
+VGETMANTPS \_\_m256 \_mm256\_getmant\_ps( \_\_m256 a, enum intv, enum sgn);
+
+VGETMANTPS \_\_m256 \_mm256\_mask\_getmant\_ps(\_\_m256 s, \_\_mmask8 k, \_\_m256 a, enum intv, enum sgn);
+
+VGETMANTPS \_\_m256 \_mm256\_maskz\_getmant\_ps( \_\_mmask8 k, \_\_m256 a, enum intv, enum sgn);
+
+VGETMANTPS \_\_m128 \_mm\_getmant\_ps( \_\_m128 a, enum intv, enum sgn);
+
+VGETMANTPS \_\_m128 \_mm\_mask\_getmant\_ps(\_\_m128 s, \_\_mmask8 k, \_\_m128 a, enum intv, enum sgn);
+
+VGETMANTPS \_\_m128 \_mm\_maskz\_getmant\_ps( \_\_mmask8 k, \_\_m128 a, enum intv, enum sgn);
+
+.fi
+.RE
+
+.SS SIMD Floating\-Point Exceptions
+.PP
+Denormal, Invalid
+
+.SS Other Exceptions
+.PP
+See Exceptions Type E2.
+
+.TS
+allbox;
+l l 
+l l .
+#UD	If EVEX.vvvv != 1111B.
+.TE
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+Copyleft TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

@@ -1,0 +1,220 @@
+.nh
+.TH "X86-ENCLV" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+ENCLV - EXECUTE AN ENCLAVE VMM FUNCTION OF SPECIFIED LEAF NUMBER
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp/En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+NP 0F 01 C0 ENCLV	NP	V/V	NA	T{
+This instruction is used to execute privileged SGX leaf functions that are reserved for VMM use. They are used for managing the enclaves.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l 
+l l l l l .
+Op/En	Operand 1	Operand 2	Operand 3	Implicit Register Operands
+NP	NA	NA	NA	See Section 40.3
+.TE
+
+.SS Description
+.PP
+The ENCLV instruction invokes the virtualization SGX leaf functions for
+managing enclaves in a virtualized environment. Software specifies the
+leaf function by setting the appropriate value in the register EAX as
+input. The registers RBX, RCX, and RDX have leaf\-specific purpose, and
+may act as input, as output, or may be unused. In non 64\-bit mode, the
+instruction ignores upper 32 bits of the RAX register.
+
+.PP
+The ENCLV instruction produces an invalid\-opcode exception (#UD) if
+CR0.PE = 0 or RFLAGS.VM = 1, if it is executed in system\-management mode
+(SMM), or not in VMX operation. Additionally, any attempt to execute the
+instruction when CPL \&gt; 0 results in #UD. The instruction produces a
+general\-protection exception (#GP) if CR0.PG = 0 or if an attempt is
+made to invoke an undefined leaf function.
+
+.PP
+Software in VMX root mode of operation can enable execution of the ENCLV
+instruction in VMX non\-root mode by setting enable ENCLV execution
+control in the VMCS. If enable ENCLV execution control in the VMCS is
+clear, execution of the ENCLV instruction in VMX non\-root mode results
+in #UD.
+
+.PP
+When execution of ENCLV instruction in VMX non\-root mode is enabled,
+software in VMX root operation can intercept the invocation of various
+ENCLV leaf functions in VMX non\-root operation by setting the
+corresponding bits in the ENCLV\-exiting bitmap.
+
+.PP
+Addresses and operands are 32 bits in 32\-bit mode (IA32\_EFER.LMA == 0
+|| CS.L == 0) and are 64 bits in 64\-bit mode (IA32\_EFER.LMA == 1 \&\&
+CS.L == 1). CS.D value has no impact on address calculation.
+
+.PP
+Segment override prefixes and address\-size override prefixes are
+ignored, as is the REX prefix in 64\-bit mode.
+
+.SS Operation
+.PP
+.RS
+
+.nf
+IF TSX\_ACTIVE
+            THEN GOTO TSX\_ABORT\_PROCESSING; FI;
+IF CR0.PE = 0 or RFLAGS.VM = 1 or in SMM or CPUID.SGX\_LEAF.0:EAX.OSS = 0
+            THEN #UD; FI;
+IF in VMX non\-root operation and IA32\_EFER.LMA = 1 and CS.L = 1
+            THEN #UD; FI;
+IF (CPL > 0)
+            THEN #UD; FI;
+IF in VMX non\-root operation
+    IF “enable ENCLV exiting“ VM\-execution control is 1
+                THEN
+                    IF EAX < 63 and ENCLV\_exiting\_bitmap[EAX] = 1 or EAX> 62 and ENCLV\_exiting\_bitmap[63] = 1
+                        THEN VM exit;
+                    FI;
+        ELSE
+                #UD; FI;
+FI;
+IF IA32\_FEATURE\_CONTROL.LOCK = 0 or IA32\_FEATURE\_CONTROL.SGX\_ENABLE = 0
+            THEN #GP(0); FI;
+IF (EAX is an invalid leaf number)
+            THEN #GP(0); FI;
+IF CR0.PG = 0
+            THEN #GP(0); FI;
+(* DS must not be an expanded down segment *)
+IF not in 64\-bit mode and DS.Type is expand\-down data
+            THEN #GP(0); FI;
+Jump to leaf specific flow
+
+.fi
+.RE
+
+.SS Flags Affected
+.PP
+See individual leaf functions.
+
+.SS Protected Mode Exceptions
+.TS
+allbox;
+l l 
+l l .
+#UD	T{
+If any of the LOCK/OSIZE/REP/VEX prefix is used.
+T}
+	T{
+If current privilege level is not 0.
+T}
+	T{
+If CPUID.(EAX=12H,ECX=0):EAX.OSS 
+T}
+[
+bit 5
+]
+ = 0.
+	T{
+If logical processor is in SMM.
+T}
+#GP(0)	If IA32
+\_
+FEATURE
+\_
+CONTROL.LOCK = 0.
+	If IA32
+\_
+FEATURE
+\_
+CONTROL.SGX
+\_
+ENABLE = 0.
+	T{
+If input value in EAX encodes an unsupported leaf.
+T}
+	If data segment expand down.
+	If CR0.PG=0.
+.TE
+
+.SS Real\-Address Mode Exceptions
+.TS
+allbox;
+l l 
+l l .
+#UD	T{
+ENCLV is not recognized in real mode.
+T}
+.TE
+
+.SS Virtual\-8086 Mode Exceptions
+.TS
+allbox;
+l l 
+l l .
+#UD	T{
+ENCLV is not recognized in virtual\-8086 mode.
+T}
+.TE
+
+.SS Compatibility Mode Exceptions
+.PP
+Same exceptions as in protected mode.
+
+.SS 64\-Bit Mode Exceptions
+.TS
+allbox;
+l l 
+l l .
+#UD	T{
+If any of the LOCK/OSIZE/REP/VEX prefix is used.
+T}
+	T{
+If current privilege level is not 0.
+T}
+	T{
+If CPUID.(EAX=12H,ECX=0):EAX.OSS 
+T}
+[
+bit 5
+]
+ = 0.
+	T{
+If logical processor is in SMM.
+T}
+#GP(0)	If IA32
+\_
+FEATURE
+\_
+CONTROL.LOCK = 0.
+	If IA32
+\_
+FEATURE
+\_
+CONTROL.SGX
+\_
+ENABLE = 0.
+	T{
+If input value in EAX encodes an unsupported leaf.
+T}
+.TE
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+Copyleft TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

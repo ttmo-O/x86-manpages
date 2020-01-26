@@ -1,0 +1,402 @@
+.nh
+.TH "X86-VPERMILPD" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+VPERMILPD - PERMUTE IN-LANE OF PAIRS OF DOUBLE-PRECISION FLOATING-POINT VALUES
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp / En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+T{
+VEX.128.66.0F38.W0 0D /r VPERMILPD xmm1, xmm2, xmm3/m128
+T}
+	A	V/V	AVX	T{
+Permute double\-precision floating\-point values in xmm2 using controls from xmm3/m128 and store result in xmm1.
+T}
+T{
+VEX.256.66.0F38.W0 0D /r VPERMILPD ymm1, ymm2, ymm3/m256
+T}
+	A	V/V	AVX	T{
+Permute double\-precision floating\-point values in ymm2 using controls from ymm3/m256 and store result in ymm1.
+T}
+T{
+EVEX.128.66.0F38.W1 0D /r VPERMILPD xmm1 {k1}{z}, xmm2, xmm3/m128/m64bcst
+T}
+	C	V/V	AVX512VL AVX512F	T{
+Permute double\-precision floating\-point values in xmm2 using control from xmm3/m128/m64bcst and store the result in xmm1 using writemask k1.
+T}
+T{
+EVEX.256.66.0F38.W1 0D /r VPERMILPD ymm1 {k1}{z}, ymm2, ymm3/m256/m64bcst
+T}
+	C	V/V	AVX512VL AVX512F	T{
+Permute double\-precision floating\-point values in ymm2 using control from ymm3/m256/m64bcst and store the result in ymm1 using writemask k1.
+T}
+T{
+EVEX.512.66.0F38.W1 0D /r VPERMILPD zmm1 {k1}{z}, zmm2, zmm3/m512/m64bcst
+T}
+	C	V/V	AVX512F	T{
+Permute double\-precision floating\-point values in zmm2 using control from zmm3/m512/m64bcst and store the result in zmm1 using writemask k1.
+T}
+T{
+VEX.128.66.0F3A.W0 05 /r ib VPERMILPD xmm1, xmm2/m128, imm8
+T}
+	B	V/V	AVX	T{
+Permute double\-precision floating\-point values in xmm2/m128 using controls from imm8.
+T}
+T{
+VEX.256.66.0F3A.W0 05 /r ib VPERMILPD ymm1, ymm2/m256, imm8
+T}
+	B	V/V	AVX	T{
+Permute double\-precision floating\-point values in ymm2/m256 using controls from imm8.
+T}
+T{
+EVEX.128.66.0F3A.W1 05 /r ib VPERMILPD xmm1 {k1}{z}, xmm2/m128/m64bcst, imm8
+T}
+	D	V/V	AVX512VL AVX512F	T{
+Permute double\-precision floating\-point values in xmm2/m128/m64bcst using controls from imm8 and store the result in xmm1 using writemask k1.
+T}
+T{
+EVEX.256.66.0F3A.W1 05 /r ib VPERMILPD ymm1 {k1}{z}, ymm2/m256/m64bcst, imm8
+T}
+	D	V/V	AVX512VL AVX512F	T{
+Permute double\-precision floating\-point values in ymm2/m256/m64bcst using controls from imm8 and store the result in ymm1 using writemask k1.
+T}
+T{
+EVEX.512.66.0F3A.W1 05 /r ib VPERMILPD zmm1 {k1}{z}, zmm2/m512/m64bcst, imm8
+T}
+	D	V/V	AVX512F	T{
+Permute double\-precision floating\-point values in zmm2/m512/m64bcst using controls from imm8 and store the result in zmm1 using writemask k1.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+Op/En	Tuple Type	Operand 1	Operand 2	Operand 3	Operand 4
+A	NA	ModRM:reg (w)	VEX.vvvv (r)	ModRM:r/m (r)	NA
+B	NA	ModRM:reg (w)	ModRM:r/m (r)	NA	NA
+C	Full	ModRM:reg (w)	EVEX.vvvv (r)	ModRM:r/m (r)	NA
+D	Full	ModRM:reg (w)	ModRM:r/m (r)	NA	NA
+.TE
+
+.SS Description
+.PP
+(variable control version)
+
+.PP
+Permute pairs of double\-precision floating\-point values in the first
+source operand (second operand), each using a 1\-bit control field
+residing in the corresponding quadword element of the second source
+operand (third operand). Permuted results are stored in the destination
+operand (first operand).
+
+.PP
+The control bits are located at bit 0 of each quadword element (see
+Figure 5\-24). Each control determines which of the source element in an
+input pair is selected for the destination element. Each pair of source
+elements must lie in the same 128\-bit region as the destination.
+
+.PP
+EVEX version: The second source operand (third operand) is a ZMM/YMM/XMM
+register, a 512/256/128\-bit memory location or a 512/256/128\-bit vector
+broadcasted from a 64\-bit memory location. Permuted results are written
+to the destination under the writemask.
+
+.PP
+X3X2X1X0SRC1DESTX2..X3X2..X3X0..X1X0..X1
+
+.PP
+Figure 5\-23. VPERMILPD Operation
+
+.PP
+VEX.256 encoded version: Bits (MAXVL\-1:256) of the corresponding ZMM
+register are zeroed.
+
+.PP
+Bit6665 632 1255194193127.. .ignoredignoredignoredselselselControl Field
+4Control Field 2Control Field1
+
+.PP
+Figure 5\-24. VPERMILPD Shuffle Control
+
+.PP
+(immediate control version)
+
+.PP
+Permute pairs of double\-precision floating\-point values in the first
+source operand (second operand), each pair using a 1\-bit control field
+in the imm8 byte. Each element in the destination operand (first
+operand) use a separate control bit of the imm8 byte.
+
+.PP
+VEX version: The source operand is a YMM/XMM register or a 256/128\-bit
+memory location and the destination operand is a YMM/XMM register. Imm8
+byte provides the lower 4/2 bit as permute control fields.
+
+.PP
+EVEX version: The source operand (second operand) is a ZMM/YMM/XMM
+register, a 512/256/128\-bit memory location or a 512/256/128\-bit vector
+broadcasted from a 64\-bit memory location. Permuted results are written
+to the destination under the writemask. Imm8 byte provides the lower
+8/4/2 bit as permute control fields.
+
+.PP
+Note: For the imm8 versions, VEX.vvvv and EVEX.vvvv are reserved and
+must be 1111b otherwise instruction will #UD.
+
+.SS Operation
+.SS VPERMILPD (EVEX immediate versions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (8, 512)
+FOR j←0 TO KL\-1
+    i←j * 64
+    IF (EVEX.b = 1) AND (SRC1 *is memory*)
+        THEN TMP\_SRC1[i+63:i]←SRC1[63:0];
+        ELSE TMP\_SRC1[i+63:i]←SRC1[i+63:i];
+    FI;
+ENDFOR;
+IF (imm8[0] = 0) THEN TMP\_DEST[63:0]←SRC1[63:0]; FI;
+IF (imm8[0] = 1) THEN TMP\_DEST[63:0]←TMP\_SRC1[127:64]; FI;
+IF (imm8[1] = 0) THEN TMP\_DEST[127:64]←TMP\_SRC1[63:0]; FI;
+IF (imm8[1] = 1) THEN TMP\_DEST[127:64]←TMP\_SRC1[127:64]; FI;
+IF VL >= 256
+    IF (imm8[2] = 0) THEN TMP\_DEST[191:128]←TMP\_SRC1[191:128]; FI;
+    IF (imm8[2] = 1) THEN TMP\_DEST[191:128]←TMP\_SRC1[255:192]; FI;
+    IF (imm8[3] = 0) THEN TMP\_DEST[255:192]←TMP\_SRC1[191:128]; FI;
+    IF (imm8[3] = 1) THEN TMP\_DEST[255:192]←TMP\_SRC1[255:192]; FI;
+FI;
+IF VL >= 512
+    IF (imm8[4] = 0) THEN TMP\_DEST[319:256]←TMP\_SRC1[319:256]; FI;
+    IF (imm8[4] = 1) THEN TMP\_DEST[319:256]←TMP\_SRC1[383:320]; FI;
+    IF (imm8[5] = 0) THEN TMP\_DEST[383:320]←TMP\_SRC1[319:256]; FI;
+    IF (imm8[5] = 1) THEN TMP\_DEST[383:320]←TMP\_SRC1[383:320]; FI;
+    IF (imm8[6] = 0) THEN TMP\_DEST[447:384]←TMP\_SRC1[447:384]; FI;
+    IF (imm8[6] = 1) THEN TMP\_DEST[447:384]←TMP\_SRC1[511:448]; FI;
+    IF (imm8[7] = 0) THEN TMP\_DEST[511:448]←TMP\_SRC1[447:384]; FI;
+    IF (imm8[7] = 1) THEN TMP\_DEST[511:448]←TMP\_SRC1[511:448]; FI;
+FI;
+FOR j←0 TO KL\-1
+    i←j * 64
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+63:i]←TMP\_DEST[i+63:i]
+        ELSE
+            IF *merging\-masking*
+                THEN *DEST[i+63:i] remains unchanged*
+                ELSE ; zeroing\-masking
+                    DEST[i+63:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS VPERMILPD (256\-bit immediate version)
+.PP
+.RS
+
+.nf
+IF (imm8[0] = 0) THEN DEST[63:0]←SRC1[63:0]
+IF (imm8[0] = 1) THEN DEST[63:0]←SRC1[127:64]
+IF (imm8[1] = 0) THEN DEST[127:64]←SRC1[63:0]
+IF (imm8[1] = 1) THEN DEST[127:64]←SRC1[127:64]
+IF (imm8[2] = 0) THEN DEST[191:128]←SRC1[191:128]
+IF (imm8[2] = 1) THEN DEST[191:128]←SRC1[255:192]
+IF (imm8[3] = 0) THEN DEST[255:192]←SRC1[191:128]
+IF (imm8[3] = 1) THEN DEST[255:192]←SRC1[255:192]
+DEST[MAXVL\-1:256]←0
+
+.fi
+.RE
+
+.SS VPERMILPD (128\-bit immediate version)
+.PP
+.RS
+
+.nf
+IF (imm8[0] = 0) THEN DEST[63:0]←SRC1[63:0]
+IF (imm8[0] = 1) THEN DEST[63:0]←SRC1[127:64]
+IF (imm8[1] = 0) THEN DEST[127:64]←SRC1[63:0]
+IF (imm8[1] = 1) THEN DEST[127:64]←SRC1[127:64]
+DEST[MAXVL\-1:128]←0
+
+.fi
+.RE
+
+.SS VPERMILPD (EVEX variable versions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (2, 128), (4, 256), (8, 512)
+FOR j←0 TO KL\-1
+    i←j * 64
+    IF (EVEX.b = 1) AND (SRC2 *is memory*)
+        THEN TMP\_SRC2[i+63:i]←SRC2[63:0];
+        ELSE TMP\_SRC2[i+63:i]←SRC2[i+63:i];
+    FI;
+ENDFOR;
+IF (TMP\_SRC2[1] = 0) THEN TMP\_DEST[63:0]←SRC1[63:0]; FI;
+IF (TMP\_SRC2[1] = 1) THEN TMP\_DEST[63:0]←SRC1[127:64]; FI;
+IF (TMP\_SRC2[65] = 0) THEN TMP\_DEST[127:64]←SRC1[63:0]; FI;
+IF (TMP\_SRC2[65] = 1) THEN TMP\_DEST[127:64]←SRC1[127:64]; FI;
+IF VL >= 256
+    IF (TMP\_SRC2[129] = 0) THEN TMP\_DEST[191:128]←SRC1[191:128]; FI;
+    IF (TMP\_SRC2[129] = 1) THEN TMP\_DEST[191:128]←SRC1[255:192]; FI;
+    IF (TMP\_SRC2[193] = 0) THEN TMP\_DEST[255:192]←SRC1[191:128]; FI;
+    IF (TMP\_SRC2[193] = 1) THEN TMP\_DEST[255:192]←SRC1[255:192]; FI;
+FI;
+IF VL >= 512
+    IF (TMP\_SRC2[257] = 0) THEN TMP\_DEST[319:256]←SRC1[319:256]; FI;
+    IF (TMP\_SRC2[257] = 1) THEN TMP\_DEST[319:256]←SRC1[383:320]; FI;
+    IF (TMP\_SRC2[321] = 0) THEN TMP\_DEST[383:320]←SRC1[319:256]; FI;
+    IF (TMP\_SRC2[321] = 1) THEN TMP\_DEST[383:320]←SRC1[383:320]; FI;
+    IF (TMP\_SRC2[385] = 0) THEN TMP\_DEST[447:384]←SRC1[447:384]; FI;
+    IF (TMP\_SRC2[385] = 1) THEN TMP\_DEST[447:384]←SRC1[511:448]; FI;
+    IF (TMP\_SRC2[449] = 0) THEN TMP\_DEST[511:448]←SRC1[447:384]; FI;
+    IF (TMP\_SRC2[449] = 1) THEN TMP\_DEST[511:448]←SRC1[511:448]; FI;
+FI;
+FOR j←0 TO KL\-1
+    i←j * 64
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+63:i]←TMP\_DEST[i+63:i]
+        ELSE
+            IF *merging\-masking*
+                        ; merging\-masking
+                THEN *DEST[i+63:i] remains unchanged*
+                ELSE
+                        ; zeroing\-masking
+                    DEST[i+63:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS VPERMILPD (256\-bit variable version)
+.PP
+.RS
+
+.nf
+IF (SRC2[1] = 0) THEN DEST[63:0]←SRC1[63:0]
+IF (SRC2[1] = 1) THEN DEST[63:0]←SRC1[127:64]
+IF (SRC2[65] = 0) THEN DEST[127:64]←SRC1[63:0]
+IF (SRC2[65] = 1) THEN DEST[127:64]←SRC1[127:64]
+IF (SRC2[129] = 0) THEN DEST[191:128]←SRC1[191:128]
+IF (SRC2[129] = 1) THEN DEST[191:128]←SRC1[255:192]
+IF (SRC2[193] = 0) THEN DEST[255:192]←SRC1[191:128]
+IF (SRC2[193] = 1) THEN DEST[255:192]←SRC1[255:192]
+DEST[MAXVL\-1:256]←0
+
+.fi
+.RE
+
+.SS VPERMILPD (128\-bit variable version)
+.PP
+.RS
+
+.nf
+IF (SRC2[1] = 0) THEN DEST[63:0]←SRC1[63:0]
+IF (SRC2[1] = 1) THEN DEST[63:0]←SRC1[127:64]
+IF (SRC2[65] = 0) THEN DEST[127:64]←SRC1[63:0]
+IF (SRC2[65] = 1) THEN DEST[127:64]←SRC1[127:64]
+DEST[MAXVL\-1:128]←0
+
+.fi
+.RE
+
+.SS Intel C/C++ Compiler Intrinsic Equivalent
+.PP
+.RS
+
+.nf
+VPERMILPD \_\_m512d \_mm512\_permute\_pd( \_\_m512d a, int imm);
+
+VPERMILPD \_\_m512d \_mm512\_mask\_permute\_pd(\_\_m512d s, \_\_mmask8 k, \_\_m512d a, int imm);
+
+VPERMILPD \_\_m512d \_mm512\_maskz\_permute\_pd( \_\_mmask8 k, \_\_m512d a, int imm);
+
+VPERMILPD \_\_m256d \_mm256\_mask\_permute\_pd(\_\_m256d s, \_\_mmask8 k, \_\_m256d a, int imm);
+
+VPERMILPD \_\_m256d \_mm256\_maskz\_permute\_pd( \_\_mmask8 k, \_\_m256d a, int imm);
+
+VPERMILPD \_\_m128d \_mm\_mask\_permute\_pd(\_\_m128d s, \_\_mmask8 k, \_\_m128d a, int imm);
+
+VPERMILPD \_\_m128d \_mm\_maskz\_permute\_pd( \_\_mmask8 k, \_\_m128d a, int imm);
+
+VPERMILPD \_\_m512d \_mm512\_permutevar\_pd( \_\_m512i i, \_\_m512d a);
+
+VPERMILPD \_\_m512d \_mm512\_mask\_permutevar\_pd(\_\_m512d s, \_\_mmask8 k, \_\_m512i i, \_\_m512d a);
+
+VPERMILPD \_\_m512d \_mm512\_maskz\_permutevar\_pd( \_\_mmask8 k, \_\_m512i i, \_\_m512d a);
+
+VPERMILPD \_\_m256d \_mm256\_mask\_permutevar\_pd(\_\_m256d s, \_\_mmask8 k, \_\_m256d i, \_\_m256d a);
+
+VPERMILPD \_\_m256d \_mm256\_maskz\_permutevar\_pd( \_\_mmask8 k, \_\_m256d i, \_\_m256d a);
+
+VPERMILPD \_\_m128d \_mm\_mask\_permutevar\_pd(\_\_m128d s, \_\_mmask8 k, \_\_m128d i, \_\_m128d a);
+
+VPERMILPD \_\_m128d \_mm\_maskz\_permutevar\_pd( \_\_mmask8 k, \_\_m128d i, \_\_m128d a);
+
+VPERMILPD \_\_m128d \_mm\_permute\_pd (\_\_m128d a, int control)
+
+VPERMILPD \_\_m256d \_mm256\_permute\_pd (\_\_m256d a, int control)
+
+VPERMILPD \_\_m128d \_mm\_permutevar\_pd (\_\_m128d a, \_\_m128i control);
+
+VPERMILPD \_\_m256d \_mm256\_permutevar\_pd (\_\_m256d a, \_\_m256i control);
+
+.fi
+.RE
+
+.SS SIMD Floating\-Point Exceptions
+.PP
+None
+
+.SS Other Exceptions
+.PP
+Non\-EVEX\-encoded instruction, see Exceptions Type 4; additionally
+
+.TS
+allbox;
+l l 
+l l .
+#UD	If VEX.W = 1.
+.TE
+
+.PP
+EVEX\-encoded instruction, see Exceptions Type E4NF.
+
+.TS
+allbox;
+l l 
+l l .
+#UD	T{
+If either (E)VEX.vvvv != 1111B and with imm8.
+T}
+.TE
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+Copyleft TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

@@ -1,0 +1,436 @@
+.nh
+.TH "X86-VPERMI2W-VPERMI2D-VPERMI2Q-VPERMI2PS-VPERMI2PD" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+VPERMI2W-VPERMI2D-VPERMI2Q-VPERMI2PS-VPERMI2PD - FULL PERMUTE FROM TWO TABLES OVERWRITING THE INDEX
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp/En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+T{
+EVEX.128.66.0F38.W1 75 /r VPERMI2W xmm1 {k1}{z}, xmm2, xmm3/m128
+T}
+	A	V/V	AVX512VL AVX512BW	T{
+Permute word integers from two tables in xmm3/m128 and xmm2 using indexes in xmm1 and store the result in xmm1 using writemask k1.
+T}
+T{
+EVEX.256.66.0F38.W1 75 /r VPERMI2W ymm1 {k1}{z}, ymm2, ymm3/m256
+T}
+	A	V/V	AVX512VL AVX512BW	T{
+Permute word integers from two tables in ymm3/m256 and ymm2 using indexes in ymm1 and store the result in ymm1 using writemask k1.
+T}
+T{
+EVEX.512.66.0F38.W1 75 /r VPERMI2W zmm1 {k1}{z}, zmm2, zmm3/m512
+T}
+	A	V/V	AVX512BW	T{
+Permute word integers from two tables in zmm3/m512 and zmm2 using indexes in zmm1 and store the result in zmm1 using writemask k1.
+T}
+T{
+EVEX.128.66.0F38.W0 76 /r VPERMI2D xmm1 {k1}{z}, xmm2, xmm3/m128/m32bcst
+T}
+	B	V/V	AVX512VL AVX512F	T{
+Permute double\-words from two tables in xmm3/m128/m32bcst and xmm2 using indexes in xmm1 and store the result in xmm1 using writemask k1.
+T}
+T{
+EVEX.256.66.0F38.W0 76 /r VPERMI2D ymm1 {k1}{z}, ymm2, ymm3/m256/m32bcst
+T}
+	B	V/V	AVX512VL AVX512F	T{
+Permute double\-words from two tables in ymm3/m256/m32bcst and ymm2 using indexes in ymm1 and store the result in ymm1 using writemask k1.
+T}
+T{
+EVEX.512.66.0F38.W0 76 /r VPERMI2D zmm1 {k1}{z}, zmm2, zmm3/m512/m32bcst
+T}
+	B	V/V	AVX512F	T{
+Permute double\-words from two tables in zmm3/m512/m32bcst and zmm2 using indices in zmm1 and store the result in zmm1 using writemask k1.
+T}
+T{
+EVEX.128.66.0F38.W1 76 /r VPERMI2Q xmm1 {k1}{z}, xmm2, xmm3/m128/m64bcst
+T}
+	B	V/V	AVX512VL AVX512F	T{
+Permute quad\-words from two tables in xmm3/m128/m64bcst and xmm2 using indexes in xmm1 and store the result in xmm1 using writemask k1.
+T}
+T{
+EVEX.256.66.0F38.W1 76 /r VPERMI2Q ymm1 {k1}{z}, ymm2, ymm3/m256/m64bcst
+T}
+	B	V/V	AVX512VL AVX512F	T{
+Permute quad\-words from two tables in ymm3/m256/m64bcst and ymm2 using indexes in ymm1 and store the result in ymm1 using writemask k1.
+T}
+T{
+EVEX.512.66.0F38.W1 76 /r VPERMI2Q zmm1 {k1}{z}, zmm2, zmm3/m512/m64bcst
+T}
+	B	V/V	AVX512F	T{
+Permute quad\-words from two tables in zmm3/m512/m64bcst and zmm2 using indices in zmm1 and store the result in zmm1 using writemask k1.
+T}
+T{
+EVEX.128.66.0F38.W0 77 /r VPERMI2PS xmm1 {k1}{z}, xmm2, xmm3/m128/m32bcst
+T}
+	B	V/V	AVX512VL AVX512F	T{
+Permute single\-precision FP values from two tables in xmm3/m128/m32bcst and xmm2 using indexes in xmm1 and store the result in xmm1 using writemask k1.
+T}
+T{
+EVEX.256.66.0F38.W0 77 /r VPERMI2PS ymm1 {k1}{z}, ymm2, ymm3/m256/m32bcst
+T}
+	B	V/V	AVX512VL AVX512F	T{
+Permute single\-precision FP values from two tables in ymm3/m256/m32bcst and ymm2 using indexes in ymm1 and store the result in ymm1 using writemask k1.
+T}
+T{
+EVEX.512.66.0F38.W0 77 /r VPERMI2PS zmm1 {k1}{z}, zmm2, zmm3/m512/m32bcst
+T}
+	B	V/V	AVX512F	T{
+Permute single\-precision FP values from two tables in zmm3/m512/m32bcst and zmm2 using indices in zmm1 and store the result in zmm1 using writemask k1.
+T}
+T{
+EVEX.128.66.0F38.W1 77 /r VPERMI2PD xmm1 {k1}{z}, xmm2, xmm3/m128/m64bcst
+T}
+	B	V/V	AVX512VL AVX512F	T{
+Permute double\-precision FP values from two tables in xmm3/m128/m64bcst and xmm2 using indexes in xmm1 and store the result in xmm1 using writemask k1.
+T}
+T{
+EVEX.256.66.0F38.W1 77 /r VPERMI2PD ymm1 {k1}{z}, ymm2, ymm3/m256/m64bcst
+T}
+	B	V/V	AVX512VL AVX512F	T{
+Permute double\-precision FP values from two tables in ymm3/m256/m64bcst and ymm2 using indexes in ymm1 and store the result in ymm1 using writemask k1.
+T}
+T{
+EVEX.512.66.0F38.W1 77 /r VPERMI2PD zmm1 {k1}{z}, zmm2, zmm3/m512/m64bcst
+T}
+	B	V/V	AVX512F	T{
+Permute double\-precision FP values from two tables in zmm3/m512/m64bcst and zmm2 using indices in zmm1 and store the result in zmm1 using writemask k1.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+Op/En	Tuple Type	Operand 1	Operand 2	Operand 3	Operand 4
+A	Full Mem	ModRM:reg (r,w)	EVEX.vvvv (r)	ModRM:r/m (r)	NA
+B	Full	ModRM:reg (r, w)	EVEX.vvvv (r)	ModRM:r/m (r)	NA
+.TE
+
+.SS Description
+.PP
+Permutes 16\-bit/32\-bit/64\-bit values in the second operand (the first
+source operand) and the third operand (the second source operand) using
+indices in the first operand to select elements from the second and
+third operands. The selected elements are written to the destination
+operand (the first operand) according to the writemask k1.
+
+.PP
+The first and second operands are ZMM/YMM/XMM registers. The first
+operand contains input indices to select elements from the two input
+tables in the 2nd and 3rd operands. The first operand is also the
+destination of the result.
+
+.PP
+D/Q/PS/PD element versions: The second source operand can be a
+ZMM/YMM/XMM register, a 512/256/128\-bit memory location or a
+512/256/128\-bit vector broadcasted from a 32/64\-bit memory location.
+Broadcast from the low 32/64\-bit memory location is performed if EVEX.b
+and the id bit for table selection are set (selecting table\_2).
+
+.PP
+Dword/PS versions: The id bit for table selection is bit 4/3/2,
+depending on VL=512, 256, 128. Bits [3:0]/[2:0]/[1:0] of each
+element in the input index vector select an element within the two
+source operands, If the id bit is 0, table\_1 (the first source) is
+selected; otherwise the second source operand is selected.
+
+.PP
+Qword/PD versions: The id bit for table selection is bit 3/2/1, and bits
+[2:0]/[1:0] /bit 0 selects element within each input table.
+
+.PP
+Word element versions: The second source operand can be a ZMM/YMM/XMM
+register, or a 512/256/128\-bit memory location. The id bit for table
+selection is bit 5/4/3, and bits [4:0]/[3:0]/[2:0] selects element
+within each input table.
+
+.PP
+Note that these instructions permit a 16\-bit/32\-bit/64\-bit value in the
+source operands to be copied to more than one location in the
+destination operand. Note also that in this case, the same table can be
+reused for example for a second iteration, while the index elements are
+overwritten.
+
+.PP
+Bits (MAXVL\-1:256/128) of the destination are zeroed for VL=256,128.
+
+.SS Operation
+.SS VPERMI2W (EVEX encoded versions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (8, 128), (16, 256), (32, 512)
+IF VL = 128
+    id←2
+FI;
+IF VL = 256
+    id←3
+FI;
+IF VL = 512
+    id←4
+FI;
+TMP\_DEST← DEST
+FOR j←0 TO KL\-1
+    i←j * 16
+    off ← 16*TMP\_DEST[i+id:i]
+    IF k1[j] OR *no writemask*
+        THEN
+            DEST[i+15:i]=TMP\_DEST[i+id+1] ? SRC2[off+15:off]
+                    : SRC1[off+15:off]
+        ELSE
+            IF *merging\-masking* ; merging\-masking
+                THEN *DEST[i+15:i] remains unchanged*
+                ELSE ; zeroing\-masking
+                        DEST[i+15:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS VPERMI2D/VPERMI2PS (EVEX encoded versions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (4, 128), (8, 256), (16, 512)
+IF VL = 128
+    id←1
+FI;
+IF VL = 256
+    id←2
+FI;
+IF VL = 512
+    id←3
+FI;
+TMP\_DEST← DEST
+FOR j←0 TO KL\-1
+    i←j * 32
+    off ← 32*TMP\_DEST[i+id:i]
+    IF k1[j] OR *no writemask*
+        THEN
+            IF (EVEX.b = 1) AND (SRC2 *is memory*)
+                THEN
+                        DEST[i+31:i] ← TMP\_DEST[i+id+1] ? SRC2[31:0]
+                    : SRC1[off+31:off]
+            ELSE
+                DEST[i+31:i]←TMP\_DEST[i+id+1] ? SRC2[off+31:off]
+                    : SRC1[off+31:off]
+            FI
+        ELSE
+            IF *merging\-masking* ; merging\-masking
+                THEN *DEST[i+31:i] remains unchanged*
+                ELSE ; zeroing\-masking
+                    DEST[i+31:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS VPERMI2Q/VPERMI2PD (EVEX encoded versions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (2, 128), (4, 256), (8 512)
+IF VL = 128
+    id←0
+FI;
+IF VL = 256
+    id←1
+FI;
+IF VL = 512
+    id←2
+FI;
+TMP\_DEST← DEST
+FOR j←0 TO KL\-1
+    i←j * 64
+    off ← 64*TMP\_DEST[i+id:i]
+    IF k1[j] OR *no writemask*
+        THEN
+            IF (EVEX.b = 1) AND (SRC2 *is memory*)
+                THEN
+                        DEST[i+63:i]←TMP\_DEST[i+id+1] ? SRC2[63:0]
+                    : SRC1[off+63:off]
+            ELSE
+                DEST[i+63:i]←TMP\_DEST[i+id+1] ? SRC2[off+63:off]
+                    : SRC1[off+63:off]
+            FI
+        ELSE
+            IF *merging\-masking* ; merging\-masking
+                THEN *DEST[i+63:i] remains unchanged*
+                ELSE
+                            ; zeroing\-masking
+                        DEST[i+63:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS Intel C/C++ Compiler Intrinsic Equivalent
+.PP
+.RS
+
+.nf
+VPERMI2D \_\_m512i \_mm512\_permutex2var\_epi32(\_\_m512i a, \_\_m512i idx, \_\_m512i b);
+
+VPERMI2D \_\_m512i \_mm512\_mask\_permutex2var\_epi32(\_\_m512i a, \_\_mmask16 k, \_\_m512i idx, \_\_m512i b);
+
+VPERMI2D \_\_m512i \_mm512\_mask2\_permutex2var\_epi32(\_\_m512i a, \_\_m512i idx, \_\_mmask16 k, \_\_m512i b);
+
+VPERMI2D \_\_m512i \_mm512\_maskz\_permutex2var\_epi32(\_\_mmask16 k, \_\_m512i a, \_\_m512i idx, \_\_m512i b);
+
+VPERMI \_\_m256i \_mm256\_permutex2var\_epi32(\_\_m256i a, \_\_m256i idx, \_\_m256i b);
+
+VPERMI2D \_\_m256i \_mm256\_mask\_permutex2var\_epi32(\_\_m256i a, \_\_mmask8 k, \_\_m256i idx, \_\_m256i b);
+
+VPERMI2D \_\_m256i \_mm256\_mask2\_permutex2var\_epi32(\_\_m256i a, \_\_m256i idx, \_\_mmask8 k, \_\_m256i b);
+
+VPERMI2D \_\_m256i \_mm256\_maskz\_permutex2var\_epi32(\_\_mmask8 k, \_\_m256i a, \_\_m256i idx, \_\_m256i b);
+
+VPERMI2D \_\_m128i \_mm\_permutex2var\_epi32(\_\_m128i a, \_\_m128i idx, \_\_m128i b);
+
+VPERMI2D \_\_m128i \_mm\_mask\_permutex2var\_epi32(\_\_m128i a, \_\_mmask8 k, \_\_m128i idx, \_\_m128i b);
+
+VPERMI2D \_\_m128i \_mm\_mask2\_permutex2var\_epi32(\_\_m128i a, \_\_m128i idx, \_\_mmask8 k, \_\_m128i b);
+
+VPERMI2D \_\_m128i \_mm\_maskz\_permutex2var\_epi32(\_\_mmask8 k, \_\_m128i a, \_\_m128i idx, \_\_m128i b);
+
+VPERMI2PD \_\_m512d \_mm512\_permutex2var\_pd(\_\_m512d a, \_\_m512i idx, \_\_m512d b);
+
+VPERMI2PD \_\_m512d \_mm512\_mask\_permutex2var\_pd(\_\_m512d a, \_\_mmask8 k, \_\_m512i idx, \_\_m512d b);
+
+VPERMI2PD \_\_m512d \_mm512\_mask2\_permutex2var\_pd(\_\_m512d a, \_\_m512i idx, \_\_mmask8 k, \_\_m512d b);
+
+VPERMI2PD \_\_m512d \_mm512\_maskz\_permutex2var\_pd(\_\_mmask8 k, \_\_m512d a, \_\_m512i idx, \_\_m512d b);
+
+VPERMI2PD \_\_m256d \_mm256\_permutex2var\_pd(\_\_m256d a, \_\_m256i idx, \_\_m256d b);
+
+VPERMI2PD \_\_m256d \_mm256\_mask\_permutex2var\_pd(\_\_m256d a, \_\_mmask8 k, \_\_m256i idx, \_\_m256d b);
+
+VPERMI2PD \_\_m256d \_mm256\_mask2\_permutex2var\_pd(\_\_m256d a, \_\_m256i idx, \_\_mmask8 k, \_\_m256d b);
+
+VPERMI2PD \_\_m256d \_mm256\_maskz\_permutex2var\_pd(\_\_mmask8 k, \_\_m256d a, \_\_m256i idx, \_\_m256d b);
+
+VPERMI2PD \_\_m128d \_mm\_permutex2var\_pd(\_\_m128d a, \_\_m128i idx, \_\_m128d b);
+
+VPERMI2PD \_\_m128d \_mm\_mask\_permutex2var\_pd(\_\_m128d a, \_\_mmask8 k, \_\_m128i idx, \_\_m128d b);
+
+VPERMI2PD \_\_m128d \_mm\_mask2\_permutex2var\_pd(\_\_m128d a, \_\_m128i idx, \_\_mmask8 k, \_\_m128d b);
+
+VPERMI2PD \_\_m128d \_mm\_maskz\_permutex2var\_pd(\_\_mmask8 k, \_\_m128d a, \_\_m128i idx, \_\_m128d b);
+
+VPERMI2PS \_\_m512 \_mm512\_permutex2var\_ps(\_\_m512 a, \_\_m512i idx, \_\_m512 b);
+
+VPERMI2PS \_\_m512 \_mm512\_mask\_permutex2var\_ps(\_\_m512 a, \_\_mmask16 k, \_\_m512i idx, \_\_m512 b);
+
+VPERMI2PS \_\_m512 \_mm512\_mask2\_permutex2var\_ps(\_\_m512 a, \_\_m512i idx, \_\_mmask16 k, \_\_m512 b);
+
+VPERMI2PS \_\_m512 \_mm512\_maskz\_permutex2var\_ps(\_\_mmask16 k, \_\_m512 a, \_\_m512i idx, \_\_m512 b);
+
+VPERMI2PS \_\_m256 \_mm256\_permutex2var\_ps(\_\_m256 a, \_\_m256i idx, \_\_m256 b);
+
+VPERMI2PS \_\_m256 \_mm256\_mask\_permutex2var\_ps(\_\_m256 a, \_\_mmask8 k, \_\_m256i idx, \_\_m256 b);
+
+VPERMI2PS \_\_m256 \_mm256\_mask2\_permutex2var\_ps(\_\_m256 a, \_\_m256i idx, \_\_mmask8 k, \_\_m256 b);
+
+VPERMI2PS \_\_m256 \_mm256\_maskz\_permutex2var\_ps(\_\_mmask8 k, \_\_m256 a, \_\_m256i idx, \_\_m256 b);
+
+VPERMI2PS \_\_m128 \_mm\_permutex2var\_ps(\_\_m128 a, \_\_m128i idx, \_\_m128 b);
+
+VPERMI2PS \_\_m128 \_mm\_mask\_permutex2var\_ps(\_\_m128 a, \_\_mmask8 k, \_\_m128i idx, \_\_m128 b);
+
+VPERMI2PS \_\_m128 \_mm\_mask2\_permutex2var\_ps(\_\_m128 a, \_\_m128i idx, \_\_mmask8 k, \_\_m128 b);
+
+VPERMI2PS \_\_m128 \_mm\_maskz\_permutex2var\_ps(\_\_mmask8 k, \_\_m128 a, \_\_m128i idx, \_\_m128 b);
+
+VPERMI2Q \_\_m512i \_mm512\_permutex2var\_epi64(\_\_m512i a, \_\_m512i idx, \_\_m512i b);
+
+VPERMI2Q \_\_m512i \_mm512\_mask\_permutex2var\_epi64(\_\_m512i a, \_\_mmask8 k, \_\_m512i idx, \_\_m512i b);
+
+VPERMI2Q \_\_m512i \_mm512\_mask2\_permutex2var\_epi64(\_\_m512i a, \_\_m512i idx, \_\_mmask8 k, \_\_m512i b);
+
+VPERMI2Q \_\_m512i \_mm512\_maskz\_permutex2var\_epi64(\_\_mmask8 k, \_\_m512i a, \_\_m512i idx, \_\_m512i b);
+
+VPERMI2Q \_\_m256i \_mm256\_permutex2var\_epi64(\_\_m256i a, \_\_m256i idx, \_\_m256i b);
+
+VPERMI2Q \_\_m256i \_mm256\_mask\_permutex2var\_epi64(\_\_m256i a, \_\_mmask8 k, \_\_m256i idx, \_\_m256i b);
+
+VPERMI2Q \_\_m256i \_mm256\_mask2\_permutex2var\_epi64(\_\_m256i a, \_\_m256i idx, \_\_mmask8 k, \_\_m256i b);
+
+VPERMI2Q \_\_m256i \_mm256\_maskz\_permutex2var\_epi64(\_\_mmask8 k, \_\_m256i a, \_\_m256i idx, \_\_m256i b);
+
+VPERMI2Q \_\_m128i \_mm\_permutex2var\_epi64(\_\_m128i a, \_\_m128i idx, \_\_m128i b);
+
+VPERMI2Q \_\_m128i \_mm\_mask\_permutex2var\_epi64(\_\_m128i a, \_\_mmask8 k, \_\_m128i idx, \_\_m128i b);
+
+VPERMI2Q \_\_m128i \_mm\_mask2\_permutex2var\_epi64(\_\_m128i a, \_\_m128i idx, \_\_mmask8 k, \_\_m128i b);
+
+VPERMI2Q \_\_m128i \_mm\_maskz\_permutex2var\_epi64(\_\_mmask8 k, \_\_m128i a, \_\_m128i idx, \_\_m128i b);
+
+VPERMI2W \_\_m512i \_mm512\_permutex2var\_epi16(\_\_m512i a, \_\_m512i idx, \_\_m512i b);
+
+VPERMI2W \_\_m512i \_mm512\_mask\_permutex2var\_epi16(\_\_m512i a, \_\_mmask32 k, \_\_m512i idx, \_\_m512i b);
+
+VPERMI2W \_\_m512i \_mm512\_mask2\_permutex2var\_epi16(\_\_m512i a, \_\_m512i idx, \_\_mmask32 k, \_\_m512i b);
+
+VPERMI2W \_\_m512i \_mm512\_maskz\_permutex2var\_epi16(\_\_mmask32 k, \_\_m512i a, \_\_m512i idx, \_\_m512i b);
+
+VPERMI2W \_\_m256i \_mm256\_permutex2var\_epi16(\_\_m256i a, \_\_m256i idx, \_\_m256i b);
+
+VPERMI2W \_\_m256i \_mm256\_mask\_permutex2var\_epi16(\_\_m256i a, \_\_mmask16 k, \_\_m256i idx, \_\_m256i b);
+
+VPERMI2W \_\_m256i \_mm256\_mask2\_permutex2var\_epi16(\_\_m256i a, \_\_m256i idx, \_\_mmask16 k, \_\_m256i b);
+
+VPERMI2W \_\_m256i \_mm256\_maskz\_permutex2var\_epi16(\_\_mmask16 k, \_\_m256i a, \_\_m256i idx, \_\_m256i b);
+
+VPERMI2W \_\_m128i \_mm\_permutex2var\_epi16(\_\_m128i a, \_\_m128i idx, \_\_m128i b);
+
+VPERMI2W \_\_m128i \_mm\_mask\_permutex2var\_epi16(\_\_m128i a, \_\_mmask8 k, \_\_m128i idx, \_\_m128i b);
+
+VPERMI2W \_\_m128i \_mm\_mask2\_permutex2var\_epi16(\_\_m128i a, \_\_m128i idx, \_\_mmask8 k, \_\_m128i b);
+
+VPERMI2W \_\_m128i \_mm\_maskz\_permutex2var\_epi16(\_\_mmask8 k, \_\_m128i a, \_\_m128i idx, \_\_m128i b);
+
+.fi
+.RE
+
+.SS SIMD Floating\-Point Exceptions
+.PP
+None
+
+.SS Other Exceptions
+.PP
+VPERMI2D/Q/PS/PD: See Exceptions Type E4NF.
+
+.PP
+VPERMI2W: See Exceptions Type E4NF.nb.
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+Copyleft TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

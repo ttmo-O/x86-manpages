@@ -1,0 +1,217 @@
+.nh
+.TH "X86-VFIXUPIMMSS" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+VFIXUPIMMSS - FIX UP SPECIAL SCALAR FLOAT32 VALUE
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp/En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+T{
+EVEX.LIG.66.0F3A.W0 55 /r ib VFIXUPIMMSS xmm1 {k1}{z}, xmm2, xmm3/m32{sae}, imm8
+T}
+	A	V/V	AVX512F	T{
+Fix up a float32 number in the low doubleword element in xmm2 using scalar int32 table in xmm3/m32 and store the result in xmm1.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+Op/En	Tuple Type	Operand 1	Operand 2	Operand 3	Operand 4
+A	Tuple1 Scalar	ModRM:reg (r, w)	EVEX.vvvv	ModRM:r/m (r)	Imm8
+.TE
+
+.SS Description
+.PP
+Perform a fix\-up of the low doubleword element encoded in
+single\-precision floating\-point format in the first source operand (the
+second operand) using a 32\-bit, two\-level look\-up table specified in the
+low doubleword element of the second source operand (the third operand)
+with exception reporting specifier imm8. The element that is fixed\-up is
+selected by mask bit of 1 specified in the opmask k1. Mask bit of 0 in
+the opmask k1 or table response action of 0000b preserves the
+corresponding element of the first operand. The fixed\-up element from
+the first source operand or the preserved element in the first operand
+becomes the low doubleword element of the destination operand (the first
+operand) Bits 127:32 of the destination operand is copied from the
+corresponding bits of the first source operand. The destination and
+first source operands are XMM registers. The second source operand can
+be a XMM register or a 32\-bit memory location.
+
+.PP
+The two\-level look\-up table perform a fix\-up of each SP FP input data in
+the first source operand by decoding the input data encoding into 8
+token types. A response table is defined for each token type that
+converts the input encoding in the first source operand with one of 16
+response actions.
+
+.PP
+This instruction is specifically intended for use in fixing up the
+results of arithmetic calculations involving one source so that they
+match the spec, although it is generally useful for fixing up the
+results of multiple\-instruction sequences to reflect special\-number
+inputs. For example, consider rcp(0). Input 0 to rcp, and you should get
+INF according to the DX10 spec. However, evaluating rcp via
+Newton\-Raphson, where x=approx(1/0), yields an incorrect result. To deal
+with this, VFIXUPIMMPD can be used after the N\-R reciprocal sequence to
+set the result to the correct value (i.e. INF when the input is 0).
+
+.PP
+If MXCSR.DAZ is not set, denormal input elements in the first source
+operand are considered as normal inputs and do not trigger any fixup nor
+fault reporting.
+
+.PP
+Imm8 is used to set the required flags reporting. It supports #ZE and
+#IE fault reporting (see details below).
+
+.PP
+MXCSR.DAZ is used and refer to zmm2 only (i.e. zmm1 is not considered as
+zero in case MXCSR.DAZ is set).
+
+.PP
+MXCSR mask bits are ignored and are treated as if all mask bits are set
+to masked response). If any of the imm8 bits is set and the condition
+met for fault reporting, MXCSR.IE or MXCSR.ZE might be updated.
+
+.SS Operation
+.PP
+.RS
+
+.nf
+enum TOKEN\_TYPE
+{
+    QNAN\_TOKEN ← 0,
+    SNAN\_TOKEN ← 1,
+    ZERO\_VALUE\_TOKEN ← 2,
+    POS\_ONE\_VALUE\_TOKEN ← 3,
+    NEG\_INF\_TOKEN ← 4,
+    POS\_INF\_TOKEN ← 5,
+    NEG\_VALUE\_TOKEN ← 6,
+    POS\_VALUE\_TOKEN ← 7
+}
+FIXUPIMM\_SP (dest[31:0], src1[31:0],tbl3[31:0], imm8 [7:0]){
+    tsrc[31:0]←((src1[30:23] = 0) AND (MXCSR.DAZ =1)) ? 0.0 : src1[31:0]
+    CASE(tsrc[63:0] of TOKEN\_TYPE) {
+        QNAN\_TOKEN: j←0;
+        SNAN\_TOKEN: j←1;
+        ZERO\_VALUE\_TOKEN: j←2;
+        POS\_ONE\_VALUE\_TOKEN: j ← 3;
+        NEG\_INF\_TOKEN: j←4;
+        POS\_INF\_TOKEN: j←5;
+        NEG\_VALUE\_TOKEN: j←6;
+        POS\_VALUE\_TOKEN: j = 7;
+    }
+            ; end source special CASE(tsrc...)
+    ; The required response from src3 table is extracted
+    token\_response[3:0] = tbl3[3+4*j:4*j];
+    CASE(token\_response[3:0]) {
+        0000: dest[31:0]←dest[31:0]; ; preserve content of DEST
+        0001: dest[31:0]←tsrc[31:0]; ; pass through src1 normal input value, denormal as zero
+        0010: dest[31:0]←QNaN(tsrc[31:0]);
+        0011: dest[31:0]←QNAN\_Indefinite;
+        0100: dest[31:0]←\-INF;
+        0101: dest[31:0]←+INF;
+        0110: dest[31:0]←tsrc.sign? –INF : +INF;
+        0111: dest[31:0]←\-0;
+        1000: dest[31:0]←+0;
+        1001: dest[31:0]←\-1;
+        1010: dest[31:0]←+1;
+        1011: dest[31:0]←1⁄2;
+        1100: dest[31:0]←90.0;
+        1101: dest[31:0]←PI/2;
+        1110: dest[31:0]←MAX\_FLOAT;
+        1111: dest[31:0]←\-MAX\_FLOAT;
+    }
+            ; end of token\_response CASE
+    ; The required fault reporting from imm8 is extracted
+    ; TOKENs are mutually exclusive and TOKENs priority defines the order.
+    ; Multiple faults related to a single token can occur simultaneously.
+    IF (tsrc[31:0] of TOKEN\_TYPE: ZERO\_VALUE\_TOKEN) AND imm8[0] then set #ZE;
+    IF (tsrc[31:0] of TOKEN\_TYPE: ZERO\_VALUE\_TOKEN) AND imm8[1] then set #IE;
+    IF (tsrc[31:0] of TOKEN\_TYPE: ONE\_VALUE\_TOKEN) AND imm8[2] then set #ZE;
+    IF (tsrc[31:0] of TOKEN\_TYPE: ONE\_VALUE\_TOKEN) AND imm8[3] then set #IE;
+    IF (tsrc[31:0] of TOKEN\_TYPE: SNAN\_TOKEN) AND imm8[4] then set #IE;
+    IF (tsrc[31:0] of TOKEN\_TYPE: NEG\_INF\_TOKEN) AND imm8[5] then set #IE;
+    IF (tsrc[31:0] of TOKEN\_TYPE: NEG\_VALUE\_TOKEN) AND imm8[6] then set #IE;
+    IF (tsrc[31:0] of TOKEN\_TYPE: POS\_INF\_TOKEN) AND imm8[7] then set #IE;
+        ; end fault reporting
+    return dest[31:0];
+} ; end of FIXUPIMM\_SP()
+
+.fi
+.RE
+
+.SS VFIXUPIMMSS (EVEX encoded version)
+.PP
+.RS
+
+.nf
+IF k1[0] OR *no writemask*
+    THEN DEST[31:0]←FIXUPIMM\_SP(DEST[31:0], SRC1[31:0], SRC2[31:0], imm8 [7:0])
+    ELSE
+        IF *merging\-masking* ; merging\-masking
+            THEN *DEST[31:0] remains unchanged*
+            ELSE DEST[31:0]←0
+                ; zeroing\-masking
+DEST[127:32] ← SRC1[127:32]
+DEST[MAXVL\-1:128] ← 0
+Immediate Control Description:
+
+.fi
+.RE
+
+.PP
+76543210+INF #IE\-VE #IE\-INF #IESNaN #IEONE #IEONE #ZEZERO
+#IEZERO #ZE
+
+.PP
+Figure 5\-12. VFIXUPIMMSS Immediate Control Description
+
+.SS Intel C/C++ Compiler Intrinsic Equivalent
+.PP
+.RS
+
+.nf
+VFIXUPIMMSS \_\_m128 \_mm\_fixupimm\_ss( \_\_m128 a, \_\_m128i tbl, int imm);
+
+VFIXUPIMMSS \_\_m128 \_mm\_mask\_fixupimm\_ss(\_\_m128 s, \_\_mmask8 k, \_\_m128 a, \_\_m128i tbl, int imm);
+
+VFIXUPIMMSS \_\_m128 \_mm\_maskz\_fixupimm\_ss( \_\_mmask8 k, \_\_m128 a, \_\_m128i tbl, int imm);
+
+VFIXUPIMMSS \_\_m128 \_mm\_fixupimm\_round\_ss( \_\_m128 a, \_\_m128i tbl, int imm, int sae);
+
+VFIXUPIMMSS \_\_m128 \_mm\_mask\_fixupimm\_round\_ss(\_\_m128 s, \_\_mmask8 k, \_\_m128 a, \_\_m128i tbl, int imm, int sae);
+
+VFIXUPIMMSS \_\_m128 \_mm\_maskz\_fixupimm\_round\_ss( \_\_mmask8 k, \_\_m128 a, \_\_m128i tbl, int imm, int sae);
+
+.fi
+.RE
+
+.SS SIMD Floating\-Point Exceptions
+.PP
+Zero, Invalid
+
+.SS Other Exceptions
+.PP
+See Exceptions Type E3.
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+Copyleft TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

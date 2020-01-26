@@ -1,0 +1,258 @@
+.nh
+.TH "X86-DIV" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+DIV - UNSIGNED DIVIDE
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+\fB\fCOpcode\fR	\fB\fCInstruction\fR	\fB\fCOp/En\fR	\fB\fC64\-Bit Mode\fR	\fB\fCCompat/Leg Mode\fR	\fB\fCDescription\fR
+F6 /6	DIV r/m8	M	Valid	Valid	T{
+Unsigned divide AX by r/m8, with result stored in AL ← Quotient, AH ← Remainder.
+T}
+REX + F6 /6	DIV r/m8*	M	Valid	N.E.	T{
+Unsigned divide AX by r/m8, with result stored in AL ← Quotient, AH ← Remainder.
+T}
+F7 /6	DIV r/m16	M	Valid	Valid	T{
+Unsigned divide DX:AX by r/m16, with result stored in AX ← Quotient, DX ← Remainder.
+T}
+F7 /6	DIV r/m32	M	Valid	Valid	T{
+Unsigned divide EDX:EAX by r/m32, with result stored in EAX ← Quotient, EDX ← Remainder.
+T}
+REX.W + F7 /6	DIV r/m64	M	Valid	N.E.	T{
+Unsigned divide RDX:RAX by r/m64, with result stored in RAX ← Quotient, RDX ← Remainder.
+T}
+.TE
+
+.PP
+.RS
+
+.PP
+*
+In64\-bitmode,r/m8cannotbeencodedtoaccessthefollowingbyteregistersifaREXprefixisused:AH,BH,CH,DH.
+
+.RE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l 
+l l l l l .
+Op/En	Operand 1	Operand 2	Operand 3	Operand 4
+M	ModRM:r/m (w)	NA	NA	NA
+.TE
+
+.SH DESCRIPTION
+.PP
+Divides unsigned the value in the AX, DX:AX, EDX:EAX, or RDX:RAX
+registers (dividend) by the source operand (divisor) and stores the
+result in the AX (AH:AL), DX:AX, EDX:EAX, or RDX:RAX registers. The
+source operand can be a general\-purpose register or a memory location.
+The action of this instruction depends on the operand size
+(dividend/divisor). Division using 64\-bit operand is available only in
+64\-bit mode.
+
+.PP
+Non\-integral results are truncated (chopped) towards 0. The remainder is
+always less than the divisor in magnitude. Overflow is indicated with
+the #DE (divide error) exception rather than with the CF flag.
+
+.PP
+In 64\-bit mode, the instruction’s default operation size is 32 bits. Use
+of the REX.R prefix permits access to additional registers (R8\-R15). Use
+of the REX.W prefix promotes operation to 64 bits. In 64\-bit mode when
+REX.W is applied, the instruction divides the unsigned value in RDX:RAX
+by the source operand and stores the quotient in RAX, the remainder in
+RDX.
+
+.PP
+See the summary chart at the beginning of this section for encoding data
+and limits. See Table 3\-15.
+
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+\fB\fCOperand Size\fR	\fB\fCDividend\fR	\fB\fCDivisor\fR	\fB\fCQuotient\fR	\fB\fCRemainder\fR	\fB\fCMaximum Quotient\fR
+Word/byte	AX	r/m8	AL	AH	255
+Doubleword/word	DX:AX	r/m16	AX	DX	65,535
+Quadword/doubleword	EDX:EAX	r/m32	EAX	EDX	232 − 1
+Doublequadword/quadword	RDX:RAX	r/m64	RAX	RDX	264 − 1
+.TE
+
+.PP
+Table 3\-15. DIV Action
+
+.SH OPERATION
+.PP
+.RS
+
+.nf
+IFSRC =0
+    THEN #DE; FI; (* Divide Error *)
+IF OperandSize = 8 (* Word/Byte Operation *)
+    THEN
+        temp ← AX / SRC;
+        IF temp > FFH
+            THEN #DE; (* Divide error *)
+            ELSE
+                AL ← temp;
+                AH ← AX MOD SRC;
+        FI;
+    ELSE IF OperandSize = 16 (* Doubleword/word operation *)
+        THEN
+            temp ← DX:AX / SRC;
+            IF temp > FFFFH
+                THEN #DE; (* Divide error *)
+            ELSE
+                AX ← temp;
+                DX ← DX:AX MOD SRC;
+            FI;
+        FI;
+    ELSE IF Operandsize = 32 (* Quadword/doubleword operation *)
+        THEN
+            temp ← EDX:EAX / SRC;
+            IF temp > FFFFFFFFH
+                THEN #DE; (* Divide error *)
+            ELSE
+                EAX ← temp;
+                EDX ← EDX:EAX MOD SRC;
+            FI;
+        FI;
+    ELSE IF 64\-Bit Mode and Operandsize = 64 (* Doublequadword/quadword operation *)
+        THEN
+            temp ← RDX:RAX / SRC;
+            IF temp > FFFFFFFFFFFFFFFFH
+                THEN #DE; (* Divide error *)
+            ELSE
+                RAX ← temp;
+                RDX ← RDX:RAX MOD SRC;
+            FI;
+        FI;
+FI;
+
+.fi
+.RE
+
+.SH FLAGS AFFECTED
+.PP
+The CF, OF, SF, ZF, AF, and PF flags are undefined.
+
+.SH PROTECTED MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#DE	T{
+If the source operand (divisor) is 0
+T}
+	T{
+If the quotient is too large for the designated register.
+T}
+#GP(0)	T{
+If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit.
+T}
+	T{
+If the DS, ES, FS, or GS register contains a NULL segment selector.
+T}
+#SS(0)	T{
+If a memory operand effective address is outside the SS segment limit.
+T}
+#PF(fault\-code)	If a page fault occurs.
+#AC(0)	T{
+If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3.
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH REAL\-ADDRESS MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#DE	T{
+If the source operand (divisor) is 0.
+T}
+	T{
+If the quotient is too large for the designated register.
+T}
+#GP	T{
+If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit.
+T}
+	T{
+If the DS, ES, FS, or GS register contains a NULL segment selector.
+T}
+#SS(0)	T{
+If a memory operand effective address is outside the SS segment limit.
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH VIRTUAL\-8086 MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#DE	T{
+If the source operand (divisor) is 0.
+T}
+	T{
+If the quotient is too large for the designated register.
+T}
+#GP(0)	T{
+If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit.
+T}
+#SS	T{
+If a memory operand effective address is outside the SS segment limit.
+T}
+#PF(fault\-code)	If a page fault occurs.
+#AC(0)	T{
+If alignment checking is enabled and an unaligned memory reference is made.
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH COMPATIBILITY MODE EXCEPTIONS
+.PP
+Same exceptions as in protected mode.
+
+.SH 64\-BIT MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#SS(0)	T{
+If a memory address referencing the SS segment is in a non\-canonical form.
+T}
+#GP(0)	T{
+If the memory address is in a non\-canonical form.
+T}
+#DE	T{
+If the source operand (divisor) is 0
+T}
+	T{
+If the quotient is too large for the designated register.
+T}
+#PF(fault\-code)	If a page fault occurs.
+#AC(0)	T{
+If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3.
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+Copyleft TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

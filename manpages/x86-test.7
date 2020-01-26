@@ -1,0 +1,201 @@
+.nh
+.TH "X86-TEST" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+TEST - LOGICAL COMPARE
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+\fB\fCOpcode\fR	\fB\fCInstruction\fR	\fB\fCOp/En\fR	\fB\fC64\-Bit Mode\fR	\fB\fCCompat/Leg Mode\fR	\fB\fCDescription\fR
+A8 ib	TEST AL, imm8	I	Valid	Valid	T{
+AND imm8 with AL; set SF, ZF, PF according to result.
+T}
+A9 iw	TEST AX, imm16	I	Valid	Valid	T{
+AND imm16 with AX; set SF, ZF, PF according to result.
+T}
+A9 id	TEST EAX, imm32	I	Valid	Valid	T{
+AND imm32 with EAX; set SF, ZF, PF according to result.
+T}
+REX.W + A9 id	TEST RAX, imm32	I	Valid	N.E.	T{
+AND imm32 sign\-extended to 64\-bits with RAX; set SF, ZF, PF according to result.
+T}
+F6 /0 ib	TEST r/m8, imm8	MI	Valid	Valid	T{
+AND r/m8; set SF, ZF, PF according to result.
+T}
+REX + F6 /0 ib	TEST r/m8*, imm8	MI	Valid	N.E.	T{
+AND r/m8; set SF, ZF, PF according to result.
+T}
+F7 /0 iw	TEST r/m16, imm16	MI	Valid	Valid	T{
+AND r/m16; set SF, ZF, PF according to result.
+T}
+F7 /0 id	TEST r/m32, imm32	MI	Valid	Valid	T{
+AND r/m32; set SF, ZF, PF according to result.
+T}
+REX.W + F7 /0 id	TEST r/m64, imm32	MI	Valid	N.E.	T{
+AND r/m64; set SF, ZF, PF according to result.
+T}
+84 /r	TEST r/m8, r8	MR	Valid	Valid	T{
+AND r/m8; set SF, ZF, PF according to result.
+T}
+REX + 84 /r	TEST r/m8*, r8*	MR	Valid	N.E.	T{
+AND r/m8; set SF, ZF, PF according to result.
+T}
+85 /r	TEST r/m16, r16	MR	Valid	Valid	T{
+AND r/m16; set SF, ZF, PF according to result.
+T}
+85 /r	TEST r/m32, r32	MR	Valid	Valid	T{
+AND r/m32; set SF, ZF, PF according to result.
+T}
+REX.W + 85 /r	TEST r/m64, r64	MR	Valid	N.E.	T{
+AND r/m64; set SF, ZF, PF according to result.
+T}
+.TE
+
+.PP
+.RS
+
+.PP
+*
+In64\-bitmode,r/m8cannotbeencodedtoaccessthefollowingbyteregistersifaREXprefixisused:AH,BH,CH,DH.
+
+.RE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l 
+l l l l l .
+Op/En	Operand 1	Operand 2	Operand 3	Operand 4
+I	AL/AX/EAX/RAX	imm8/16/32	NA	NA
+MI	ModRM:r/m (r)	imm8/16/32	NA	NA
+MR	ModRM:r/m (r)	ModRM:reg (r)	NA	NA
+.TE
+
+.SH DESCRIPTION
+.PP
+Computes the bit\-wise logical AND of first operand (source 1 operand)
+and the second operand (source 2 operand) and sets the SF, ZF, and PF
+status flags according to the result. The result is then discarded.
+
+.PP
+In 64\-bit mode, using a REX prefix in the form of REX.R permits access
+to additional registers (R8\-R15). Using a REX prefix in the form of
+REX.W promotes operation to 64 bits. See the summary chart at the
+beginning of this section for encoding data and limits.
+
+.SH OPERATION
+.PP
+.RS
+
+.nf
+TEMP ← SRC1 AND SRC2;
+SF ← MSB(TEMP);
+IF TEMP = 0
+    THEN ZF ← 1;
+    ELSE ZF ← 0;
+FI:
+PF ← BitwiseXNOR(TEMP[0:7]);
+CF ← 0;
+OF ← 0;
+(* AF is undefined *)
+
+.fi
+.RE
+
+.SH FLAGS AFFECTED
+.PP
+The OF and CF flags are set to 0. The SF, ZF, and PF flags are set
+according to the result (see the “Operation” section above). The state
+of the AF flag is undefined.
+
+.SH PROTECTED MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP(0)	T{
+If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit.
+T}
+	T{
+If the DS, ES, FS, or GS register contains a NULL segment selector.
+T}
+#SS(0)	T{
+If a memory operand effective address is outside the SS segment limit.
+T}
+#PF(fault\-code)	If a page fault occurs.
+#AC(0)	T{
+If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3.
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH REAL\-ADDRESS MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP	T{
+If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit.
+T}
+#SS	T{
+If a memory operand effective address is outside the SS segment limit.
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH VIRTUAL\-8086 MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP(0)	T{
+If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit.
+T}
+#SS(0)	T{
+If a memory operand effective address is outside the SS segment limit.
+T}
+#PF(fault\-code)	If a page fault occurs.
+#AC(0)	T{
+If alignment checking is enabled and an unaligned memory reference is made.
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH COMPATIBILITY MODE EXCEPTIONS
+.PP
+Same exceptions as in protected mode.
+
+.SH 64\-BIT MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#SS(0)	T{
+If a memory address referencing the SS segment is in a non\-canonical form.
+T}
+#GP(0)	T{
+If the memory address is in a non\-canonical form.
+T}
+#PF(fault\-code)	If a page fault occurs.
+#AC(0)	T{
+If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3.
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+Copyleft TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

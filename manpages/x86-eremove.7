@@ -1,0 +1,475 @@
+.nh
+.TH "X86-EREMOVE" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+EREMOVE - REMOVE A PAGE FROM THE EPC
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp/En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+EAX = 03H ENCLS[EREMOVE]	IR	V/V	SGX1	T{
+This leaf function removes a page from the EPC.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l 
+l l l .
+Op/En	EAX	RCX
+IR	EREMOVE (In)	T{
+Effective address of the EPC page (In)
+T}
+.TE
+
+.SS Description
+.PP
+This leaf function causes an EPC page to be un\-associated with its SECS
+and be marked as unused. This instruction leaf can only be executed when
+the current privilege level is 0.
+
+.PP
+The content of RCX is an effective address of an EPC page. The DS
+segment is used to create linear address. Segment override is not
+supported.
+
+.PP
+The instruction fails if the operand is not properly aligned or does not
+refer to an EPC page or the page is in use by another thread, or other
+threads are running in the enclave to which the page belongs. In
+addition the instruction fails if the operand refers to an SECS with
+associations.
+
+.SH EREMOVE MEMORY PARAMETER SEMANTICS
+.TS
+allbox;
+l 
+l .
+EPCPAGE
+T{
+Write access permitted by Enclave
+T}
+.TE
+
+.PP
+The instruction faults if any of the following:
+
+.SH EREMOVE FAULTING CONDITIONS
+.TS
+allbox;
+l l 
+l l .
+T{
+The memory operand is not properly aligned.
+T}
+	T{
+The memory operand does not resolve in an EPC page.
+T}
+Refers to an invalid SECS.	T{
+Refers to an EPC page that is locked by another thread.
+T}
+T{
+Another Intel SGX instruction is accessing the EPC page.
+T}
+	T{
+RCX does not contain an effective address of an EPC page.
+T}
+T{
+the EPC page refers to an SECS with associations.
+T}
+	.TE
+
+.PP
+The error codes are:
+
+.TS
+allbox;
+l l 
+l l .
+\fB\fCError Code (see Table 40\-4)\fR	\fB\fCDescription\fR
+No Error	EREMOVE successful.
+SGX\_CHILD\_PRESENT	T{
+If the SECS still have enclave pages loaded into EPC.
+T}
+SGX\_ENCLAVE\_ACT	T{
+If there are still logical processors executing inside the enclave.
+T}
+.TE
+
+.PP
+Table 40\-42\&. EREMOVE Return Value in
+RAX
+
+.SS Concurrency Restrictions
+.PP
+Leaf
+
+.PP
+Parameter
+
+.PP
+Base Concurrency Restrictions
+
+.PP
+Access
+
+.PP
+On Conflict
+
+.PP
+SGX\_CONFLICT VM Exit Qualification
+
+.PP
+EREMOVE
+
+.PP
+Target [DS:RCX]
+
+.PP
+Exclusive
+
+.PP
+#GP
+
+.PP
+EPC\_PAGE\_CONFLICT\_EXCEPTION
+
+.PP
+Table 40\-43\&. Base Concurrency
+Restrictions of EREMOVE
+
+.PP
+Leaf
+
+.PP
+Parameter
+
+.PP
+Additional Concurrency Restrictions
+
+.PP
+vs. EACCEPT, EACCEPTCOPY, EMODPE, EMODPR, EMODT
+
+.PP
+vs. EADD, EEXTEND, EINIT
+
+.PP
+vs. ETRACK, ETRACKC
+
+.PP
+Access
+
+.PP
+On Conflict
+
+.PP
+Access
+
+.PP
+On Conflict
+
+.PP
+Access
+
+.PP
+On Conflict
+
+.PP
+EREMOVE
+
+.PP
+Target [DS:RCX]
+
+.PP
+Concurrent
+
+.PP
+Concurrent
+
+.PP
+Concurrent
+
+.PP
+Table 40\-44\&. Additional Concurrency
+Restrictions of EREMOVE
+
+.SS Operation
+.SH TEMP VARIABLES IN EREMOVE OPERATIONAL FLOW
+.TS
+allbox;
+l l l l 
+l l l l .
+\fB\fCName\fR	\fB\fCType\fR	\fB\fCSize (Bits)\fR	\fB\fCDescription\fR
+TMP\_SECS	Effective Address	32/64	T{
+Effective address of the SECS destination page.
+T}
+.TE
+
+.PP
+IF (DS:RCX is not 4KByte Aligned)
+
+.PP
+THEN #GP(0); FI;
+
+.PP
+IF (DS:RCX does not resolve to an EPC page)
+
+.PP
+THEN #PF(DS:RCX); FI;
+
+.PP
+TMP\_SECS ← Get\_SECS\_ADDRESS();
+
+.PP
+(* Check the EPC page for concurrency *)
+
+.PP
+IF (EPC page being referenced by another Intel SGX instruction)
+
+.PP
+THEN
+
+.PP
+IF (\&lt;\&lt;VMX non\-root operation\&gt;\&gt; AND
+\&lt;\&lt;ENABLE\_EPC\_VIRTUALIZATION\_EXTENSIONS\&gt;\&gt;)
+
+.PP
+THEN
+
+.PP
+VMCS.Exit\_reason ← SGX\_CONFLICT;
+
+.PP
+VMCS.Exit\_qualification.code ← EPC\_PAGE\_CONFLICT\_EXCEPTION;
+
+.PP
+VMCS.Exit\_qualification.error ← 0;
+
+.PP
+VMCS.Guest\-physical\_address←\&lt;\&lt; translation of DS:RCX produced by
+paging \&gt;\&gt;;
+
+.PP
+VMCS.Guest\-linear\_address ← DS:RCX;
+
+.PP
+Deliver VMEXIT;
+
+.PP
+ELSE
+
+.PP
+#GP(0);
+
+.PP
+FI;
+
+.PP
+FI;
+
+.PP
+(* if DS:RCX is already unused, nothing to do*)
+
+.PP
+IF ( (EPCM(DS:RCX).VALID = 0) or (EPCM(DS:RCX).PT = PT\_TRIM AND
+EPCM(DS:RCX).MODIFIED = 0))
+
+.PP
+THEN GOTO DONE;
+
+.PP
+FI;
+
+.PP
+IF ( (EPCM(DS:RCX).PT = PT\_VA) OR
+
+.PP
+((EPCM(DS:RCX).PT = PT\_TRIM) AND (EPCM(DS:RCX).MODIFIED = 0)) )
+
+.PP
+THEN
+
+.PP
+EPCM(DS:RCX).VALID ← 0;
+
+.PP
+GOTO DONE;
+
+.PP
+FI;
+
+.PP
+IF (EPCM(DS:RCX).PT = PT\_SECS)
+
+.PP
+THEN
+
+.PP
+IF (DS:RCX has an EPC page associated with it)
+
+.PP
+THEN
+
+.PP
+RFLAGS.ZF ← 1;
+
+.PP
+RAX← SGX\_CHILD\_PRESENT;
+
+.PP
+GOTO ERROR\_EXIT;
+
+.PP
+FI;
+
+.PP
+(* treat SECS as having a child page when VIRTCHILDCNT is non\-zero *)
+
+.PP
+IF (\&lt;\&lt;in VMX non\-root operation\&gt;\&gt; AND
+
+.PP
+\&lt;\&lt;ENABLE\_EPC\_VIRTUALIZATION\_EXTENSIONS\&gt;\&gt; AND
+
+.PP
+(SECS(DS:RCX).VIRTCHILDCNT ≠ 0))
+
+.PP
+THEN
+
+.PP
+RFLAGS.ZF ← 1;
+
+.PP
+RAX ← SGX\_CHILD\_PRESENT
+
+.PP
+GOTO ERROR\_EXIT
+
+.PP
+FI;
+
+.PP
+EPCM(DS:RCX).VALID ← 0;
+
+.PP
+GOTO DONE;
+
+.PP
+FI;
+
+.PP
+IF (Other threads active using SECS)
+
+.PP
+THEN
+
+.PP
+RFLAGS.ZF ← 1;
+
+.PP
+RAX← SGX\_ENCLAVE\_ACT;
+
+.PP
+GOTO ERROR\_EXIT;
+
+.PP
+FI;
+
+.PP
+IF ( (EPCM(DS:RCX).PT is PT\_REG) or (EPCM(DS:RCX).PT is PT\_TCS) or
+(EPCM(DS:RCX).PT is PT\_TRIM) )
+
+.PP
+THEN
+
+.PP
+EPCM(DS:RCX).VALID ← 0;
+
+.PP
+GOTO DONE;
+
+.PP
+FI;
+
+.PP
+DONE:
+
+.PP
+RAX← 0;
+
+.PP
+RFLAGS.ZF ← 0;
+
+.PP
+ERROR\_EXIT:
+
+.PP
+RFLAGS.CF,PF,AF,OF,SF ← 0;
+
+.SS Flags Affected
+.PP
+Sets ZF if unsuccessful, otherwise cleared and RAX returns error code.
+Clears CF, PF, AF, OF, SF.
+
+.SS Protected Mode Exceptions
+.PP
+#GP(0)
+
+.PP
+If a memory operand effective address is outside the DS segment limit.
+
+.PP
+If a memory operand is not properly aligned.
+
+.PP
+If another Intel SGX instruction is accessing the page.
+
+.PP
+#PF(error
+
+.PP
+code) If a page fault occurs in accessing memory operands.
+
+.PP
+If the memory operand is not an EPC page.
+
+.SS 64\-Bit Mode Exceptions
+.PP
+#GP(0)
+
+.PP
+If the memory operand is non\-canonical form.
+
+.PP
+If a memory operand is not properly aligned.
+
+.PP
+If another Intel SGX instruction is accessing the page.
+
+.PP
+#PF(error
+
+.PP
+code) If a page fault occurs in accessing memory operands.
+
+.PP
+If the memory operand is not an EPC page.
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+Copyleft TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

@@ -1,0 +1,200 @@
+.nh
+.TH "X86-BT" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+BT - BIT TEST
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+\fB\fCOpcode\fR	\fB\fCInstruction\fR	\fB\fCOp/En\fR	\fB\fC64\-bit Mode\fR	\fB\fCCompat/Leg Mode\fR	\fB\fCDescription\fR
+0F A3 /r	BT r/m16, r16	MR	Valid	Valid	Store selected bit in CF flag.
+0F A3 /r	BT r/m32, r32	MR	Valid	Valid	Store selected bit in CF flag.
+REX.W + 0F A3 /r	BT r/m64, r64	MR	Valid	N.E.	Store selected bit in CF flag.
+0F BA /4 ib	BT r/m16, imm8	MI	Valid	Valid	Store selected bit in CF flag.
+0F BA /4 ib	BT r/m32, imm8	MI	Valid	Valid	Store selected bit in CF flag.
+REX.W + 0F BA /4 ib	BT r/m64, imm8	MI	Valid	N.E.	Store selected bit in CF flag.
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l 
+l l l l l .
+Op/En	Operand 1	Operand 2	Operand 3	Operand 4
+MR	ModRM:r/m (r)	ModRM:reg (r)	NA	NA
+MI	ModRM:r/m (r)	imm8	NA	NA
+.TE
+
+.SH DESCRIPTION
+.PP
+Selects the bit in a bit string (specified with the first operand,
+called the bit base) at the bit\-position designated by the bit offset
+(specified by the second operand) and stores the value of the bit in the
+CF flag. The bit base operand can be a register or a memory location;
+the bit offset operand can be a register or an immediate value:
+
+.RS
+.IP \(bu 2
+If the bit base operand specifies a register, the instruction takes
+the modulo 16, 32, or 64 of the bit offset operand (modulo size
+depends on the mode and register size; 64\-bit operands are available
+only in 64\-bit mode).
+.IP \(bu 2
+If the bit base operand specifies a memory location, the operand
+represents the address of the byte in memory that contains the bit
+base (bit 0 of the specified byte) of the bit string. The range of
+the bit position that can be referenced by the offset operand
+depends on the operand size.
+
+.RE
+
+.PP
+See also: Bit(BitBase, BitOffset) on page 3\-11.
+
+.PP
+Some assemblers support immediate bit offsets larger than 31 by using
+the immediate bit offset field in combination with the displacement
+field of the memory operand. In this case, the low\-order 3 or 5 bits (3
+for 16\-bit operands, 5 for 32\-bit operands) of the immediate bit offset
+are stored in the immediate bit offset field, and the high\-order bits
+are shifted and combined with the byte displacement in the addressing
+mode by the assembler. The processor will ignore the high order bits if
+they are not zero.
+
+.PP
+When accessing a bit in memory, the processor may access 4 bytes
+starting from the memory address for a 32\-bit operand size, using by the
+following relationship:
+
+.PP
+Effective Address + (4 ∗ (BitOffset DIV 32))
+
+.PP
+Or, it may access 2 bytes starting from the memory address for a 16\-bit
+operand, using this relationship:
+
+.PP
+Effective Address + (2 ∗ (BitOffset DIV 16))
+
+.PP
+It may do so even when only a single byte needs to be accessed to reach
+the given bit. When using this bit addressing mechanism, software should
+avoid referencing areas of memory close to address space holes. In
+particular, it should avoid references to memory\-mapped I/O registers.
+Instead, software should use the MOV instructions to load from or store
+to these addresses, and use the register form of these instructions to
+manipulate the data.
+
+.PP
+In 64\-bit mode, the instruction’s default operation size is 32 bits.
+Using a REX prefix in the form of REX.R permits access to additional
+registers (R8\-R15). Using a REX prefix in the form of REX.W promotes
+operation to 64 bit operands. See the summary chart at the beginning of
+this section for encoding data and limits.
+
+.SH OPERATION
+.PP
+.RS
+
+.nf
+CF ← Bit(BitBase, BitOffset);
+
+.fi
+.RE
+
+.SH FLAGS AFFECTED
+.PP
+The CF flag contains the value of the selected bit. The ZF flag is
+unaffected. The OF, SF, AF, and PF flags are undefined.
+
+.SH PROTECTED MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP(0)	T{
+If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit.
+T}
+	T{
+If the DS, ES, FS, or GS register contains a NULL segment selector.
+T}
+#SS(0)	T{
+If a memory operand effective address is outside the SS segment limit.
+T}
+#PF(fault\-code)	If a page fault occurs.
+#AC(0)	T{
+If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3.
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH REAL\-ADDRESS MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP	T{
+If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit.
+T}
+#SS	T{
+If a memory operand effective address is outside the SS segment limit.
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH VIRTUAL\-8086 MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP(0)	T{
+If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit.
+T}
+#SS(0)	T{
+If a memory operand effective address is outside the SS segment limit.
+T}
+#PF(fault\-code)	If a page fault occurs.
+#AC(0)	T{
+If alignment checking is enabled and an unaligned memory reference is made.
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH COMPATIBILITY MODE EXCEPTIONS
+.PP
+Same exceptions as in protected mode.
+
+.SH 64\-BIT MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#SS(0)	T{
+If a memory address referencing the SS segment is in a non\-canonical form.
+T}
+#GP(0)	T{
+If the memory address is in a non\-canonical form.
+T}
+#PF(fault\-code)	If a page fault occurs.
+#AC(0)	T{
+If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3.
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+Copyleft TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

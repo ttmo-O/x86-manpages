@@ -1,0 +1,430 @@
+.nh
+.TH "X86-EAUG" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+EAUG - ADD A PAGE TO AN INITIALIZED ENCLAVE
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp/En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+EAX = 0DH ENCLS[EAUG]	IR	V/V	SGX2	T{
+This leaf function adds a page to an initialized enclave.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l 
+l l l l .
+Op/En	EAX	RBX	RCX
+IR	EAUG (In)	Address of a SECINFO (In)	T{
+Address of the destination EPC page (In)
+T}
+.TE
+
+.SS Description
+.PP
+This leaf function zeroes a page of EPC memory, associates the EPC page
+with an SECS page residing in the EPC, and stores the linear address and
+security attributes in the EPCM. As part of the association, the
+security attributes are configured to prevent access to the EPC page
+until a corresponding invocation of the EACCEPT leaf or EACCEPTCOPY leaf
+confirms the addition of the new page into the enclave. This instruction
+can only be executed when current privilege level is 0.
+
+.PP
+RBX contains the effective address of a PAGEINFO structure while RCX
+contains the effective address of an EPC page. The table below provides
+additional information on the memory parameter of the EAUG leaf
+function.
+
+.SH EAUG MEMORY PARAMETER SEMANTICS
+.TS
+allbox;
+l l l l l 
+l l l l l .
+PAGEINFO	PAGEINFO.SECS	PAGEINFO.SRCPGE	PAGEINFO.SECINFO	EPCPAGE
+T{
+Read access permitted by Non Enclave
+T}
+	T{
+Read/Write access permitted by Enclave
+T}
+	Must be zero	T{
+Read access permitted by Non Enclave
+T}
+	T{
+Write access permitted by Enclave
+T}
+.TE
+
+.PP
+The instruction faults if any of the following:
+
+.SH EAUG FAULTING CONDITIONS
+.TS
+allbox;
+l l 
+l l .
+T{
+The operands are not properly aligned.
+T}
+	T{
+Unsupported security attributes are set.
+T}
+Refers to an invalid SECS.	T{
+Reference is made to an SECS that is locked by another thread.
+T}
+T{
+The EPC page is locked by another thread.
+T}
+	T{
+RCX does not contain an effective address of an EPC page.
+T}
+The EPC page is already valid.	T{
+The specified enclave offset is outside of the enclave address space.
+T}
+The SECS has been initialized.	.TE
+
+.SS Concurrency Restrictions
+.PP
+Leaf
+
+.PP
+Parameter
+
+.PP
+Base Concurrency Restrictions
+
+.PP
+Access
+
+.PP
+On Conflict
+
+.PP
+SGX\_CONFLICT VM Exit Qualification
+
+.PP
+EAUG
+
+.PP
+Target [DS:RCX]
+
+.PP
+Exclusive
+
+.PP
+#GP
+
+.PP
+EPC\_PAGE\_CONFLICT\_EXCEPTION
+
+.PP
+SECS [DS:RBX]PAGEINFO.SECS
+
+.PP
+Shared
+
+.PP
+#GP
+
+.PP
+Table 40\-10\&. Base Concurrency
+Restrictions of EAUG
+
+.PP
+Leaf
+
+.PP
+Parameter
+
+.PP
+Additional Concurrency Restrictions
+
+.PP
+vs. EACCEPT, EACCEPTCOPY, EMODPE, EMODPR, EMODT
+
+.PP
+vs. EADD, EEXTEND, EINIT
+
+.PP
+vs. ETRACK, ETRACKC
+
+.PP
+Access
+
+.PP
+On Conflict
+
+.PP
+Access
+
+.PP
+On Conflict
+
+.PP
+Access
+
+.PP
+On Conflict
+
+.PP
+EAUG
+
+.PP
+Target [DS:RCX]
+
+.PP
+Concurrent
+
+.PP
+Concurrent
+
+.PP
+Concurrent
+
+.PP
+SECS [DS:RBX]PAGEINFO.SECS
+
+.PP
+Concurrent
+
+.PP
+Concurrent
+
+.PP
+Concurrent
+
+.PP
+Table 40\-11\&. Additional Concurrency
+Restrictions of EAUG
+
+.SS Operation
+.SH TEMP VARIABLES IN EAUG OPERATIONAL FLOW
+.TS
+allbox;
+l l l l 
+l l l l .
+\fB\fCName\fR	\fB\fCType\fR	\fB\fCSize (bits)\fR	\fB\fCDescription\fR
+TMP\_SECS	Effective Address	32/64	T{
+Effective address of the SECS destination page.
+T}
+TMP\_SECINFO	Effective Address	32/64	T{
+Effective address of an SECINFO structure which contains security attributes of the page to be added.
+T}
+SCRATCH\_SECINFO	SECINFO	512	T{
+Scratch storage for holding the contents of DS:TMP
+T}
+\_
+SECINFO.
+TMP\_LINADDR	Unsigned Integer	64	T{
+Holds the linear address to be stored in the EPCM and used to calculate TMP
+T}
+\_
+ENCLAVEOFFSET.
+.TE
+
+.PP
+IF (DS:RBX is not 32Byte Aligned)
+
+.PP
+THEN #GP(0); FI;
+
+.PP
+IF (DS:RCX is not 4KByte Aligned)
+
+.PP
+THEN #GP(0); FI;
+
+.PP
+IF (DS:RCX does not resolve within an EPC)
+
+.PP
+THEN #PF(DS:RCX); FI;
+
+.PP
+TMP\_SECS ← DS:RBX.SECS;
+
+.PP
+TMP\_LINADDR ← DS:RBX.LINADDR;
+
+.PP
+IF ( DS:TMP\_SECS is not 4KByte aligned or TMP\_LINADDR is not 4KByte
+aligned )
+
+.PP
+THEN #GP(0); FI;
+
+.PP
+IF ( (DS:RBX.SRCPAGE is not 0) or (DS:RBX.SECINFO is not 0) )
+
+.PP
+THEN #GP(0); FI;
+
+.PP
+IF (DS:TMP\_SECS does not resolve within an EPC)
+
+.PP
+THEN #PF(DS:TMP\_SECS); FI;
+
+.PP
+(* Check the EPC page for concurrency *)
+
+.PP
+IF (EPC page in use)
+
+.PP
+THEN #GP(0); FI;
+
+.PP
+IF (EPCM(DS:RCX).VALID ≠ 0)
+
+.PP
+THEN #PF(DS:RCX); FI;
+
+.PP
+(* Check the SECS for concurrency *)
+
+.PP
+IF (SECS is not available for EAUG)
+
+.PP
+THEN #GP(0); FI;
+
+.PP
+IF (EPCM(DS:TMP\_SECS).VALID = 0 or EPCM(DS:TMP\_SECS).PT ≠ PT\_SECS)
+
+.PP
+THEN #PF(DS:TMP\_SECS); FI;
+
+.PP
+(* Check if the enclave to which the page will be added is in the
+Initialized state *)
+
+.PP
+IF (DS:TMP\_SECS is not initialized)
+
+.PP
+THEN #GP(0); FI;
+
+.PP
+(* Check the enclave offset is within the enclave linear address space
+*) IF ( (TMP\_LINADDR \&lt; DS:TMP\_SECS.BASEADDR) or (TMP\_LINADDR ≥
+DS:TMP\_SECS.BASEADDR + DS:TMP\_SECS.SIZE) ) THEN #GP(0); FI;
+
+.PP
+(* Clear the content of EPC page*)
+
+.PP
+DS:RCX[32767:0] ← 0;
+
+.PP
+(* Set EPCM security attributes *)
+
+.PP
+EPCM(DS:RCX).R ← 1;
+
+.PP
+EPCM(DS:RCX).W ← 1;
+
+.PP
+EPCM(DS:RCX).X ← 0;
+
+.PP
+EPCM(DS:RCX).PT ← PT\_REG;
+
+.PP
+EPCM(DS:RCX).ENCLAVEADDRESS ← TMP\_LINADDR;
+
+.PP
+EPCM(DS:RCX).BLOCKED ← 0;
+
+.PP
+EPCM(DS:RCX).PENDING ← 1;
+
+.PP
+EPCM(DS:RCX).MODIFIED ← 0;
+
+.PP
+EPCM(DS:RCX).PR ← 0;
+
+.PP
+(* associate the EPCPAGE with the SECS by storing the SECS identifier
+of DS:TMP\_SECS *)
+
+.PP
+Update EPCM(DS:RCX) SECS identifier to reference DS:TMP\_SECS
+identifier;
+
+.PP
+(* Set EPCM valid fields *)
+
+.PP
+EPCM(DS:RCX).VALID ← 1;
+
+.SS Flags Affected
+.PP
+None
+
+.SS Protected Mode Exceptions
+.PP
+#GP(0)
+
+.PP
+If a memory operand effective address is outside the DS segment limit.
+
+.PP
+If a memory operand is not properly aligned.
+
+.PP
+If a memory operand is locked.
+
+.PP
+If the enclave is not initialized.
+
+.PP
+#PF(error
+
+.PP
+code) If a page fault occurs in accessing memory operands.
+
+.SS 64\-Bit Mode Exceptions
+.PP
+#GP(0)
+
+.PP
+If a memory operand is non\-canonical form.
+
+.PP
+If a memory operand is not properly aligned.
+
+.PP
+If a memory operand is locked.
+
+.PP
+If the enclave is not initialized.
+
+.PP
+#PF(error
+
+.PP
+code) If a page fault occurs in accessing memory operands.
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+Copyleft TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

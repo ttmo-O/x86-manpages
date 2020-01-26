@@ -1,0 +1,448 @@
+.nh
+.TH "X86-EDECVIRTCHILD" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+EDECVIRTCHILD - DECREMENT VIRTCHILDCNT IN SECS
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp/En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+EAX = 00H ENCLV[EDECVIRTCHILD]	IR	V/V	EAX[5]	T{
+This leaf function decrements the SECS VIRTCHILDCNT field.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l 
+l l l l .
+Op/En	EAX	RBX	RCX
+IR	EDECVIRTCHILD (In)	T{
+Address of an enclave page (In)
+T}
+	Address of an SECS page (In)
+.TE
+
+.SS Description
+.PP
+This instruction decrements the SECS VIRTCHILDCNT field. This
+instruction can only be executed when current privilege level is 0.
+
+.PP
+The content of RCX is an effective address of an EPC page. The DS
+segment is used to create linear address. Segment override is not
+supported.
+
+.SH EDECVIRTCHILD MEMORY PARAMETER SEMANTICS
+.TS
+allbox;
+l l 
+l l .
+EPCPAGE	SECS
+T{
+Read/Write access permitted by Non Enclave
+T}
+	T{
+Read access permitted by Enclave
+T}
+.TE
+
+.PP
+The instruction faults if any of the following:
+
+.SH EDECVIRTCHILD FAULTING CONDITIONS
+.TS
+allbox;
+l l 
+l l .
+T{
+A memory operand effective address is outside the DS segment limit (32b mode).
+T}
+	T{
+A page fault occurs in accessing memory operands.
+T}
+T{
+DS segment is unusable (32b mode).
+T}
+	T{
+RBX does not refer to an enclave page (REG, TCS, TRIM, SECS).
+T}
+T{
+A memory address is in a non\-canonical form (64b mode).
+T}
+	T{
+RCX does not refer to an SECS page.
+T}
+T{
+A memory operand is not properly aligned.
+T}
+	T{
+RBX does not refer to an enclave page associated with SECS referenced in RCX.
+T}
+.TE
+
+.SS Concurrency Restrictions
+.PP
+Leaf
+
+.PP
+Parameter
+
+.PP
+Base Concurrency Restrictions
+
+.PP
+Access
+
+.PP
+On Conflict
+
+.PP
+SGX\_CONFLICT VM Exit Qualification
+
+.PP
+EDECVIRTCHILD
+
+.PP
+Target [DS:RBX]
+
+.PP
+Shared
+
+.PP
+SGX\_EPC\_PAGE\_ CONFLICT
+
+.PP
+SECS [DS:RCX]
+
+.PP
+Concurrent
+
+.PP
+Table 40\-74\&. Base Concurrency
+Restrictions of EDECVIRTCHILD
+
+.PP
+Leaf
+
+.PP
+Parameter
+
+.PP
+Additional Concurrency Restrictions
+
+.PP
+vs. EACCEPT, EACCEPTCOPY, EMODPE, EMODPR, EMODT
+
+.PP
+vs. EADD, EEXTEND, EINIT
+
+.PP
+vs. ETRACK, ETRACKC
+
+.PP
+Access
+
+.PP
+On Conflict
+
+.PP
+Access
+
+.PP
+On Conflict
+
+.PP
+Access
+
+.PP
+On Conflict
+
+.PP
+EDECVIRTCHILD
+
+.PP
+Target [DS:RBX]
+
+.PP
+Concurrent
+
+.PP
+Concurrent
+
+.PP
+Concurrent
+
+.PP
+SECS [DS:RCX]
+
+.PP
+Concurrent
+
+.PP
+Concurrent
+
+.PP
+Concurrent
+
+.PP
+Table 40\-75\&. Additional Concurrency
+Restrictions of EDECVIRTCHILD
+
+.SS Operation
+.SH TEMP VARIABLES IN EDECVIRTCHILD OPERATIONAL FLOW
+.TS
+allbox;
+l l l l 
+l l l l .
+\fB\fCName\fR	\fB\fCType\fR	\fB\fCSize (bits)\fR	\fB\fCDescription\fR
+TMP\_SECS	Physical Address	64	T{
+Physical address of the SECS of the page being modified.
+T}
+TMP\_VIRTCHILDCNT	Integer	64	Number of virtual child pages.
+.TE
+
+.SH EDECVIRTCHILD RETURN VALUE IN RAX
+.TS
+allbox;
+l l l 
+l l l .
+\fB\fCError\fR	\fB\fCValue\fR	\fB\fCDescription\fR
+No Error	0	EDECVIRTCHILD Successful.
+SGX\_EPC\_PAGE\_CONFLICT		T{
+Failure due to concurrent operation of another SGX instruction.
+T}
+SGX\_INVALID\_COUNTER		T{
+Attempt to decrement counter that is already zero.
+T}
+.TE
+
+.PP
+(* check alignment of DS:RBX *)
+
+.PP
+IF (DS:RBX is not 4K aligned) THEN
+
+.PP
+#GP(0); FI;
+
+.PP
+(* check DS:RBX is an linear address of an EPC page *)
+
+.PP
+IF (DS:RBX does not resolve within an EPC) THEN
+
+.PP
+#PF(DS:RBX, PFEC.SGX); FI;
+
+.PP
+(* check DS:RCX is an linear address of an EPC page *)
+
+.PP
+IF (DS:RCX does not resolve within an EPC) THEN
+
+.PP
+#PF(DS:RCX, PFEC.SGX); FI;
+
+.PP
+(* Check the EPCPAGE for concurrency *)
+
+.PP
+IF (EPCPAGE is being modified) THEN
+
+.PP
+RFLAGS.ZF = 1;
+
+.PP
+RAX = SGX\_EPC\_PAGE\_CONFLICT;
+
+.PP
+goto DONE;
+
+.PP
+FI;
+
+.PP
+(* check that the EPC page is valid *)
+
+.PP
+IF (EPCM(DS:RBX).VALID = 0) THEN
+
+.PP
+#PF(DS:RBX, PFEC.SGX); FI;
+
+.PP
+(* check that the EPC page has the correct type and that the back
+pointer matches the pointer passed as the pointer to parent *)
+
+.PP
+IF ((EPCM(DS:RBX).PAGE\_TYPE = PT\_REG) or
+
+.PP
+(EPCM(DS:RBX).PAGE\_TYPE = PT\_TCS) or
+
+.PP
+(EPCM(DS:RBX).PAGE\_TYPE = PT\_TRIM) )
+
+.PP
+THEN
+
+.PP
+(* get the SECS of DS:RBX *)
+
+.PP
+TMP\_SECS←Address of SECS for (DS:RBX);
+
+.PP
+ELSE IF (EPCM(DS:RBX).PAGE\_TYPE = PT\_SECS) THEN
+
+.PP
+(* get the physical address of DS:RBX *)
+
+.PP
+TMP\_SECS ← Physical\_Address(DS:RBX);
+
+.PP
+ELSE
+
+.PP
+(* EDECVIRTCHILD called on page of incorrect type *)
+
+.PP
+#PF(DS:RBX, PFEC.SGX); FI;
+
+.PP
+IF (TMP\_SECS ≠ Physical\_Address(DS:RCX)) THEN
+
+.PP
+#GP(0); FI;
+
+.PP
+(* Atomically decrement virtchild counter and check for underflow *)
+
+.PP
+Locked\_Decrement(SECS(TMP\_SECS).VIRTCHILDCNT);
+
+.PP
+IF (There was an underflow) THEN
+
+.PP
+Locked\_Increment(SECS(TMP\_SECS).VIRTCHILDCNT);
+
+.PP
+RFLAGS.ZF ← 1;
+
+.PP
+RAX ← SGX\_INVALID\_COUNTER;
+
+.PP
+goto DONE;
+
+.PP
+FI;
+
+.PP
+RFLAGS.ZF ← 0;
+
+.PP
+RAX←0;
+
+.PP
+DONE:
+
+.PP
+(* clear flags *)
+
+.PP
+RFLAGS.CF ← 0;
+
+.PP
+RFLAGS.PF ← 0;
+
+.PP
+RFLAGS.AF ← 0;
+
+.PP
+RFLAGS.OF ← 0;
+
+.PP
+RFLAGS.SF ← 0;
+
+.SS Flags Affected
+.PP
+ZF is set if EDECVIRTCHILD fails due to concurrent operation with
+another SGX instruction, or if there is a VIRTCHILDCNT underflow.
+Otherwise cleared.
+
+.SS Protected Mode Exceptions
+.PP
+#GP(0)
+
+.PP
+If a memory operand effective address is outside the DS segment limit.
+
+.PP
+If DS segment is unusable.
+
+.PP
+If a memory operand is not properly aligned.
+
+.PP
+RBX does not refer to an enclave page associated with SECS referenced in
+RCX.
+
+.PP
+#PF(error
+
+.PP
+code) If a page fault occurs in accessing memory operands.
+
+.PP
+If RBX does not refer to an enclave page (REG, TCS, TRIM, SECS).
+
+.PP
+If RCX does not refer to an SECS page.
+
+.SS 64\-Bit Mode Exceptions
+.PP
+#GP(0)
+
+.PP
+If a memory address is in a non\-canonical form.
+
+.PP
+If a memory operand is not properly aligned.
+
+.PP
+RBX does not refer to an enclave page associated with SECS referenced in
+RCX.
+
+.PP
+#PF(error
+
+.PP
+code) If a page fault occurs in accessing memory operands.
+
+.PP
+If RBX does not refer to an enclave page (REG, TCS, TRIM, SECS).
+
+.PP
+If RCX does not refer to an SECS page.
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+Copyleft TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

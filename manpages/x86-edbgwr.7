@@ -1,0 +1,415 @@
+.nh
+.TH "X86-EDBGWR" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+EDBGWR - WRITE TO A DEBUG ENCLAVE
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp/En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+EAX = 05H ENCLS[EDBGWR]	IR	V/V	SGX1	T{
+This leaf function writes a dword/quadword to a debug enclave.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l 
+l l l l .
+Op/En	EAX	RBX	RCX
+IR	EDBGWR (In)	T{
+Data to be written to a debug enclave (In)
+T}
+	T{
+Address of Target memory in the EPC (In)
+T}
+.TE
+
+.SS Description
+.PP
+This leaf function copies the content in EBX/RBX to an EPC page
+belonging to a debug enclave. Eight bytes are written in 64\-bit mode,
+four bytes are written in non\-64\-bit modes. The size of data cannot be
+overridden.
+
+.PP
+The effective address of the source location inside the EPC is provided
+in the register RCX.
+
+.SH EDBGWR MEMORY PARAMETER SEMANTICS
+.TS
+allbox;
+l 
+l .
+EPCQW
+T{
+Write access permitted by Enclave
+T}
+.TE
+
+.PP
+The instruction faults if any of the following:
+
+.SH EDBGWR FAULTING CONDITIONS
+.TS
+allbox;
+l l 
+l l .
+T{
+RCX points into a page that is an SECS.
+T}
+	T{
+RCX does not resolve to a naturally aligned linear address.
+T}
+T{
+RCX points to a page that does not belong to an enclave that is in debug mode.
+T}
+	T{
+RCX points to a location inside a TCS that is not the FLAGS word.
+T}
+T{
+An operand causing any segment violation.
+T}
+	May page fault.
+CPL \&gt; 0.	.TE
+
+.PP
+The error codes are:
+
+.TS
+allbox;
+l l 
+l l .
+\fB\fCError Code (see Table 40\-4)\fR	\fB\fCDescription\fR
+No Error	EDBGWR successful.
+SGX\_PAGE\_NOT\_DEBUGGABLE	T{
+The EPC page cannot be accessed because it is in the PENDING or MODIFIED state.
+T}
+.TE
+
+.PP
+Table 40\-20\&. EDBGWR Return Value in
+RAX
+
+.PP
+This instruction ignores the EPCM RWX attributes on the enclave page.
+Consequently, violation of EPCM RWX attributes via EDBGRD does not
+result in a #GP.
+
+.SS Concurrency Restrictions
+.PP
+Leaf
+
+.PP
+Parameter
+
+.PP
+Base Concurrency Restrictions
+
+.PP
+Access
+
+.PP
+On Conflict
+
+.PP
+SGX\_CONFLICT VM Exit Qualification
+
+.PP
+EDBGWR
+
+.PP
+Target [DS:RCX]
+
+.PP
+Shared
+
+.PP
+#GP
+
+.PP
+Table 40\-21\&. Base Concurrency
+Restrictions of EDBGWR
+
+.PP
+Leaf
+
+.PP
+Parameter
+
+.PP
+Additional Concurrency Restrictions
+
+.PP
+vs. EACCEPT, EACCEPTCOPY, EMODPE, EMODPR, EMODT
+
+.PP
+vs. EADD, EEXTEND, EINIT
+
+.PP
+vs. ETRACK, ETRACKC
+
+.PP
+Access
+
+.PP
+On Conflict
+
+.PP
+Access
+
+.PP
+On Conflict
+
+.PP
+Access
+
+.PP
+On Conflict
+
+.PP
+EDBGWR
+
+.PP
+Target [DS:RCX]
+
+.PP
+Concurrent
+
+.PP
+Concurrent
+
+.PP
+Concurrent
+
+.PP
+Table 40\-22\&. Additional Concurrency
+Restrictions of EDBGWR
+
+.SS Operation
+.SH TEMP VARIABLES IN EDBGWR OPERATIONAL FLOW
+.TS
+allbox;
+l l l l 
+l l l l .
+\fB\fCName\fR	\fB\fCType\fR	\fB\fCSize (Bits)\fR	\fB\fCDescription\fR
+TMP\_MODE64	Binary	1	((IA32
+\_
+EFER.LMA = 1) \&\& (CS.L = 1)).
+TMP\_SECS		64	T{
+Physical address of SECS of the enclave to which source operand belongs.
+T}
+.TE
+
+.PP
+TMP\_MODE64←((IA32\_EFER.LMA = 1) \&\& (CS.L = 1));
+
+.PP
+IF ( (TMP\_MODE64 = 1) and (DS:RCX is not 8Byte Aligned) )
+
+.PP
+THEN #GP(0); FI;
+
+.PP
+IF ( (TMP\_MODE64 = 0) and (DS:RCX is not 4Byte Aligned) )
+
+.PP
+THEN #GP(0); FI;
+
+.PP
+IF (DS:RCX does not resolve within an EPC)
+
+.PP
+THEN #PF(DS:RCX); FI;
+
+.PP
+(* make sure no other Intel SGX instruction is accessing EPCM *)
+
+.PP
+IF (Other EPCM modifying instructions executing)
+
+.PP
+THEN #GP(0); FI;
+
+.PP
+IF (EPCM(DS:RCX). VALID = 0)
+
+.PP
+THEN #PF(DS:RCX); FI;
+
+.PP
+(* make sure that DS:RCX (DST) is pointing to a PT\_REG or PT\_TCS *)
+
+.PP
+IF ( (EPCM(DS:RCX).PT ≠ PT\_REG) and (EPCM(DS:RCX).PT ≠ PT\_TCS) )
+
+.PP
+THEN #PF(DS:RCX); FI;
+
+.PP
+(* make sure that DS:RCX points to an accessible EPC page *)
+
+.PP
+IF ( (EPCM(DS:RCX).PENDING is not 0) or (EPCM(DS:RCS).MODIFIED is not 0)
+)
+
+.PP
+THEN
+
+.PP
+RFLAGS.ZF ← 1;
+
+.PP
+RAX ← SGX\_PAGE\_NOT\_DEBUGGABLE;
+
+.PP
+GOTO DONE;
+
+.PP
+FI;
+
+.PP
+(* If destination is a TCS, then make sure that the offset into the
+page can only point to the FLAGS field*)
+
+.PP
+IF ( ( EPCM(DS:RCX). PT = PT\_TCS) and ((DS:RCX) \& FF8H ≠
+offset\_of\_FLAGS \& 0FF8H) )
+
+.PP
+THEN #GP(0); FI;
+
+.PP
+(* Locate the SECS for the enclave to which the DS:RCX page belongs *)
+
+.PP
+TMP\_SECS ← GET\_SECS\_PHYS\_ADDRESS(EPCM(DS:RCX).ENCLAVESECS);
+
+.PP
+(* make sure the enclave owning the PT\_REG or PT\_TCS page allow debug
+*)
+
+.PP
+IF (TMP\_SECS.ATTRIBUTES.DEBUG = 0)
+
+.PP
+THEN #GP(0); FI;
+
+.PP
+IF ( (TMP\_MODE64 = 1) )
+
+.PP
+THEN (DS:RCX)[63:0]←RBX[63:0];
+
+.PP
+ELSE (DS:RCX)[31:0]←EBX[31:0];
+
+.PP
+FI;
+
+.PP
+(* clear EAX and ZF to indicate successful completion *)
+
+.PP
+RAX←0;
+
+.PP
+RFLAGS.ZF ← 0;
+
+.PP
+DONE:
+
+.PP
+(* clear flags *)
+
+.PP
+RFLAGS.CF,PF,AF,OF,SF ← 0
+
+.SS Flags Affected
+.PP
+None
+
+.SS Protected Mode Exceptions
+.PP
+#GP(0)
+
+.PP
+If the address in RCS violates DS limit or access rights.
+
+.PP
+If DS segment is unusable.
+
+.PP
+If RCX points to a memory location not 4Byte\-aligned.
+
+.PP
+If the address in RCX points to a page belonging to a non\-debug enclave.
+
+.PP
+If the address in RCX points to a page which is not PT\_TCS or PT\_REG.
+
+.PP
+If the address in RCX points to a location inside TCS that is not the
+FLAGS word.
+
+.PP
+#PF(error
+
+.PP
+code) If a page fault occurs in accessing memory operands.
+
+.PP
+If the address in RCX points to a non\-EPC page.
+
+.PP
+If the address in RCX points to an invalid EPC page.
+
+.SS 64\-Bit Mode Exceptions
+.PP
+#GP(0)
+
+.PP
+If RCX is non\-canonical form.
+
+.PP
+If RCX points to a memory location not 8Byte\-aligned.
+
+.PP
+If the address in RCX points to a page belonging to a non\-debug enclave.
+
+.PP
+If the address in RCX points to a page which is not PT\_TCS or PT\_REG.
+
+.PP
+If the address in RCX points to a location inside TCS that is not the
+FLAGS word.
+
+.PP
+#PF(error
+
+.PP
+code) If a page fault occurs in accessing memory operands.
+
+.PP
+If the address in RCX points to a non\-EPC page.
+
+.PP
+If the address in RCX points to an invalid EPC page.
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+Copyleft TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

@@ -1,0 +1,246 @@
+.nh
+.TH "X86-VCVTPH2PS" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+VCVTPH2PS - CONVERT 16-BIT FP VALUES TO SINGLE-PRECISION FP VALUES
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp / En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+T{
+VEX.128.66.0F38.W0 13 /r VCVTPH2PS xmm1, xmm2/m64
+T}
+	A	V/V	F16C	T{
+Convert four packed half precision (16\-bit) floating\-point values in xmm2/m64 to packed single\-precision floating\-point value in xmm1.
+T}
+T{
+VEX.256.66.0F38.W0 13 /r VCVTPH2PS ymm1, xmm2/m128
+T}
+	A	V/V	F16C	T{
+Convert eight packed half precision (16\-bit) floating\-point values in xmm2/m128 to packed single\-precision floating\-point value in ymm1.
+T}
+T{
+EVEX.128.66.0F38.W0 13 /r VCVTPH2PS xmm1 {k1}{z}, xmm2/m64
+T}
+	B	V/V	AVX512VL AVX512F	T{
+Convert four packed half precision (16\-bit) floating\-point values in xmm2/m64 to packed single\-precision floating\-point values in xmm1.
+T}
+T{
+EVEX.256.66.0F38.W0 13 /r VCVTPH2PS ymm1 {k1}{z}, xmm2/m128
+T}
+	B	V/V	AVX512VL AVX512F	T{
+Convert eight packed half precision (16\-bit) floating\-point values in xmm2/m128 to packed single\-precision floating\-point values in ymm1.
+T}
+T{
+EVEX.512.66.0F38.W0 13 /r VCVTPH2PS zmm1 {k1}{z}, ymm2/m256 {sae}
+T}
+	B	V/V	AVX512F	T{
+Convert sixteen packed half precision (16\-bit) floating\-point values in ymm2/m256 to packed single\-precision floating\-point values in zmm1.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+Op/En	Tuple Type	Operand 1	Operand 2	Operand 3	Operand 4
+A	NA	ModRM:reg (w)	ModRM:r/m (r)	NA	NA
+B	Half Mem	ModRM:reg (w)	ModRM:r/m (r)	NA	NA
+.TE
+
+.SS Description
+.PP
+Converts packed half precision (16\-bits) floating\-point values in the
+low\-order bits of the source operand (the second operand) to packed
+single\-precision floating\-point values and writes the converted values
+into the destination operand (the first operand).
+
+.PP
+If case of a denormal operand, the correct normal result is returned.
+MXCSR.DAZ is ignored and is treated as if it 0. No denormal exception is
+reported on MXCSR.
+
+.PP
+VEX.128 version: The source operand is a XMM register or 64\-bit memory
+location. The destination operand is a XMM register. The upper bits
+(MAXVL\-1:128) of the corresponding destination register are zeroed.
+
+.PP
+VEX.256 version: The source operand is a XMM register or 128\-bit memory
+location. The destination operand is a YMM register. Bits (MAXVL\-1:256)
+of the corresponding destination register are zeroed.
+
+.PP
+EVEX encoded versions: The source operand is a YMM/XMM/XMM (low 64\-bits)
+register or a 256/128/64\-bit memory location. The destination operand is
+a ZMM/YMM/XMM register conditionally updated with writemask k1.
+
+.PP
+The diagram below illustrates how data is converted from four packed
+half precision (in 64 bits) to four single precision (in 128 bits) FP
+values.
+
+.PP
+Note: VEX.vvvv and EVEX.vvvv are reserved (must be 1111b).
+
+.TS
+allbox;
+l l 
+l l .
+T{
+VCVTPH2PSxmm1,xmm2/mem64, imm8 127 96 95 64 63 48 47 32 31 16 15 0
+T}
+	xmm2/mem64 VH3 VH2 VH1 VH0	T{
+convert convert convert convert 127 96 95 64 63 32 31 0
+T}
+		VS3 VS2 VS1 VS0 xmm1
+.TE
+
+.PP
+Figure 5\-6. VCVTPH2PS (128\-bit Version)
+
+.SS Operation
+.PP
+.RS
+
+.nf
+vCvt\_h2s(SRC1[15:0])
+{
+RETURN Cvt\_Half\_Precision\_To\_Single\_Precision(SRC1[15:0]);
+}
+
+.fi
+.RE
+
+.SS VCVTPH2PS (EVEX encoded versions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (4, 128), (8, 256), (16, 512)
+FOR j←0 TO KL\-1
+    i←j * 32
+    k←j * 16
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+31:i]←
+            vCvt\_h2s(SRC[k+15:k])
+        ELSE
+            IF *merging\-masking*
+                        ; merging\-masking
+                THEN *DEST[i+31:i] remains unchanged*
+                ELSE ; zeroing\-masking
+                    DEST[i+31:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS VCVTPH2PS (VEX.256 encoded version)
+.PP
+.RS
+
+.nf
+DEST[31:0] ←vCvt\_h2s(SRC1[15:0]);
+DEST[63:32] ←vCvt\_h2s(SRC1[31:16]);
+DEST[95:64] ←vCvt\_h2s(SRC1[47:32]);
+DEST[127:96] ←vCvt\_h2s(SRC1[63:48]);
+DEST[159:128] ←vCvt\_h2s(SRC1[79:64]);
+DEST[191:160] ←vCvt\_h2s(SRC1[95:80]);
+DEST[223:192] ←vCvt\_h2s(SRC1[111:96]);
+DEST[255:224] ←vCvt\_h2s(SRC1[127:112]);
+DEST[MAXVL\-1:256] ← 0
+
+.fi
+.RE
+
+.SS VCVTPH2PS (VEX.128 encoded version)
+.PP
+.RS
+
+.nf
+DEST[31:0] ←vCvt\_h2s(SRC1[15:0]);
+DEST[63:32] ←vCvt\_h2s(SRC1[31:16]);
+DEST[95:64] ←vCvt\_h2s(SRC1[47:32]);
+DEST[127:96] ←vCvt\_h2s(SRC1[63:48]);
+DEST[MAXVL\-1:128] ← 0
+
+.fi
+.RE
+
+.SS Flags Affected
+.PP
+None
+
+.SS Intel C/C++ Compiler Intrinsic Equivalent
+.PP
+.RS
+
+.nf
+VCVTPH2PS \_\_m512 \_mm512\_cvtph\_ps( \_\_m256i a);
+
+VCVTPH2PS \_\_m512 \_mm512\_mask\_cvtph\_ps(\_\_m512 s, \_\_mmask16 k, \_\_m256i a);
+
+VCVTPH2PS \_\_m512 \_mm512\_maskz\_cvtph\_ps(\_\_mmask16 k, \_\_m256i a);
+
+VCVTPH2PS \_\_m512 \_mm512\_cvt\_roundph\_ps( \_\_m256i a, int sae);
+
+VCVTPH2PS \_\_m512 \_mm512\_mask\_cvt\_roundph\_ps(\_\_m512 s, \_\_mmask16 k, \_\_m256i a, int sae);
+
+VCVTPH2PS \_\_m512 \_mm512\_maskz\_cvt\_roundph\_ps( \_\_mmask16 k, \_\_m256i a, int sae);
+
+VCVTPH2PS \_\_m256 \_mm256\_mask\_cvtph\_ps(\_\_m256 s, \_\_mmask8 k, \_\_m128i a);
+
+VCVTPH2PS \_\_m256 \_mm256\_maskz\_cvtph\_ps(\_\_mmask8 k, \_\_m128i a);
+
+VCVTPH2PS \_\_m128 \_mm\_mask\_cvtph\_ps(\_\_m128 s, \_\_mmask8 k, \_\_m128i a);
+
+VCVTPH2PS \_\_m128 \_mm\_maskz\_cvtph\_ps(\_\_mmask8 k, \_\_m128i a);
+
+VCVTPH2PS \_\_m128 \_mm\_cvtph\_ps ( \_\_m128i m1);
+
+VCVTPH2PS \_\_m256 \_mm256\_cvtph\_ps ( \_\_m128i m1)
+
+.fi
+.RE
+
+.SS SIMD Floating\-Point Exceptions
+.PP
+Invalid
+
+.SS Other Exceptions
+.PP
+VEX\-encoded instructions, see Exceptions Type 11 (do not report #AC);
+
+.PP
+EVEX\-encoded instructions, see Exceptions Type E11.
+
+.TS
+allbox;
+l l l 
+l l l .
+	#UD	If VEX.W=1.
+	#UD	T{
+If VEX.vvvv != 1111B or EVEX.vvvv != 1111B.
+T}
+.TE
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+Copyleft TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

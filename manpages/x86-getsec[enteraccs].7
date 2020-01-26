@@ -1,0 +1,827 @@
+.nh
+.TH "X86-GETSEC[ENTERACCS]" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+GETSEC[ENTERACCS] - EXECUTE AUTHENTICATED CHIPSET CODE
+.TS
+allbox;
+l l l 
+l l l .
+\fB\fCOpcode\fR	\fB\fCInstruction\fR	\fB\fCDescription\fR
+NP 0F 37 (EAX = 2)	GETSEC[ENTERACCS]	T{
+Enter authenticated code execution mode. EBX holds the authenticated code module physical base address. ECX holds the authenticated code module size (bytes).
+T}
+.TE
+
+.SH DESCRIPTION
+.PP
+The GETSEC[ENTERACCS] function loads, authenticates and executes an
+authenticated code module using an Intel® TXT platform chipset's public
+key. The ENTERACCS leaf of GETSEC is selected with EAX set to 2 at
+entry.
+
+.PP
+There are certain restrictions enforced by the processor for the
+execution of the GETSEC[ENTERACCS] instruction:
+
+.RS
+.IP \(bu 2
+Execution is not allowed unless the processor is in protected mode
+or IA\-32e mode with CPL = 0 and EFLAGS.VM = 0.
+.IP \(bu 2
+Processor cache must be available and not disabled, that is, CR0.CD
+and CR0.NW bits must be 0.
+.IP \(bu 2
+For processor packages containing more than one logical processor,
+CR0.CD is checked to ensure consistency between enabled logical
+processors.
+.IP \(bu 2
+For enforcing consistency of operation with numeric exception
+reporting using Interrupt 16, CR0.NE must be set.
+.IP \(bu 2
+An Intel TXT\-capable chipset must be present as communicated to the
+processor by sampling of the power\-on configuration capability field
+after reset.
+.IP \(bu 2
+The processor can not already be in authenticated code execution
+mode as launched by a previous GETSEC[ENTERACCS] or
+GETSEC[SENTER] instruction without a subsequent exiting using
+GETSEC[EXITAC]).
+.IP \(bu 2
+To avoid potential operability conflicts between modes, the
+processor is not allowed to execute this instruction if it currently
+is in SMM or VMX operation.
+.IP \(bu 2
+To insure consistent handling of SIPI messages, the processor
+executing the GETSEC[ENTERACCS] instruction must also be
+designated the BSP (boot\-strap processor) as defined by
+IA32\_APIC\_BASE.BSP (Bit 8).
+
+.RE
+
+.PP
+Failure to conform to the above conditions results in the processor
+signaling a general protection exception.
+
+.PP
+Prior to execution of the ENTERACCS leaf, other logical processors,
+i.e., RLPs, in the platform must be:
+
+.RS
+.IP \(bu 2
+Idle in a wait\-for\-SIPI state (as initiated by an INIT assertion or
+through reset for non\-BSP designated processors), or
+.IP \(bu 2
+In the SENTER sleep state as initiated by a GETSEC[SENTER] from
+the initiating logical processor (ILP).
+
+.RE
+
+.PP
+If other logical processor(s) in the same package are not idle in one of
+these states, execution of ENTERACCS signals a general protection
+exception. The same requirement and action applies if the other logical
+processor(s) of the same package do not have CR0.CD = 0.
+
+.PP
+A successful execution of ENTERACCS results in the ILP entering an
+authenticated code execution mode. Prior to reaching this point, the
+processor performs several checks. These include:
+
+.RS
+.IP \(bu 2
+Establish and check the location and size of the specified
+authenticated code module to be executed by the processor.
+.IP \(bu 2
+Inhibit the ILP’s response to the external events: INIT, A20M, NMI
+and SMI.
+.IP \(bu 2
+Broadcast a message to enable protection of memory and I/O from
+other processor agents.
+.IP \(bu 2
+Load the designated code module into an authenticated code execution
+area.
+.IP \(bu 2
+Isolate the contents of the authenticated code execution area from
+further state modification by external agents.
+.IP \(bu 2
+Authenticate the authenticated code module.
+.IP \(bu 2
+Initialize the initiating logical processor state based on
+information contained in the authenticated code module header.
+.IP \(bu 2
+Unlock the Intel® TXT\-capable chipset private configuration space
+and TPM locality 3 space.
+.IP \(bu 2
+Begin execution in the authenticated code module at the defined
+entry point.
+
+.RE
+
+.PP
+The GETSEC[ENTERACCS] function requires two additional input
+parameters in the general purpose registers EBX and ECX. EBX holds the
+authenticated code (AC) module physical base address (the AC module must
+reside below 4 GBytes in physical address space) and ECX holds the AC
+module size (in bytes). The physical base address and size are used to
+retrieve the code module from system memory and load it into the
+internal authenticated code execution area. The base physical address is
+checked to verify it is on a modulo\-4096 byte boundary. The size is
+verified to be a multiple of 64, that it does not exceed the internal
+authenticated code execution area capacity (as reported by
+GETSEC[CAPABILITIES]), and that the top address of the AC module does
+not exceed 32 bits. An error condition results in an abort of the
+authenticated code execution launch and the signaling of a general
+protection exception.
+
+.PP
+As an integrity check for proper processor hardware operation, execution
+of GETSEC[ENTERACCS] will also check the contents of all the machine
+check status registers (as reported by the MSRs IA32\_MCi\_STATUS) for
+any valid uncorrectable error condition. In addition, the global machine
+check status register IA32\_MCG\_STATUS MCIP bit must be cleared and the
+IERR processor package pin (or its equivalent) must not be asserted,
+indicating that no machine check exception processing is currently in
+progress. These checks are performed prior to initiating the load of the
+authenticated code module. Any outstanding valid uncorrectable machine
+check error condition present in these status registers at this point
+will result in the processor signaling a general protection violation.
+
+.PP
+The ILP masks the response to the assertion of the external signals
+INIT#, A20M, NMI#, and SMI#\&. This masking remains active until
+optionally unmasked by GETSEC[EXITAC] (this defined unmasking behavior
+assumes GETSEC[ENTERACCS] was not executed by a prior
+GETSEC[SENTER]). The purpose of this masking control is to prevent
+exposure to existing external event handlers that may not be under the
+control of the authenticated code module.
+
+.PP
+The ILP sets an internal flag to indicate it has entered authenticated
+code execution mode. The state of the A20M pin is likewise masked and
+forced internally to a de\-asserted state so that any external assertion
+is not recognized during authenticated code execution mode.
+
+.PP
+To prevent other (logical) processors from interfering with the ILP
+operating in authenticated code execution mode, memory (excluding
+implicit write\-back transactions) access and I/O originating from other
+processor agents are blocked. This protection starts when the ILP enters
+into authenticated code execution mode. Only memory and I/O transactions
+initiated from the ILP are allowed to proceed. Exiting authenticated
+code execution mode is done by executing GETSEC[EXITAC]\&. The
+protection of memory and I/O activities remains in effect until the ILP
+executes GETSEC[EXITAC]\&.
+
+.PP
+Prior to launching the authenticated execution module using
+GETSEC[ENTERACCS] or GETSEC[SENTER], the processor’s MTRRs (Memory
+Type Range Registers) must first be initialized to map out the
+authenticated RAM addresses as WB (writeback). Failure to do so may
+affect the ability for the processor to maintain isolation of the loaded
+authenticated code module. If the processor detected this requirement is
+not met, it will signal an Intel® TXT reset condition with an error code
+during the loading of the authenticated code module.
+
+.PP
+While physical addresses within the load module must be mapped as WB,
+the memory type for locations outside of the module boundaries must be
+mapped to one of the supported memory types as returned by
+GETSEC[PARAMETERS] (or UC as default).
+
+.PP
+To conform to the minimum granularity of MTRR MSRs for specifying the
+memory type, authenticated code RAM (ACRAM) is allocated to the
+processor in 4096 byte granular blocks. If an AC module size as
+specified in ECX is not a multiple of 4096 then the processor will
+allocate up to the next 4096 byte boundary for mapping as ACRAM with
+indeterminate data. This pad area will not be visible to the
+authenticated code module as external memory nor can it depend on the
+value of the data used to fill the pad area.
+
+.PP
+At the successful completion of GETSEC[ENTERACCS], the architectural
+state of the processor is partially initialized from contents held in
+the header of the authenticated code module. The processor GDTR, CS, and
+DS selectors are initialized from fields within the authenticated code
+module. Since the authenticated code module must be relocatable, all
+address references must be relative to the authenticated code module
+base address in EBX. The processor GDTR base value is initialized to the
+AC module header field GDTBasePtr + module base address held in EBX and
+the GDTR limit is set to the value in the GDTLimit field. The CS
+selector is initialized to the AC module header SegSel field, while the
+DS selector is initialized to CS + 8. The segment descriptor fields are
+implicitly initialized to BASE=0, LIMIT=FFFFFh, G=1, D=1, P=1, S=1,
+read/write access for DS, and execute/read access for CS. The processor
+begins the authenticated code module execution with the EIP set to the
+AC module header EntryPoint field + module base address (EBX). The AC
+module based fields used for initializing the processor state are
+checked for consistency and any failure results in a shutdown condition.
+
+.PP
+A summary of the register state initialization after successful
+completion of GETSEC[ENTERACCS] is given for the processor in Table 6\-4\&. The paging is disabled upon entry
+into authenticated code execution mode. The authenticated code module is
+loaded and initially executed using physical addresses. It is up to the
+system software after execution of GETSEC[ENTERACCS] to establish a
+new (or restore its previous) paging environment with an appropriate
+mapping to meet new protection requirements. EBP is initialized to the
+authenticated code module base physical address for initial execution in
+the authenticated environment. As a result, the authenticated code can
+reference EBP for relative address based references, given that the
+authenticated code module must be position independent.
+
+.TS
+allbox;
+l l l 
+l l l .
+\fB\fCRegister State\fR	\fB\fCInitialization Status\fR	\fB\fCComment\fR
+CR0	T{
+PG←0, AM←0, WP←0: Others unchanged
+T}
+	T{
+Paging, Alignment Check, Write\-protection are disabled.
+T}
+CR4	MCE←0: Others unchanged	T{
+Machine Check Exceptions disabled.
+T}
+EFLAGS	00000002H	IA32\_EFER	0H	IA\-32e mode disabled.
+EIP	AC.base + EntryPoint	T{
+AC.base is in EBX as input to GETSEC
+T}
+[
+ENTERACCS
+]
+\&.
+[E|R]BX	Pre\-ENTERACCS state: Next [E|R]IP prior to GETSEC[ENTERACCS]	T{
+Carry forward 64\-bit processor state across GETSEC
+T}
+[
+ENTERACCS
+]
+\&.
+ECX	Pre\-ENTERACCS state: [31:16]=GDTR.limit; [15:0]=CS.sel	T{
+Carry forward processor state across GETSEC
+T}
+[
+ENTERACCS
+]
+\&.
+[E|R]DX	Pre\-ENTERACCS state: GDTR base	T{
+Carry forward 64\-bit processor state across GETSEC
+T}
+[
+ENTERACCS
+]
+\&.
+EBP	AC.base	CS	Sel=[SegSel]T{
+, base=0, limit=FFFFFh, G=1, D=1, AR=9BH
+T}
+	DS	Sel=[SegSel]T{
+ +8, base=0, limit=FFFFFh, G=1, D=1, AR=93H
+T}
+	GDTR	Base= AC.base (EBX) + [GDTBasePtr], Limit=[GDTLimit]	DR7	00000400H	IA32\_DEBUGCTL	0H	IA32\_MISC\_ENABLE	See Table 6\-5 for example.	T{
+The number of initialized fields may change due to processor implementation.
+T}
+.TE
+
+.PP
+Table 6\-4\&. Register State
+Initialization after GETSEC[ENTERACCS]
+
+.PP
+The segmentation related processor state that has not been initialized
+by GETSEC[ENTERACCS] requires appropriate initialization before use.
+Since a new GDT context has been established, the previous state of the
+segment selector values held in ES, SS, FS, GS, TR, and LDTR might not
+be valid.
+
+.PP
+The MSR IA32\_EFER is also unconditionally cleared as part of the
+processor state initialized by ENTERACCS. Since paging is disabled upon
+entering authenticated code execution mode, a new paging environment
+will have to be reestablished in order to establish IA\-32e mode while
+operating in authenticated code execution mode.
+
+.PP
+Debug exception and trap related signaling is also disabled as part of
+GETSEC[ENTERACCS]\&. This is achieved by resetting DR7, TF in EFLAGs,
+and the MSR IA32\_DEBUGCTL. These debug functions are free to be
+re\-enabled once supporting exception handler(s), descriptor tables, and
+debug registers have been properly initialized following
+
+.PP
+entry into authenticated code execution mode. Also, any pending
+single\-step trap condition will have been cleared upon entry into this
+mode.
+
+.PP
+The IA32\_MISC\_ENABLE MSR is initialized upon entry into authenticated
+execution mode. Certain bits of this MSR are preserved because
+preserving these bits may be important to maintain previously
+established platform settings (See the footnote for Table 6\-5\&.). The remaining bits are cleared
+for the purpose of establishing a more consistent environment for the
+execution of authenticated code modules. One of the impacts of
+initializing this MSR is any previous condition established by the
+MONITOR instruction will be cleared.
+
+.PP
+To support the possible return to the processor architectural state
+prior to execution of GETSEC[ENTERACCS], certain critical processor
+state is captured and stored in the general\- purpose registers at
+instruction completion. [E|R]BX holds effective address ([E|R]IP)
+of the instruction that would execute next after GETSEC[ENTERACCS],
+ECX[15:0] holds the CS selector value, ECX[31:16] holds the GDTR
+limit field, and [E|R]DX holds the GDTR base field. The subsequent
+authenticated code can preserve the contents of these registers so that
+this state can be manually restored if needed, prior to exiting
+authenticated code execution mode with GETSEC[EXITAC]\&. For the
+processor state after exiting authenticated code execution mode, see the
+description of GETSEC[SEXIT]\&.
+
+.TS
+allbox;
+l l l 
+l l l .
+\fB\fCField\fR	\fB\fCBit position\fR	\fB\fCDescription\fR
+Fast strings enable	0	Clear to 0.
+T{
+FOPCODE compatibility mode enable
+T}
+	2	Clear to 0.
+Thermal monitor enable	3	T{
+Set to 1 if other thermal monitor capability is not enabled.2
+T}
+Split\-lock disable	4	Clear to 0.
+T{
+Bus lock on cache line splits disable
+T}
+	8	Clear to 0.
+Hardware prefetch disable	9	Clear to 0.
+GV1/2 legacy enable	15	Clear to 0.
+MONITOR/MWAIT s/m enable	18	Clear to 0.
+T{
+Adjacent sector prefetch disable
+T}
+	19	Clear to 0.
+.TE
+
+.PP
+Table 6\-5\&. IA32\_MISC\_ENABLE MSR
+Initialization1 by ENTERACCS and SENTER
+
+.PP
+.RS
+
+.PP
+1\&. The number of IA32\_MISC\_ENABLE fields that are initialized may
+vary due to processor implementations.
+
+.PP
+2\&. ENTERACCS (and SENTER) initialize the state of processor thermal
+throttling such that at least a minimum level is enabled. If thermal
+throttling is already enabled when executing one of these GETSEC
+leaves, then no change in the thermal throttling control settings will
+occur. If thermal throttling is disabled, then it will be enabled via
+setting of the thermal throttle control bit 3 as a result of executing
+these GETSEC leaves.
+
+.RE
+
+.PP
+The IDTR will also require reloading with a new IDT context after
+entering authenticated code execution mode, before any exceptions or the
+external interrupts INTR and NMI can be handled. Since external
+interrupts are reenabled at the completion of authenticated code
+execution mode (as terminated with EXITAC), it is recommended that a new
+IDT context be established before this point. Until such a new IDT
+context is established, the programmer must take care in not executing
+an INT n instruction or any other operation that would result in an
+exception or trap signaling.
+
+.PP
+Prior to completion of the GETSEC[ENTERACCS] instruction and after
+successful authentication of the AC module, the private configuration
+space of the Intel TXT chipset is unlocked. The authenticated code
+module alone can gain access to this normally restricted chipset state
+for the purpose of securing the platform.
+
+.PP
+Once the authenticated code module is launched at the completion of
+GETSEC[ENTERACCS], it is free to enable interrupts by setting
+EFLAGS.IF and enable NMI by execution of IRET. This presumes that it has
+re\-established interrupt handling support through initialization of the
+IDT, GDT, and corresponding interrupt handling code.
+
+.SH OPERATION IN A UNI\-PROCESSOR PLATFORM
+.PP
+(* The state of the internal flag ACMODEFLAG persists across
+instruction boundary *)
+
+.PP
+IF (CR4.SMXE=0)
+
+.PP
+THEN #UD;
+
+.PP
+ELSIF (in VMX non\-root operation)
+
+.PP
+THEN VM Exit (reason=”GETSEC instruction”);
+
+.PP
+ELSIF (GETSEC leaf unsupported)
+
+.PP
+THEN #UD;
+
+.PP
+ELSIF ((in VMX operation) or
+
+.PP
+(CR0.PE=0) or (CR0.CD=1) or (CR0.NW=1) or (CR0.NE=0) or
+
+.PP
+(CPL\&gt;0) or (EFLAGS.VM=1) or
+
+.PP
+(IA32\_APIC\_BASE.BSP=0) or
+
+.PP
+(TXT chipset not present) or
+
+.PP
+(ACMODEFLAG=1) or (IN\_SMM=1))
+
+.PP
+THEN #GP(0);
+
+.PP
+IF (GETSEC[PARAMETERS]\&.Parameter\_Type = 5, MCA\_Handling (bit 6) = 0)
+
+.PP
+FOR I = 0 to IA32\_MCG\_CAP.COUNT\-1 DO
+
+.PP
+IF (IA32\_MC[I]\_STATUS = uncorrectable error) THEN #GP(0);
+
+.PP
+OD;
+
+.PP
+FI;
+
+.PP
+IF (IA32\_MCG\_STATUS.MCIP=1) or (IERR pin is asserted)
+
+.PP
+THEN #GP(0);
+
+.PP
+ACBASE← EBX; ACSIZE← ECX; IF (((ACBASE MOD 4096) ≠ 0) or ((ACSIZE MOD 64
+) ≠ 0 ) or (ACSIZE \&lt; minimum module size) OR (ACSIZE \&gt;
+authenticated RAM capacity)) or ((ACBASE+ACSIZE) \&gt; (2^32 \-1)))
+
+.PP
+THEN #GP(0);
+
+.PP
+IF (secondary thread(s) CR0.CD = 1) or ((secondary thread(s)
+NOT(wait\-for\-SIPI)) and
+
+.PP
+(secondary thread(s) not in SENTER sleep state)
+
+.PP
+THEN #GP(0);
+
+.PP
+Mask SMI, INIT, A20M, and NMI external pin events;
+
+.PP
+IA32\_MISC\_ENABLE← (IA32\_MISC\_ENABLE \& MASK\_CONST*) (* The
+hexadecimal value of MASK\_CONST may vary due to processor
+implementations *)
+
+.PP
+A20M← 0; IA32\_DEBUGCTL← 0; Invalidate processor TLB(s);
+
+.PP
+Drain Outgoing Transactions;
+
+.PP
+ACMODEFLAG← 1; SignalTXTMessage(ProcessorHold);
+
+.PP
+Load the internal ACRAM based on the AC module size;
+
+.PP
+(* Ensure that all ACRAM loads hit Write Back memory space *)
+
+.PP
+IF (ACRAM memory type ≠ WB)
+
+.PP
+THEN TXT\-SHUTDOWN(#BadACMMType);
+
+.PP
+IF (AC module header version isnot supported) OR (ACRAM[ModuleType] ≠
+2)
+
+.PP
+THEN TXT\-SHUTDOWN(#UnsupportedACM);
+
+.PP
+(* Authenticate the AC Module and shutdown with an error if it fails
+*)
+
+.PP
+KEY← GETKEY(ACRAM, ACBASE); KEYHASH← HASH(KEY); CSKEYHASH←
+READ(TXT.PUBLIC.KEY); IF (KEYHASH ≠ CSKEYHASH)
+
+.PP
+THEN TXT\-SHUTDOWN(#AuthenticateFail);
+
+.PP
+SIGNATURE← DECRYPT(ACRAM, ACBASE, KEY); (* The value of
+SIGNATURE\_LEN\_CONST is implementation\-specific*)
+
+.PP
+FOR I=0 to SIGNATURE\_LEN\_CONST \- 1 DO
+
+.PP
+ACRAM[SCRATCH.I]← SIGNATURE[I]; COMPUTEDSIGNATURE← HASH(ACRAM,
+ACBASE, ACSIZE); FOR I=0 to SIGNATURE\_LEN\_CONST \- 1 DO
+
+.PP
+ACRAM[SCRATCH.SIGNATURE\_LEN\_CONST+I]← COMPUTEDSIGNATURE[I]; IF
+(SIGNATURE ≠ COMPUTEDSIGNATURE)
+
+.PP
+THEN TXT\-SHUTDOWN(#AuthenticateFail);
+
+.PP
+ACMCONTROL← ACRAM[CodeControl]; IF ((ACMCONTROL.0 = 0) and
+(ACMCONTROL.1 = 1) and (snoop hit to modified line detected on ACRAM
+load))
+
+.PP
+THEN TXT\-SHUTDOWN(#UnexpectedHITM);
+
+.PP
+IF (ACMCONTROL reserved bits are set)
+
+.PP
+THEN TXT\-SHUTDOWN(#BadACMFormat);
+
+.PP
+IF ((ACRAM[GDTBasePtr] \&lt; (ACRAM[HeaderLen] * 4 + Scratch\_size))
+OR
+
+.PP
+((ACRAM[GDTBasePtr] + ACRAM[GDTLimit]) \&gt;= ACSIZE))
+
+.PP
+THEN TXT\-SHUTDOWN(#BadACMFormat);
+
+.PP
+IF ((ACMCONTROL.0 = 1) and (ACMCONTROL.1 = 1) and (snoop hit to modified
+line detected on ACRAM load))
+
+.PP
+THEN ACEntryPoint← ACBASE+ACRAM[ErrorEntryPoint]; ELSE
+
+.PP
+ACEntryPoint← ACBASE+ACRAM[EntryPoint]; IF ((ACEntryPoint \&gt;=
+ACSIZE) OR (ACEntryPoint \&lt; (ACRAM[HeaderLen] * 4 +
+Scratch\_size)))THEN TXT\-SHUTDOWN(#BadACMFormat);
+
+.PP
+IF (ACRAM[GDTLimit] \& FFFF0000h)
+
+.PP
+THEN TXT\-SHUTDOWN(#BadACMFormat);
+
+.PP
+IF ((ACRAM[SegSel] \&gt; (ACRAM[GDTLimit] \- 15)) OR (ACRAM[SegSel]
+\&lt; 8))
+
+.PP
+THEN TXT\-SHUTDOWN(#BadACMFormat);
+
+.PP
+IF ((ACRAM[SegSel]\&.TI=1) OR (ACRAM[SegSel]\&.RPL≠0))
+
+.PP
+THEN TXT\-SHUTDOWN(#BadACMFormat);
+
+.PP
+CR0.[PG.AM.WP]← 0; CR4.MCE← 0; EFLAGS← 00000002h; IA32\_EFER← 0h;
+[E|R]BX← [E|R]IP of the instruction after GETSEC[ENTERACCS];
+ECX← Pre\-GETSEC[ENTERACCS] GDT.limit:CS.sel; [E|R]DX←
+Pre\-GETSEC[ENTERACCS] GDT.base; EBP← ACBASE; GDTR.BASE←
+ACBASE+ACRAM[GDTBasePtr]; GDTR.LIMIT← ACRAM[GDTLimit]; CS.SEL←
+ACRAM[SegSel]; CS.BASE← 0; CS.LIMIT← FFFFFh; CS.G← 1; CS.D← 1; CS.AR←
+9Bh; DS.SEL← ACRAM[SegSel]+8; DS.BASE← 0; DS.LIMIT← FFFFFh; DS.G← 1;
+DS.D← 1; DS.AR← 93h; DR7← 00000400h; IA32\_DEBUGCTL← 0;
+SignalTXTMsg(OpenPrivate);
+
+.PP
+SignalTXTMsg(OpenLocality3);
+
+.PP
+EIP← ACEntryPoint; END;
+
+.SH FLAGS AFFECTED
+.PP
+All flags are cleared.
+
+.SH USE OF PREFIXES
+.PP
+LOCK Causes #UD.
+
+.PP
+REP* Cause #UD (includes REPNE/REPNZ and REP/REPE/REPZ).
+
+.PP
+Operand size Causes #UD.
+
+.PP
+NP 66/F2/F3 prefixes are not allowed.
+
+.PP
+Segmentoverrides Ignored.
+
+.PP
+Address size Ignored.
+
+.PP
+REX Ignored.
+
+.SH PROTECTED MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#UD	If CR4.SMXE = 0.
+	If GETSEC
+[
+ENTERACCS
+]
+T{
+ is not reported as supported by GETSEC
+T}
+[
+CAPABILITIES
+]
+\&.
+#GP(0)	T{
+IfCR0.CD=1orCR0.NW=1orCR0.NE=0orCR0.PE=0orCPL
+T}
+\&gt;
+0orEFLAGS.VM=1.
+	T{
+If a Intel® TXT\-capable chipset is not present.
+T}
+	If in VMX root operation.
+	T{
+If the initiating processor is not designated as the bootstrap processor via the MSR bit IA32
+T}
+\_
+APIC
+\_
+BASE.BSP.
+	T{
+If the processor is already in authenticated code execution mode.
+T}
+	If the processor is in SMM.
+	T{
+If a valid uncorrectable machine check error is logged in IA32
+T}
+\_
+MC
+[
+I
+]
+
+\_
+STATUS.
+	T{
+If the authenticated code base is not on a 4096 byte boundary.
+T}
+	T{
+If the authenticated code size 
+T}
+\&gt;
+T{
+ processor internal authenticated code area capacity.
+T}
+	T{
+If the authenticated code size is not modulo 64.
+T}
+	T{
+If other enabled logical processor(s) of the same package CR0.CD = 1.
+T}
+	T{
+If other enabled logical processor(s) of the same package are not in the wait\-for\-SIPI or SENTER sleep state.
+T}
+.TE
+
+.SH REAL\-ADDRESS MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#UD	If CR4.SMXE = 0.
+	If GETSEC
+[
+ENTERACCS
+]
+T{
+ is not reported as supported by GETSEC
+T}
+[
+CAPABILITIES
+]
+\&.
+#GP(0)	GETSEC
+[
+ENTERACCS
+]
+T{
+ is not recognized in real\-address mode.
+T}
+.TE
+
+.SH VIRTUAL\-8086 MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#UD	If CR4.SMXE = 0.
+	If GETSEC
+[
+ENTERACCS
+]
+T{
+ is not reported as supported by GETSEC
+T}
+[
+CAPABILITIES
+]
+\&.
+#GP(0)	GETSEC
+[
+ENTERACCS
+]
+T{
+ is not recognized in virtual\-8086 mode.
+T}
+.TE
+
+.SH COMPATIBILITY MODE EXCEPTIONS
+.PP
+All protected mode exceptions apply.
+
+.TS
+allbox;
+l l 
+l l .
+#GP	T{
+IF AC code module does not reside in physical address below 2^32 \-1.
+T}
+.TE
+
+.SH 64\-BIT MODE EXCEPTIONS
+.PP
+All protected mode exceptions apply.
+
+.TS
+allbox;
+l l 
+l l .
+#GP	T{
+IF AC code module does not reside in physical address below 2^32 \-1.
+T}
+.TE
+
+.SH VM\-EXIT CONDITION
+.PP
+Reason (GETSEC) IF in VMX non\-root operation.
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+Copyleft TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

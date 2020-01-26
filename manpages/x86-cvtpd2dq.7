@@ -1,0 +1,278 @@
+.nh
+.TH "X86-CVTPD2DQ" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+CVTPD2DQ - CONVERT PACKED DOUBLE-PRECISION FLOATING-POINT VALUES TO PACKED DOUBLEWORD INTEGERS
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode Instruction\fR	\fB\fCOp / En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+T{
+F2 0F E6 /r CVTPD2DQ xmm1, xmm2/m128
+T}
+	A	V/V	SSE2	T{
+Convert two packed double\-precision floating\-point values in xmm2/mem to two signed doubleword integers in xmm1.
+T}
+T{
+VEX.128.F2.0F.WIG E6 /r VCVTPD2DQ xmm1, xmm2/m128
+T}
+	A	V/V	AVX	T{
+Convert two packed double\-precision floating\-point values in xmm2/mem to two signed doubleword integers in xmm1.
+T}
+T{
+VEX.256.F2.0F.WIG E6 /r VCVTPD2DQ xmm1, ymm2/m256
+T}
+	A	V/V	AVX	T{
+Convert four packed double\-precision floating\-point values in ymm2/mem to four signed doubleword integers in xmm1.
+T}
+T{
+EVEX.128.F2.0F.W1 E6 /r VCVTPD2DQ xmm1 {k1}{z}, xmm2/m128/m64bcst
+T}
+	B	V/V	AVX512VL AVX512F	T{
+Convert two packed double\-precision floating\-point values in xmm2/m128/m64bcst to two signed doubleword integers in xmm1 subject to writemask k1.
+T}
+T{
+EVEX.256.F2.0F.W1 E6 /r VCVTPD2DQ xmm1 {k1}{z}, ymm2/m256/m64bcst
+T}
+	B	V/V	AVX512VL AVX512F	T{
+Convert four packed double\-precision floating\-point values in ymm2/m256/m64bcst to four signed doubleword integers in xmm1 subject to writemask k1.
+T}
+T{
+EVEX.512.F2.0F.W1 E6 /r VCVTPD2DQ ymm1 {k1}{z}, zmm2/m512/m64bcst{er}
+T}
+	B	V/V	AVX512F	T{
+Convert eight packed double\-precision floating\-point values in zmm2/m512/m64bcst to eight signed doubleword integers in ymm1 subject to writemask k1.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+Op/En	Tuple Type	Operand 1	Operand 2	Operand 3	Operand 4
+A	NA	ModRM:reg (w)	ModRM:r/m (r)	NA	NA
+B	Full	ModRM:reg (w)	ModRM:r/m (r)	NA	NA
+.TE
+
+.SH DESCRIPTION
+.PP
+Converts packed double\-precision floating\-point values in the source
+operand (second operand) to packed signed doubleword integers in the
+destination operand (first operand).
+
+.PP
+When a conversion is inexact, the value returned is rounded according to
+the rounding control bits in the MXCSR register or the embedded rounding
+control bits. If a converted result cannot be represented in the
+destination format, the floating\-point invalid exception is raised, and
+if this exception is masked, the indefinite integer value (2w\-1, where w
+represents the number of bits in the destination format) is returned.
+
+.PP
+EVEX encoded versions: The source operand is a ZMM/YMM/XMM register, a
+512\-bit memory location, or a 512\-bit vector broadcasted from a 64\-bit
+memory location. The destination operand is a ZMM/YMM/XMM register
+conditionally updated with writemask k1. The upper bits
+(MAXVL\-1:256/128/64) of the corresponding destination are zeroed.
+
+.PP
+VEX.256 encoded version: The source operand is a YMM register or 256\-
+bit memory location. The destination operand is an XMM register. The
+upper bits (MAXVL\-1:128) of the corresponding ZMM register destination
+are zeroed.
+
+.PP
+VEX.128 encoded version: The source operand is an XMM register or 128\-
+bit memory location. The destination operand is a XMM register. The
+upper bits (MAXVL\-1:64) of the corresponding ZMM register destination
+are zeroed.
+
+.PP
+128\-bit Legacy SSE version: The source operand is an XMM register or
+128\- bit memory location. The destination operand is an XMM register.
+Bits[127:64] of the destination XMM register are zeroed. However, the
+upper bits (MAXVL\-1:128) of the corresponding ZMM register destination
+are unmodified.
+
+.PP
+VEX.vvvv and EVEX.vvvv are reserved and must be 1111b, otherwise
+instructions will #UD.
+
+.PP
+X1X0SRCX3X2DEST0X3X2X1X0
+
+.PP
+Figure 3\-12. VCVTPD2DQ (VEX.256 encoded version)
+
+.SH OPERATION
+.SS VCVTPD2DQ (EVEX encoded versions) when src operand is a register
+.PP
+.RS
+
+.nf
+(KL, VL) = (2, 128), (4, 256), (8, 512)
+IF (VL = 512) AND (EVEX.b = 1)
+    THEN
+        SET\_RM(EVEX.RC);
+    ELSE
+        SET\_RM(MXCSR.RM);
+FI;
+FOR j←0 TO KL\-1
+    i←j * 32
+    k←j * 64
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+31:i]←
+            Convert\_Double\_Precision\_Floating\_Point\_To\_Integer(SRC[k+63:k])
+        ELSE
+            IF *merging\-masking* ; merging\-masking
+                THEN *DEST[i+31:i] remains unchanged*
+                ELSE ; zeroing\-masking
+                    DEST[i+31:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL/2] ← 0
+
+.fi
+.RE
+
+.SS VCVTPD2DQ (EVEX encoded versions) when src operand is a memory source
+.PP
+.RS
+
+.nf
+(KL, VL) = (2, 128), (4, 256), (8, 512)
+FOR j←0 TO KL\-1
+    i←j * 32
+    k←j * 64
+    IF k1[j] OR *no writemask*
+        THEN
+            IF (EVEX.b = 1)
+                THEN
+                    DEST[i+31:i] ←
+            Convert\_Double\_Precision\_Floating\_Point\_To\_Integer(SRC[63:0])
+                ELSE
+                    DEST[i+31:i] ←
+            Convert\_Double\_Precision\_Floating\_Point\_To\_Integer(SRC[k+63:k])
+            FI;
+        ELSE
+            IF *merging\-masking* ; merging\-masking
+                THEN *DEST[i+31:i] remains unchanged*
+                ELSE ; zeroing\-masking
+                    DEST[i+31:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL/2] ← 0
+
+.fi
+.RE
+
+.SS VCVTPD2DQ (VEX.256 encoded version)
+.PP
+.RS
+
+.nf
+DEST[31:0] ←Convert\_Double\_Precision\_Floating\_Point\_To\_Integer(SRC[63:0])
+DEST[63:32] ←Convert\_Double\_Precision\_Floating\_Point\_To\_Integer(SRC[127:64])
+DEST[95:64] ←Convert\_Double\_Precision\_Floating\_Point\_To\_Integer(SRC[191:128])
+DEST[127:96] ←Convert\_Double\_Precision\_Floating\_Point\_To\_Integer(SRC[255:192)
+DEST[MAXVL\-1:128]←0
+
+.fi
+.RE
+
+.SS VCVTPD2DQ (VEX.128 encoded version)
+.PP
+.RS
+
+.nf
+DEST[31:0] ←Convert\_Double\_Precision\_Floating\_Point\_To\_Integer(SRC[63:0])
+DEST[63:32] ←Convert\_Double\_Precision\_Floating\_Point\_To\_Integer(SRC[127:64])
+DEST[MAXVL\-1:64]←0
+
+.fi
+.RE
+
+.SS CVTPD2DQ (128\-bit Legacy SSE version)
+.PP
+.RS
+
+.nf
+DEST[31:0] ←Convert\_Double\_Precision\_Floating\_Point\_To\_Integer(SRC[63:0])
+DEST[63:32] ←Convert\_Double\_Precision\_Floating\_Point\_To\_Integer(SRC[127:64])
+DEST[127:64] ←0
+DEST[MAXVL\-1:128] (unmodified)
+
+.fi
+.RE
+
+.SH INTEL C/C++ COMPILER INTRINSIC EQUIVALENT
+.PP
+.RS
+
+.nf
+VCVTPD2DQ \_\_m256i \_mm512\_cvtpd\_epi32( \_\_m512d a);
+
+VCVTPD2DQ \_\_m256i \_mm512\_mask\_cvtpd\_epi32( \_\_m256i s, \_\_mmask8 k, \_\_m512d a);
+
+VCVTPD2DQ \_\_m256i \_mm512\_maskz\_cvtpd\_epi32( \_\_mmask8 k, \_\_m512d a);
+
+VCVTPD2DQ \_\_m256i \_mm512\_cvt\_roundpd\_epi32( \_\_m512d a, int r);
+
+VCVTPD2DQ \_\_m256i \_mm512\_mask\_cvt\_roundpd\_epi32( \_\_m256i s, \_\_mmask8 k, \_\_m512d a, int r);
+
+VCVTPD2DQ \_\_m256i \_mm512\_maskz\_cvt\_roundpd\_epi32( \_\_mmask8 k, \_\_m512d a, int r);
+
+VCVTPD2DQ \_\_m128i \_mm256\_mask\_cvtpd\_epi32( \_\_m128i s, \_\_mmask8 k, \_\_m256d a);
+
+VCVTPD2DQ \_\_m128i \_mm256\_maskz\_cvtpd\_epi32( \_\_mmask8 k, \_\_m256d a);
+
+VCVTPD2DQ \_\_m128i \_mm\_mask\_cvtpd\_epi32( \_\_m128i s, \_\_mmask8 k, \_\_m128d a);
+
+VCVTPD2DQ \_\_m128i \_mm\_maskz\_cvtpd\_epi32( \_\_mmask8 k, \_\_m128d a);
+
+VCVTPD2DQ \_\_m128i \_mm256\_cvtpd\_epi32 (\_\_m256d src)
+
+CVTPD2DQ \_\_m128i \_mm\_cvtpd\_epi32 (\_\_m128d src)
+
+.fi
+.RE
+
+.SH SIMD FLOATING\-POINT EXCEPTIONS
+.PP
+Invalid, Precision
+
+.SH OTHER EXCEPTIONS
+.PP
+See Exceptions Type 2; additionally
+
+.PP
+EVEX\-encoded instructions, see Exceptions Type E2.
+
+.TS
+allbox;
+l l 
+l l .
+#UD	T{
+If VEX.vvvv != 1111B or EVEX.vvvv != 1111B.
+T}
+.TE
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+Copyleft TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

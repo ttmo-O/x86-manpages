@@ -1,0 +1,493 @@
+.nh
+.TH "X86-XRSTOR" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+XRSTOR - RESTORE PROCESSOR EXTENDED STATES
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode / Instruction\fR	\fB\fCOp/En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+NP 0F AE /5 XRSTOR mem	M	V/V	XSAVE	T{
+Restore state components specified by EDX:EAX from mem.
+T}
+T{
+NP REX.W + 0F AE /5 XRSTOR64 mem
+T}
+	M	V/N.E.	XSAVE	T{
+Restore state components specified by EDX:EAX from mem.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l 
+l l l l l .
+Op/En	Operand 1	Operand 2	Operand 3	Operand 4
+M	ModRM:r/m (r)	NA	NA	NA
+.TE
+
+.SH DESCRIPTION
+.PP
+Performs a full or partial restore of processor state components from
+the XSAVE area located at the memory address specified by the source
+operand. The implicit EDX:EAX register pair specifies a 64\-bit
+instruction mask. The specific state components restored correspond to
+the bits set in the requested\-feature bitmap (RFBM), which is the
+logical\-AND of EDX:EAX and XCR0.
+
+.PP
+The format of the XSAVE area is detailed in Section 13.4, “XSAVE Area,”
+of Intel® 64 and IA\-32 Architectures Software Developer’s Manual, Volume
+1.
+
+.PP
+Section 13.8, “Operation of XRSTOR,” of Intel® 64 and IA\-32
+Architectures Software Developer’s Manual, Volume 1 provides a detailed
+description of the operation of the XRSTOR instruction. The following
+items provide a highlevel outline:
+
+.RS
+.IP \(bu 2
+Execution of XRSTOR may take one of two forms: standard and
+compacted. Bit 63 of the XCOMP\_BV field in the XSAVE header
+determines which form is used: value 0 specifies the standard form,
+while value 1 specifies the compacted form.
+.IP \(bu 2
+If RFBM[i.1
+.IP \(bu 2
+If RFBM[i.
+.IP \(bu 2
+If RFBM[i from the XSAVE area.
+.IP \(bu 2
+The standard form of XRSTOR treats MXCSR (which is part of state
+component 1 — SSE) differently from the XMM registers. If either
+form attempts to load MXCSR with an illegal value, a
+general\-protection exception (#GP) occurs.
+.IP \(bu 2
+XRSTOR loads the internal value XRSTOR\_INFO, which may be used to
+optimize a subsequent execution of XSAVEOPT or XSAVES.
+.IP \(bu 2
+Immediately following an execution of XRSTOR, the processor tracks
+as in\-use (not in initial configuration) any state component i]
+= 0.
+
+.RE
+
+.PP
+.RS
+
+.PP
+1\&. There is an exception if RFBM[1] = 0 and RFBM[2] = 1. In this
+case, the standard form of XRSTOR will load MXCSR from memory, even
+though MXCSR is part of state component 1 — SSE. The compacted form of
+XRSTOR does not make this exception.
+
+.RE
+
+.PP
+Use of a source operand not aligned to 64\-byte boundary (for 64\-bit and
+32\-bit modes) results in a general\-protection (#GP) exception. In
+64\-bit mode, the upper 32 bits of RDX and RAX are ignored.
+
+.PP
+See Section 13.6, “Processor Tracking of XSAVE\-Managed State,” of Intel®
+64 and IA\-32 Architectures Software Developer’s Manual, Volume 1 for
+discussion of the bitmaps XINUSE and XMODIFIED and of the quantity
+XRSTOR\_INFO.
+
+.SH OPERATION
+.PP
+.RS
+
+.nf
+RFBM ← XCR0 AND EDX:EAX; /* bitwise logical AND */
+COMPMASK ← XCOMP\_BV field from XSAVE header;
+RSTORMASK ← XSTATE\_BV field from XSAVE header;
+IF COMPMASK[63] = 0
+    THEN
+        /* Standard form of XRSTOR */
+        TO\_BE\_RESTORED ← RFBM AND RSTORMASK;
+        TO\_BE\_INITIALIZED ← RFBM AND NOT RSTORMASK;
+        IF TO\_BE\_RESTORED[0] = 1
+            THEN
+                load x87 state from legacy region of XSAVE area;
+                XINUSE[0] ← 1;
+        ELSIF TO\_BE\_INITIALIZED[0] = 1
+            THEN
+                initialize x87 state;
+                XINUSE[0] ← 0;
+        FI;
+        IF RFBM[1] = 1 OR RFBM[2] = 1
+            THEN load MXCSR from legacy region of XSAVE area;
+        FI;
+        IF TO\_BE\_RESTORED[1] = 1
+            THEN
+                load XMM registers from legacy region of XSAVE area; // this step does not load MXCSR
+                XINUSE[1] ← 1;
+        ELSIF TO\_BE\_INITIALIZED[1] = 1
+            THEN
+                set all XMM registers to 0; // this step does not initialize MXCSR
+                XINUSE[1] ← 0;
+        FI;
+        FOR i ← 2 TO 62
+            IF TO\_BE\_RESTORED[i] = 1
+                THEN
+                    load XSAVE state component i at offset n from base of XSAVE area;
+                        // n enumerated by CPUID(EAX=0DH,ECX=i):EBX)
+                    XINUSE[i] ← 1;
+            ELSIF TO\_BE\_INITIALIZED[i] = 1
+                THEN
+                    initialize XSAVE state component i;
+                    XINUSE[i] ← 0;
+            FI;
+        ENDFOR;
+    ELSE
+        /* Compacted form of XRSTOR */
+        IF CPUID.(EAX=0DH,ECX=1):EAX.XSAVEC[bit 1] = 0
+            THEN /* compacted form not supported */
+                #GP(0);
+        FI;
+        FORMAT = COMPMASK AND 7FFFFFFF\_FFFFFFFFH;
+        RESTORE\_FEATURES = FORMAT AND RFBM;
+        TO\_BE\_RESTORED ← RESTORE\_FEATURES AND RSTORMASK;
+        FORCE\_INIT ← RFBM AND NOT FORMAT;
+        TO\_BE\_INITIALIZED = (RFBM AND NOT RSTORMASK) OR FORCE\_INIT;
+        IF TO\_BE\_RESTORED[0] = 1
+            THEN
+                load x87 state from legacy region of XSAVE area;
+                XINUSE[0] ← 1;
+        ELSIF TO\_BE\_INITIALIZED[0] = 1
+            THEN
+                initialize x87 state;
+                XINUSE[0] ← 0;
+        FI;
+        IF TO\_BE\_RESTORED[1] = 1
+            THEN
+                load SSE state from legacy region of XSAVE area; // this step loads the XMM registers and MXCSR
+                XINUSE[1] ← 1;
+        ELSIF TO\_BE\_INITIALIZED[1] = 1
+            THEN
+                set all XMM registers to 0;
+                MXCSR ← 1F80H;
+                XINUSE[1] ← 0;
+        FI;
+        NEXT\_FEATURE\_OFFSET = 576;
+                                // Legacy area and XSAVE header consume 576 bytes
+        FOR i ← 2 TO 62
+            IF FORMAT[i] = 1
+                THEN
+                    IF TO\_BE\_RESTORED[i] = 1
+                        THEN
+                            load XSAVE state component i at offset NEXT\_FEATURE\_OFFSET from base of XSAVE area;
+                            XINUSE[i] ← 1;
+                    FI;
+                    NEXT\_FEATURE\_OFFSET = NEXT\_FEATURE\_OFFSET + n (n enumerated by CPUID(EAX=0DH,ECX=i):EAX);
+            FI;
+            IF TO\_BE\_INITIALIZED[i] = 1
+                THEN
+                    initialize XSAVE state component i;
+                    XINUSE[i] ← 0;
+            FI;
+        ENDFOR;
+FI;
+XMODIFIED\_BV ← NOT RFBM;
+IF in VMX non\-root operation
+    THEN VMXNR ← 1;
+    ELSE VMXNR ← 0;
+FI;
+LAXA ← linear address of XSAVE area;
+XRSTOR\_INFO ← CPL,VMXNR,LAXA,COMPMASK;
+
+.fi
+.RE
+
+.SH FLAGS AFFECTED
+.PP
+None.
+
+.SH INTEL C/C++ COMPILER INTRINSIC EQUIVALENT
+.PP
+.RS
+
+.nf
+XRSTOR: void \_xrstor( void * , unsigned \_\_int64);
+
+XRSTOR: void \_xrstor64( void * , unsigned \_\_int64);
+
+.fi
+.RE
+
+.SH PROTECTED MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP(0)	T{
+If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit.
+T}
+	T{
+If a memory operand is not aligned on a 64\-byte boundary, regardless of segment.
+T}
+	If bit 63 of the XCOMP
+\_
+T{
+BV field of the XSAVE header is 1 and CPUID.(EAX=0DH,ECX=1):EAX.XSAVEC
+T}
+[
+bit 1
+]
+ = 0.
+	T{
+If the standard form is executed and a bit in XCR0 is 0 and the corresponding bit in the XSTATE
+T}
+\_
+T{
+BV field of the XSAVE header is 1.
+T}
+	T{
+If the standard form is executed and bytes 23:8 of the XSAVE header are not all zero.
+T}
+	T{
+If the compacted form is executed and a bit in XCR0 is 0 and the corresponding bit in the XCOMP
+T}
+\_
+T{
+BV field of the XSAVE header is 1.
+T}
+	T{
+If the compacted form is executed and a bit in the XCOMP
+T}
+\_
+T{
+BV field in the XSAVE header is 0 and the corresponding bit in the XSTATE
+T}
+\_
+BV field is 1.
+	T{
+If the compacted form is executed and bytes 63:16 of the XSAVE header are not all zero.
+T}
+	T{
+If attempting to write any reserved bits of the MXCSR register with 1.
+T}
+#SS(0)	T{
+If a memory operand effective address is outside the SS segment limit.
+T}
+#PF(fault\-code)	If a page fault occurs.
+#NM	If CR0.TS
+[
+bit 3
+]
+ = 1.
+#UD	If CPUID.01H:ECX.XSAVE
+[
+bit 26
+]
+ = 0.
+	If CR4.OSXSAVE
+[
+bit 18
+]
+ = 0.
+	If the LOCK prefix is used.
+#AC	T{
+If this exception is disabled a general protection exception (
+T}
+#
+T{
+GP) is signaled if the memory operand is not aligned on a 64\-byte boundary, as described above. If the alignment check exception (
+T}
+#
+T{
+AC) is enabled (and the CPL is 3), signaling of 
+T}
+#
+T{
+AC is not guaranteed and may vary with implementation, as follows. In all implementations where 
+T}
+#
+T{
+AC is not signaled, a general protection exception is signaled in its place. In addition, the width of the alignment check may also vary with implementation. For instance, for a given implementation, an alignment check exception might be signaled for a 2\-byte misalignment, whereas a general protection exception might be signaled for all other misalignments (4\-, 8\-, or 16\-byte misalignments).
+T}
+.TE
+
+.SH REAL\-ADDRESS MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP	T{
+If a memory operand is not aligned on a 64\-byte boundary, regardless of segment.
+T}
+	T{
+If any part of the operand lies outside the effective address space from 0 to FFFFH.
+T}
+	If bit 63 of the XCOMP
+\_
+T{
+BV field of the XSAVE header is 1 and CPUID.(EAX=0DH,ECX=1):EAX.XSAVEC
+T}
+[
+bit 1
+]
+ = 0.
+	T{
+If the standard form is executed and a bit in XCR0 is 0 and the corresponding bit in the XSTATE
+T}
+\_
+T{
+BV field of the XSAVE header is 1.
+T}
+	T{
+If the standard form is executed and bytes 23:8 of the XSAVE header are not all zero.
+T}
+	T{
+If the compacted form is executed and a bit in XCR0 is 0 and the corresponding bit in the XCOMP
+T}
+\_
+T{
+BV field of the XSAVE header is 1. If the compacted form is executed and a bit in the XCOMP
+T}
+\_
+T{
+BV field in the XSAVE header is 0 and the corresponding bit in the XSTATE
+T}
+\_
+T{
+BV field is 1. If the compacted form is executed and bytes 63:16 of the XSAVE header are not all zero. If attempting to write any reserved bits of the MXCSR register with 1.
+T}
+#NM	If CR0.TS
+[
+bit 3
+]
+ = 1.
+#UD	If CPUID.01H:ECX.XSAVE
+[
+bit 26
+]
+ = 0.
+	If CR4.OSXSAVE
+[
+bit 18
+]
+ = 0.
+	If the LOCK prefix is used.
+.TE
+
+.SH VIRTUAL\-8086 MODE EXCEPTIONS
+.PP
+Same exceptions as in protected mode
+
+.SH COMPATIBILITY MODE EXCEPTIONS
+.PP
+Same exceptions as in protected mode.
+
+.SH 64\-BIT MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP(0)	T{
+If a memory address is in a non\-canonical form.
+T}
+	T{
+If a memory operand is not aligned on a 64\-byte boundary, regardless of segment.
+T}
+	If bit 63 of the XCOMP
+\_
+T{
+BV field of the XSAVE header is 1 and CPUID.(EAX=0DH,ECX=1):EAX.XSAVEC
+T}
+[
+bit 1
+]
+ = 0.
+	T{
+If the standard form is executed and a bit in XCR0 is 0 and the corresponding bit in the XSTATE
+T}
+\_
+T{
+BV field of the XSAVE header is 1.
+T}
+	T{
+If the standard form is executed and bytes 23:8 of the XSAVE header are not all zero.
+T}
+	T{
+If the compacted form is executed and a bit in XCR0 is 0 and the corresponding bit in the XCOMP
+T}
+\_
+T{
+BV field of the XSAVE header is 1.
+T}
+	T{
+If the compacted form is executed and a bit in the XCOMP
+T}
+\_
+T{
+BV field in the XSAVE header is 0 and the corresponding bit in the XSTATE
+T}
+\_
+BV field is 1.
+	T{
+If the compacted form is executed and bytes 63:16 of the XSAVE header are not all zero.
+T}
+	T{
+If attempting to write any reserved bits of the MXCSR register with 1.
+T}
+#SS(0)	T{
+If a memory address referencing the SS segment is in a non\-canonical form.
+T}
+#PF(fault\-code)	If a page fault occurs.
+#NM	If CR0.TS
+[
+bit 3
+]
+ = 1.
+#UD	If CPUID.01H:ECX.XSAVE
+[
+bit 26
+]
+ = 0.
+	If CR4.OSXSAVE
+[
+bit 18
+]
+ = 0.
+	If the LOCK prefix is used.
+#AC	T{
+If this exception is disabled a general protection exception (
+T}
+#
+T{
+GP) is signaled if the memory operand is not aligned on a 64\-byte boundary, as described above. If the alignment check exception (
+T}
+#
+T{
+AC) is enabled (and the CPL is 3), signaling of 
+T}
+#
+T{
+AC is not guaranteed and may vary with implementation, as follows. In all implementations where 
+T}
+#
+T{
+AC is not signaled, a general protection exception is signaled in its place. In addition, the width of the alignment check may also vary with implementation. For instance, for a given implementation, an alignment check exception might be signaled for a 2\-byte misalignment, whereas a general protection exception might be signaled for all other misalignments (4\-, 8\-, or 16\-byte misalignments).
+T}
+.TE
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+Copyleft TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

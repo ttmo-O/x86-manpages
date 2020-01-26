@@ -1,0 +1,289 @@
+.nh
+.TH "X86-VCVTPS2PH" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+VCVTPS2PH - CONVERT SINGLE-PRECISION FP VALUE TO 16-BIT FP VALUE
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp / En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+T{
+VEX.128.66.0F3A.W0 1D /r ib VCVTPS2PH xmm1/m64, xmm2, imm8
+T}
+	A	V/V	F16C	T{
+Convert four packed single\-precision floating\-point values in xmm2 to packed half\-precision (16\-bit) floating\-point values in xmm1/m64. Imm8 provides rounding controls.
+T}
+T{
+VEX.256.66.0F3A.W0 1D /r ib VCVTPS2PH xmm1/m128, ymm2, imm8
+T}
+	A	V/V	F16C	T{
+Convert eight packed single\-precision floating\-point values in ymm2 to packed half\-precision (16\-bit) floating\-point values in xmm1/m128. Imm8 provides rounding controls.
+T}
+T{
+EVEX.128.66.0F3A.W0 1D /r ib VCVTPS2PH xmm1/m64 {k1}{z}, xmm2, imm8
+T}
+	B	V/V	AVX512VL AVX512F	T{
+Convert four packed single\-precision floating\-point values in xmm2 to packed half\-precision (16\-bit) floating\-point values in xmm1/m64. Imm8 provides rounding controls.
+T}
+T{
+EVEX.256.66.0F3A.W0 1D /r ib VCVTPS2PH xmm1/m128 {k1}{z}, ymm2, imm8
+T}
+	B	V/V	AVX512VL AVX512F	T{
+Convert eight packed single\-precision floating\-point values in ymm2 to packed half\-precision (16\-bit) floating\-point values in xmm1/m128. Imm8 provides rounding controls.
+T}
+T{
+EVEX.512.66.0F3A.W0 1D /r ib VCVTPS2PH ymm1/m256 {k1}{z}, zmm2{sae}, imm8
+T}
+	B	V/V	AVX512F	T{
+Convert sixteen packed single\-precision floating\-point values in zmm2 to packed half\-precision (16\-bit) floating\-point values in ymm1/m256. Imm8 provides rounding controls.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+Op/En	Tuple Type	Operand 1	Operand 2	Operand 3	Operand 4
+A	NA	ModRM:r/m (w)	ModRM:reg (r)	Imm8	NA
+B	Half Mem	ModRM:r/m (w)	ModRM:reg (r)	Imm8	NA
+.TE
+
+.SS Description
+.PP
+Convert packed single\-precision floating values in the source operand to
+half\-precision (16\-bit) floating\-point values and store to the
+destination operand. The rounding mode is specified using the immediate
+field (imm8).
+
+.PP
+Underflow results (i.e., tiny results) are converted to denormals.
+MXCSR.FTZ is ignored. If a source element is denormal relative to the
+input format with DM masked and at least one of PM or UM unmasked; a
+SIMD exception will be raised with DE, UE and PE set.
+
+.PP
+VCVTPS2PHxmm1/mem64,xmm2, imm812796 9564 6332
+310VS3VS2VS1VS0xmm2convertconvertconvertconvert12796 9564 6348 4732 3116
+150VH3VH2VH1VH0xmm1/mem64
+
+.PP
+Figure 5\-7. VCVTPS2PH (128\-bit Version)
+
+.PP
+The immediate byte defines several bit fields that control rounding
+operation. The effect and encoding of the RC field are listed in Table
+5\-12.
+
+.TS
+allbox;
+l l l l 
+l l l l .
+\fB\fCBits\fR	\fB\fCField Name/value\fR	\fB\fCDescription\fR	\fB\fCComment\fR
+Imm[1:0]	RC=00B	Round to nearest even	If Imm
+[
+2
+]
+ = 0
+		RC=01B	Round down
+		RC=10B	Round up
+		RC=11B	Truncate
+Imm[2]	MS1=0	Use imm[1:0] for rounding	Ignore MXCSR.RC
+	MS1=1	Use MXCSR.RC for rounding	Imm[7:3]	Ignored	Ignored by processor	.TE
+
+.PP
+Table 5\-12. Immediate Byte Encoding for 16\-bit Floating\-Point Conversion
+Instructions
+
+.PP
+VEX.128 version: The source operand is a XMM register. The destination
+operand is a XMM register or 64\-bit memory location. If the destination
+operand is a register then the upper bits (MAXVL\-1:64) of corresponding
+register are zeroed.
+
+.PP
+VEX.256 version: The source operand is a YMM register. The destination
+operand is a XMM register or 128\-bit memory location. If the destination
+operand is a register, the upper bits (MAXVL\-1:128) of the corresponding
+destination register are zeroed.
+
+.PP
+Note: VEX.vvvv and EVEX.vvvv are reserved (must be 1111b).
+
+.PP
+EVEX encoded versions: The source operand is a ZMM/YMM/XMM register. The
+destination operand is a YMM/XMM/XMM (low 64\-bits) register or a
+256/128/64\-bit memory location, conditionally updated with writemask k1.
+Bits (MAXVL\-1:256/128/64) of the corresponding destination register are
+zeroed.
+
+.SS Operation
+.PP
+.RS
+
+.nf
+vCvt\_s2h(SRC1[31:0])
+{
+IF Imm[2] = 0
+THEN ; using Imm[1:0] for rounding control, see Table 5\-12
+    RETURN Cvt\_Single\_Precision\_To\_Half\_Precision\_FP\_Imm(SRC1[31:0]);
+ELSE ; using MXCSR.RC for rounding control
+    RETURN Cvt\_Single\_Precision\_To\_Half\_Precision\_FP\_Mxcsr(SRC1[31:0]);
+FI;
+}
+
+.fi
+.RE
+
+.SS VCVTPS2PH (EVEX encoded versions) when dest is a register
+.PP
+.RS
+
+.nf
+(KL, VL) = (4, 128), (8, 256), (16, 512)
+FOR j←0 TO KL\-1
+    i←j * 16
+    k←j * 32
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+15:i]←
+            vCvt\_s2h(SRC[k+31:k])
+        ELSE
+            IF *merging\-masking*
+                        ; merging\-masking
+                THEN *DEST[i+15:i] remains unchanged*
+                ELSE ; zeroing\-masking
+                    DEST[i+15:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL/2] ← 0
+
+.fi
+.RE
+
+.SS VCVTPS2PH (EVEX encoded versions) when dest is memory
+.PP
+.RS
+
+.nf
+(KL, VL) = (4, 128), (8, 256), (16, 512)
+FOR j←0 TO KL\-1
+    i←j * 16
+    k←j * 32
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+15:i]←
+            vCvt\_s2h(SRC[k+31:k])
+        ELSE
+            *DEST[i+15:i] remains unchanged*
+                ; merging\-masking
+    FI;
+ENDFOR
+
+.fi
+.RE
+
+.SS VCVTPS2PH (VEX.256 encoded version)
+.PP
+.RS
+
+.nf
+DEST[15:0] ←vCvt\_s2h(SRC1[31:0]);
+DEST[31:16] ←vCvt\_s2h(SRC1[63:32]);
+DEST[47:32] ←vCvt\_s2h(SRC1[95:64]);
+DEST[63:48] ←vCvt\_s2h(SRC1[127:96]);
+DEST[79:64] ←vCvt\_s2h(SRC1[159:128]);
+DEST[95:80] ←vCvt\_s2h(SRC1[191:160]);
+DEST[111:96] ←vCvt\_s2h(SRC1[223:192]);
+DEST[127:112] ←vCvt\_s2h(SRC1[255:224]);
+DEST[MAXVL\-1:128] ← 0
+
+.fi
+.RE
+
+.SS VCVTPS2PH (VEX.128 encoded version)
+.PP
+.RS
+
+.nf
+DEST[15:0] ←vCvt\_s2h(SRC1[31:0]);
+DEST[31:16] ←vCvt\_s2h(SRC1[63:32]);
+DEST[47:32] ←vCvt\_s2h(SRC1[95:64]);
+DEST[63:48] ←vCvt\_s2h(SRC1[127:96]);
+DEST[MAXVL\-1:64] ← 0
+
+.fi
+.RE
+
+.SS Flags Affected
+.PP
+None
+
+.SS Intel C/C++ Compiler Intrinsic Equivalent
+.PP
+.RS
+
+.nf
+VCVTPS2PH \_\_m256i \_mm512\_cvtps\_ph(\_\_m512 a);
+
+VCVTPS2PH \_\_m256i \_mm512\_mask\_cvtps\_ph(\_\_m256i s, \_\_mmask16 k,\_\_m512 a);
+
+VCVTPS2PH \_\_m256i \_mm512\_maskz\_cvtps\_ph(\_\_mmask16 k,\_\_m512 a);
+
+VCVTPS2PH \_\_m256i \_mm512\_cvt\_roundps\_ph(\_\_m512 a, const int imm);
+
+VCVTPS2PH \_\_m256i \_mm512\_mask\_cvt\_roundps\_ph(\_\_m256i s, \_\_mmask16 k,\_\_m512 a, const int imm);
+
+VCVTPS2PH \_\_m256i \_mm512\_maskz\_cvt\_roundps\_ph(\_\_mmask16 k,\_\_m512 a, const int imm);
+
+VCVTPS2PH \_\_m128i \_mm256\_mask\_cvtps\_ph(\_\_m128i s, \_\_mmask8 k,\_\_m256 a);
+
+VCVTPS2PH \_\_m128i \_mm256\_maskz\_cvtps\_ph(\_\_mmask8 k,\_\_m256 a);
+
+VCVTPS2PH \_\_m128i \_mm\_mask\_cvtps\_ph(\_\_m128i s, \_\_mmask8 k,\_\_m128 a);
+
+VCVTPS2PH \_\_m128i \_mm\_maskz\_cvtps\_ph(\_\_mmask8 k,\_\_m128 a);
+
+VCVTPS2PH \_\_m128i \_mm\_cvtps\_ph ( \_\_m128 m1, const int imm);
+
+VCVTPS2PH \_\_m128i \_mm256\_cvtps\_ph(\_\_m256 m1, const int imm);
+
+.fi
+.RE
+
+.SS SIMD Floating\-Point Exceptions
+.PP
+Invalid, Underflow, Overflow, Precision, Denormal (if MXCSR.DAZ=0);
+
+.SS Other Exceptions
+.PP
+VEX\-encoded instructions, see Exceptions Type 11 (do not report #AC);
+
+.PP
+EVEX\-encoded instructions, see Exceptions Type E11.
+
+.TS
+allbox;
+l l 
+l l .
+#UD	If VEX.W=1.
+#UD	T{
+If VEX.vvvv != 1111B or EVEX.vvvv != 1111B.
+T}
+.TE
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+Copyleft TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

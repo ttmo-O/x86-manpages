@@ -1,0 +1,181 @@
+.nh
+.TH "X86-TPAUSE" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+TPAUSE - TIMED PAUSE
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode / Instruction\fR	\fB\fCOp/En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+66 0F AE /6 TPAUSE r32, \&lt;edx\&gt;, \&lt;eax\&gt;	A	V/V	WAITPKG	T{
+Directs the processor to enter an implementation\-dependent optimized state until the TSC reaches the value in EDX:EAX.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING1
+.PP
+.RS
+
+.PP
+1\&. The Mod field of the ModR/M byte must have value 11B.
+
+.RE
+
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+\fB\fCOp/En\fR	\fB\fCTuple\fR	\fB\fCOperand 1\fR	\fB\fCOperand 2\fR	\fB\fCOperand 3\fR	\fB\fCOperand 4\fR
+A	NA	ModRM:r/m (r)	NA	NA	NA
+.TE
+
+.SH DESCRIPTION
+.PP
+TPAUSE instructs the processor to enter an implementation\-dependent
+optimized state. There are two such optimized states to choose from:
+light\-weight power/performance optimized state, and improved
+power/performance optimized state. The selection between the two is
+governed by the explicit input register bit[0] source operand.
+
+.PP
+TPAUSE is available when CPUID.7.0:ECX.WAITPKG[bit 5] is enumerated as
+1. TPAUSE may be executed at any privilege level. This instruction’s
+operation is the same in non\-64\-bit modes and in 64\-bit mode.
+
+.PP
+Unlike PAUSE, the TPAUSE instruction will not cause an abort when used
+inside a transactional region, described in the chapter Chapter 16,
+“Programming with Intel® Transactional Synchronization Extensions,” of
+the Intel® 64 and IA\-32 Architectures Software Developer’s Manual,
+Volume 1.
+
+.PP
+The input register contains information such as the preferred optimized
+state the processor should enter as described in the following table.
+Bits other than bit 0 are reserved and will result in #GP if non\-zero.
+
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCBit Value\fR	\fB\fCState Name\fR	\fB\fCWakeup Time\fR	\fB\fCPower Savings\fR	\fB\fCOther Benefits\fR
+bit[0] = 0	C0.2	Slower	Larger	T{
+Improves performance of the other SMT thread(s) on the same core.
+T}
+bit[0] = 1	C0.1	Faster	Smaller	NA
+bits[31:1]	NA	NA	NA	Reserved
+.TE
+
+.PP
+Table 4\-19. TPAUSE Input Register Bit Definitions
+
+.PP
+The instruction execution wakes up when the time\-stamp counter reaches
+or exceeds the implicit EDX:EAX 64\-bit input value.
+
+.PP
+Prior to executing the TPAUSE instruction, an operating system may
+specify the maximum delay it allows the processor to suspend its
+operation. It can do so by writing TSC\-quanta value to the following
+32\-bit MSR (IA32\_UMWAIT\_CONTROL at MSR index E1H):
+
+.RS
+.IP \(bu 2
+IA32\_UMWAIT\_CONTROL[31:2] — Determines the maximum time in
+TSC\-quanta that the processor can reside in either C0.1 or C0.2. A
+zero value indicates no maximum time. The maximum time value is a
+32\-bit value where the upper 30 bits come from this field and the
+lower two bits are zero.
+.IP \(bu 2
+IA32\_UMWAIT\_CONTROL[1] — Reserved.
+.IP \(bu 2
+IA32\_UMWAIT\_CONTROL[0] — C0.2 is not allowed by the OS. Value of
+“1” means all C0.2 requests revert to C0.1.
+
+.RE
+
+.PP
+If the processor that executed a TPAUSE instruction wakes due to the
+expiration of the operating system time\-limit, the instructions sets
+RFLAGS.CF; otherwise, that flag is cleared.
+
+.PP
+The following additional events cause the processor to exit the
+implementation\-dependent optimized state: a store to the read\-set range
+within the transactional region, an NMI or SMI, a debug exception, a
+machine check exception, the BINIT# signal, the INIT# signal, and the
+RESET# signal.
+
+.PP
+Other implementation\-dependent events may cause the processor to exit
+the implementation\-dependent optimized state proceeding to the
+instruction following TPAUSE. In addition, an external interrupt causes
+the processor to exit the implementation\-dependent optimized state
+regardless of whether maskable\-interrupts are inhibited (EFLAGS.IF =0).
+It should be noted that if maskable\-interrupts are inhibited execution
+will proceed to the instruction following TPAUSE.
+
+.SH OPERATION
+.PP
+.RS
+
+.nf
+os\_deadline ← TSC+(IA32\_MWAIT\_CONTROL[31:2]<<2)
+instr\_deadline ← UINT64(EDX:EAX)
+IF os\_deadline < instr\_deadline:
+    deadline ← os\_deadline
+    using\_os\_deadline ← 1
+ELSE:
+    deadline ← instr\_deadline
+    using\_os\_deadline ← 0
+WHILE TSC < deadline:
+    implementation\_dependent\_optimized\_state(Source register, deadline, IA32\_UMWAIT\_CONTROL[0])
+IF using\_os\_deadline AND TSC > deadline:
+    RFLAGS.CF ← 1
+ELSE:
+    RFLAGS.CF ← 0
+RFLAGS.AF,PF,SF,ZF,OF ← 0
+
+.fi
+.RE
+
+.SS Intel C/C++ Compiler Intrinsic Equivalent
+.PP
+.RS
+
+.nf
+TPAUSE uint8\_t \_tpause(uint32\_t control, uint64\_t counter);
+
+.fi
+.RE
+
+.SH NUMERIC EXCEPTIONS
+.PP
+None.
+
+.SH EXCEPTIONS (ALL OPERATING MODES)
+.PP
+#GP(0) If src[31:1] != 0.
+
+.PP
+If CR4.TSD = 1 and CPL != 0.
+
+.PP
+#UD If CPUID.7.0:ECX.WAITPKG[bit 5]=0.
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+Copyleft TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

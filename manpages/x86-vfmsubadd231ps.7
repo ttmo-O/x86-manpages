@@ -1,0 +1,557 @@
+.nh
+.TH "X86-VFMSUBADD132PS-VFMSUBADD213PS-VFMSUBADD231PS" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+VFMSUBADD132PS-VFMSUBADD213PS-VFMSUBADD231PS - FUSED MULTIPLY-ALTERNATING SUBTRACT-ADD OF PACKED SINGLE-PRECISION FLOATING-POINT VALUES
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp / En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+T{
+VEX.128.66.0F38.W0 97 /r VFMSUBADD132PS xmm1, xmm2, xmm3/m128
+T}
+	A	V/V	FMA	T{
+Multiply packed single\-precision floating\-point values from xmm1 and xmm3/mem, subtract/add elements in xmm2 and put result in xmm1.
+T}
+T{
+VEX.128.66.0F38.W0 A7 /r VFMSUBADD213PS xmm1, xmm2, xmm3/m128
+T}
+	A	V/V	FMA	T{
+Multiply packed single\-precision floating\-point values from xmm1 and xmm2, subtract/add elements in xmm3/mem and put result in xmm1.
+T}
+T{
+VEX.128.66.0F38.W0 B7 /r VFMSUBADD231PS xmm1, xmm2, xmm3/m128
+T}
+	A	V/V	FMA	T{
+Multiply packed single\-precision floating\-point values from xmm2 and xmm3/mem, subtract/add elements in xmm1 and put result in xmm1.
+T}
+T{
+VEX.256.66.0F38.W0 97 /r VFMSUBADD132PS ymm1, ymm2, ymm3/m256
+T}
+	A	V/V	FMA	T{
+Multiply packed single\-precision floating\-point values from ymm1 and ymm3/mem, subtract/add elements in ymm2 and put result in ymm1.
+T}
+T{
+VEX.256.66.0F38.W0 A7 /r VFMSUBADD213PS ymm1, ymm2, ymm3/m256
+T}
+	A	V/V	FMA	T{
+Multiply packed single\-precision floating\-point values from ymm1 and ymm2, subtract/add elements in ymm3/mem and put result in ymm1.
+T}
+T{
+VEX.256.66.0F38.W0 B7 /r VFMSUBADD231PS ymm1, ymm2, ymm3/m256
+T}
+	A	V/V	FMA	T{
+Multiply packed single\-precision floating\-point values from ymm2 and ymm3/mem, subtract/add elements in ymm1 and put result in ymm1.
+T}
+T{
+EVEX.128.66.0F38.W0 97 /r VFMSUBADD132PS xmm1 {k1}{z}, xmm2, xmm3/m128/m32bcst
+T}
+	B	V/V	AVX512VL AVX512F	T{
+Multiply packed single\-precision floating\-point values from xmm1 and xmm3/m128/m32bcst, subtract/add elements in xmm2 and put result in xmm1 subject to writemask k1.
+T}
+T{
+EVEX.128.66.0F38.W0 A7 /r VFMSUBADD213PS xmm1 {k1}{z}, xmm2, xmm3/m128/m32bcst
+T}
+	B	V/V	AVX512VL AVX512F	T{
+Multiply packed single\-precision floating\-point values from xmm1 and xmm2, subtract/add elements in xmm3/m128/m32bcst and put result in xmm1 subject to writemask k1.
+T}
+T{
+EVEX.128.66.0F38.W0 B7 /r VFMSUBADD231PS xmm1 {k1}{z}, xmm2, xmm3/m128/m32bcst
+T}
+	B	V/V	AVX512VL AVX512F	T{
+Multiply packed single\-precision floating\-point values from xmm2 and xmm3/m128/m32bcst, subtract/add elements in xmm1 and put result in xmm1 subject to writemask k1.
+T}
+T{
+EVEX.256.66.0F38.W0 97 /r VFMSUBADD132PS ymm1 {k1}{z}, ymm2, ymm3/m256/m32bcst
+T}
+	B	V/V	AVX512VL AVX512F	T{
+Multiply packed single\-precision floating\-point values from ymm1 and ymm3/m256/m32bcst, subtract/add elements in ymm2 and put result in ymm1 subject to writemask k1.
+T}
+T{
+EVEX.256.66.0F38.W0 A7 /r VFMSUBADD213PS ymm1 {k1}{z}, ymm2, ymm3/m256/m32bcst
+T}
+	B	V/V	AVX512VL AVX512F	T{
+Multiply packed single\-precision floating\-point values from ymm1 and ymm2, subtract/add elements in ymm3/m256/m32bcst and put result in ymm1 subject to writemask k1.
+T}
+T{
+EVEX.256.66.0F38.W0 B7 /r VFMSUBADD231PS ymm1 {k1}{z}, ymm2, ymm3/m256/m32bcst
+T}
+	B	V/V	AVX512VL AVX512F	T{
+Multiply packed single\-precision floating\-point values from ymm2 and ymm3/m256/m32bcst, subtract/add elements in ymm1 and put result in ymm1 subject to writemask k1.
+T}
+T{
+EVEX.512.66.0F38.W0 97 /r VFMSUBADD132PS zmm1 {k1}{z}, zmm2, zmm3/m512/m32bcst{er}
+T}
+	B	V/V	AVX512F	T{
+Multiply packed single\-precision floating\-point values from zmm1 and zmm3/m512/m32bcst, subtract/add elements in zmm2 and put result in zmm1 subject to writemask k1.
+T}
+T{
+EVEX.512.66.0F38.W0 A7 /r VFMSUBADD213PS zmm1 {k1}{z}, zmm2, zmm3/m512/m32bcst{er}
+T}
+	B	V/V	AVX512F	T{
+Multiply packed single\-precision floating\-point values from zmm1 and zmm2, subtract/add elements in zmm3/m512/m32bcst and put result in zmm1 subject to writemask k1.
+T}
+T{
+EVEX.512.66.0F38.W0 B7 /r VFMSUBADD231PS zmm1 {k1}{z}, zmm2, zmm3/m512/m32bcst{er}
+T}
+	B	V/V	AVX512F	T{
+Multiply packed single\-precision floating\-point values from zmm2 and zmm3/m512/m32bcst, subtract/add elements in zmm1 and put result in zmm1 subject to writemask k1.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+Op/En	Tuple Type	Operand 1	Operand 2	Operand 3	Operand 4
+A	NA	ModRM:reg (r, w)	VEX.vvvv (r)	ModRM:r/m (r)	NA
+B	Full	ModRM:reg (r, w)	EVEX.vvvv (r)	ModRM:r/m (r)	NA
+.TE
+
+.SS Description
+.PP
+VFMSUBADD132PS: Multiplies the four, eight or sixteen packed
+single\-precision floating\-point values from the first source operand to
+the corresponding packed single\-precision floating\-point values in the
+third source operand. From the infinite precision intermediate result,
+subtracts the odd single\-precision floating\-point elements and adds the
+even single\-precision floating\-point values in the second source
+operand, performs rounding and stores the resulting packed
+single\-precision floating\-point values to the destination operand (first
+source operand).
+
+.PP
+VFMSUBADD213PS: Multiplies the four, eight or sixteen packed
+single\-precision floating\-point values from the second source operand to
+the corresponding packed single\-precision floating\-point values in the
+first source operand. From the infinite precision intermediate result,
+subtracts the odd single\-precision floating\-point elements and adds the
+even single\-precision floating\-point values in the third source operand,
+performs rounding and stores the resulting packed single\-precision
+floating\-point values to the destination operand (first source operand).
+
+.PP
+VFMSUBADD231PS: Multiplies the four, eight or sixteen packed
+single\-precision floating\-point values from the second source operand to
+the corresponding packed single\-precision floating\-point values in the
+third source operand. From the infinite precision intermediate result,
+subtracts the odd single\-precision floating\-point elements and adds the
+even single\-precision floating\-point values in the first source operand,
+performs rounding and stores the resulting packed single\-precision
+floating\-point values to the destination operand (first source operand).
+
+.PP
+EVEX encoded versions: The destination operand (also first source
+operand) and the second source operand are ZMM/YMM/XMM register. The
+third source operand is a ZMM/YMM/XMM register, a 512/256/128\-bit memory
+location or a 512/256/128\-bit vector broadcasted from a 32\-bit memory
+location. The destination operand is conditionally updated with write
+mask k1.
+
+.PP
+VEX.256 encoded version: The destination operand (also first source
+operand) is a YMM register and encoded in reg\_field. The second source
+operand is a YMM register and encoded in VEX.vvvv. The third source
+operand is a YMM register or a 256\-bit memory location and encoded in
+rm\_field.
+
+.PP
+VEX.128 encoded version: The destination operand (also first source
+operand) is a XMM register and encoded in reg\_field. The second source
+operand is a XMM register and encoded in VEX.vvvv. The third source
+operand is a XMM register or a 128\-bit memory location and encoded in
+rm\_field. The upper 128 bits of the YMM destination register are
+zeroed.
+
+.PP
+Compiler tools may optionally support a complementary mnemonic for each
+instruction mnemonic listed in the opcode/instruction column of the
+summary table. The behavior of the complementary mnemonic in situations
+involving NANs are governed by the definition of the instruction
+mnemonic defined in the opcode/instruction column.
+
+.SS Operation
+.PP
+.RS
+
+.nf
+In the operations below, “*” and “+” symbols represent multiplication and addition with infinite precision inputs and outputs (no
+rounding).
+
+.fi
+.RE
+
+.SS VFMSUBADD132PS DEST, SRC2, SRC3
+.PP
+.RS
+
+.nf
+IF (VEX.128) THEN
+    MAXNUM ←2
+ELSEIF (VEX.256)
+    MAXNUM ← 4
+FI
+For i = 0 to MAXNUM \-1{
+    n ← 64*i;
+    DEST[n+31:n]←RoundFPControl\_MXCSR(DEST[n+31:n]*SRC3[n+31:n] + SRC2[n+31:n])
+    DEST[n+63:n+32]←RoundFPControl\_MXCSR(DEST[n+63:n+32]*SRC3[n+63:n+32] \-SRC2[n+63:n+32])
+}
+IF (VEX.128) THEN
+    DEST[MAXVL\-1:128] ←0
+ELSEIF (VEX.256)
+    DEST[MAXVL\-1:256] ← 0
+FI
+
+.fi
+.RE
+
+.SS VFMSUBADD213PS DEST, SRC2, SRC3
+.PP
+.RS
+
+.nf
+IF (VEX.128) THEN
+    MAXNUM ←2
+ELSEIF (VEX.256)
+    MAXNUM ← 4
+FI
+For i = 0 to MAXNUM \-1{
+    n ← 64*i;
+    DEST[n+31:n]←RoundFPControl\_MXCSR(SRC2[n+31:n]*DEST[n+31:n] +SRC3[n+31:n])
+    DEST[n+63:n+32]←RoundFPControl\_MXCSR(SRC2[n+63:n+32]*DEST[n+63:n+32] \-SRC3[n+63:n+32])
+}
+IF (VEX.128) THEN
+    DEST[MAXVL\-1:128] ←0
+ELSEIF (VEX.256)
+    DEST[MAXVL\-1:256] ← 0
+FI
+
+.fi
+.RE
+
+.SS VFMSUBADD231PS DEST, SRC2, SRC3
+.PP
+.RS
+
+.nf
+IF (VEX.128) THEN
+    MAXNUM ←2
+ELSEIF (VEX.256)
+    MAXNUM ← 4
+FI
+For i = 0 to MAXNUM \-1{
+    n ← 64*i;
+    DEST[n+31:n]←RoundFPControl\_MXCSR(SRC2[n+31:n]*SRC3[n+31:n] + DEST[n+31:n])
+    DEST[n+63:n+32]←RoundFPControl\_MXCSR(SRC2[n+63:n+32]*SRC3[n+63:n+32] \-DEST[n+63:n+32])
+}
+IF (VEX.128) THEN
+    DEST[MAXVL\-1:128] ←0
+ELSEIF (VEX.256)
+    DEST[MAXVL\-1:256] ← 0
+FI
+
+.fi
+.RE
+
+.SS VFMSUBADD132PS DEST, SRC2, SRC3 (EVEX encoded version, when src3 operand is a register)
+.PP
+.RS
+
+.nf
+(KL, VL) = (4, 128), (8, 256), (16, 512)
+IF (VL = 512) AND (EVEX.b = 1)
+    THEN
+        SET\_RM(EVEX.RC);
+    ELSE
+        SET\_RM(MXCSR.RM);
+FI;
+FOR j←0 TO KL\-1
+    i←j * 32
+    IF k1[j] OR *no writemask*
+        THEN
+            IF j *is even*
+                THEN DEST[i+31:i]←
+                    RoundFPControl(DEST[i+31:i]*SRC3[i+31:i] + SRC2[i+31:i])
+                ELSE DEST[i+31:i]←
+                    RoundFPControl(DEST[i+31:i]*SRC3[i+31:i] \- SRC2[i+31:i])
+            FI
+        ELSE
+            IF *merging\-masking* ; merging\-masking
+                THEN *DEST[i+31:i] remains unchanged*
+                ELSE ; zeroing\-masking
+                    DEST[i+31:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS VFMSUBADD132PS DEST, SRC2, SRC3 (EVEX encoded version, when src3 operand is a memory source)
+.PP
+.RS
+
+.nf
+(KL, VL) = (4, 128), (8, 256), (16, 512)
+FOR j←0 TO KL\-1
+    i←j * 32
+    IF k1[j] OR *no writemask*
+        THEN
+            IF j *is even*
+                THEN
+                    IF (EVEX.b = 1)
+                        THEN
+                            DEST[i+31:i] ←
+                        RoundFPControl\_MXCSR(DEST[i+31:i]*SRC3[31:0] + SRC2[i+31:i])
+                        ELSE
+                            DEST[i+31:i] ←
+                        RoundFPControl\_MXCSR(DEST[i+31:i]*SRC3[i+31:i] + SRC2[i+31:i])
+                    FI;
+                ELSE
+                    IF (EVEX.b = 1)
+                        THEN
+                            DEST[i+31:i] ←
+                    RoundFPControl\_MXCSR(DEST[i+31:i]*SRC3[31:0] \- SRC2[i+31:i])
+                        ELSE
+                            DEST[i+31:i] ←
+                    RoundFPControl\_MXCSR(DEST[i+31:i]*SRC3[i+31:i] \- SRC2[i+31:i])
+                    FI;
+            FI
+        ELSE
+            IF *merging\-masking* ; merging\-masking
+                THEN *DEST[i+31:i] remains unchanged*
+                ELSE ; zeroing\-masking
+                    DEST[i+31:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS VFMSUBADD213PS DEST, SRC2, SRC3 (EVEX encoded version, when src3 operand is a register)
+.PP
+.RS
+
+.nf
+(KL, VL) = (4, 128), (8, 256), (16, 512)
+IF (VL = 512) AND (EVEX.b = 1)
+    THEN
+        SET\_RM(EVEX.RC);
+    ELSE
+        SET\_RM(MXCSR.RM);
+FI;
+FOR j←0 TO KL\-1
+    i←j * 32
+    IF k1[j] OR *no writemask*
+        THEN
+            IF j *is even*
+                THEN DEST[i+31:i]←
+                    RoundFPControl(SRC2[i+31:i]*DEST[i+31:i] + SRC3[i+31:i])
+                ELSE DEST[i+31:i]←
+                    RoundFPControl(SRC2[i+31:i]*DEST[i+31:i] \- SRC3[i+31:i])
+            FI
+        ELSE
+            IF *merging\-masking* ; merging\-masking
+                THEN *DEST[i+31:i] remains unchanged*
+                ELSE ; zeroing\-masking
+                    DEST[i+31:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS VFMSUBADD213PS DEST, SRC2, SRC3 (EVEX encoded version, when src3 operand is a memory source)
+.PP
+.RS
+
+.nf
+(KL, VL) = (4, 128), (8, 256), (16, 512)
+FOR j←0 TO KL\-1
+    i←j * 32
+    IF k1[j] OR *no writemask*
+        THEN
+            IF j *is even*
+                THEN
+                    IF (EVEX.b = 1)
+                        THEN
+                            DEST[i+31:i] ←
+                    RoundFPControl\_MXCSR(SRC2[i+31:i]*DEST[i+31:i] + SRC3[31:0])
+                    ELSE
+                        DEST[i+31:i] ←
+                    RoundFPControl\_MXCSR(SRC2[i+31:i]*DEST[i+31:i] + SRC3[i+31:i])
+                FI;
+                ELSE
+                    IF (EVEX.b = 1)
+                        THEN
+                            DEST[i+31:i] ←
+                    RoundFPControl\_MXCSR(SRC2[i+31:i]*DEST[i+31:i] \- SRC3[i+31:i])
+                        ELSE
+                            DEST[i+31:i] ←
+                    RoundFPControl\_MXCSR(SRC2[i+31:i]*DEST[i+31:i] \- SRC3[31:0])
+                    FI;
+            FI
+        ELSE
+            IF *merging\-masking* ; merging\-masking
+                THEN *DEST[i+31:i] remains unchanged*
+                ELSE ; zeroing\-masking
+                    DEST[i+31:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS VFMSUBADD231PS DEST, SRC2, SRC3 (EVEX encoded version, when src3 operand is a register)
+.PP
+.RS
+
+.nf
+(KL, VL) = (4, 128), (8, 256), (16, 512)
+IF (VL = 512) AND (EVEX.b = 1)
+    THEN
+        SET\_RM(EVEX.RC);
+    ELSE
+        SET\_RM(MXCSR.RM);
+FI;
+FOR j←0 TO KL\-1
+    i←j * 32
+    IF k1[j] OR *no writemask*
+        THEN
+            IF j *is even*
+                THEN DEST[i+31:i]←
+                    RoundFPControl(SRC2[i+31:i]*SRC3[i+31:i] + DEST[i+31:i])
+                ELSE DEST[i+31:i]←
+                    RoundFPControl(SRC2[i+31:i]*SRC3[i+31:i] \- DEST[i+31:i])
+            FI
+        ELSE
+            IF *merging\-masking* ; merging\-masking
+                THEN *DEST[i+31:i] remains unchanged*
+                ELSE ; zeroing\-masking
+                    DEST[i+31:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS VFMSUBADD231PS DEST, SRC2, SRC3 (EVEX encoded version, when src3 operand is a memory source)
+.PP
+.RS
+
+.nf
+(KL, VL) = (4, 128), (8, 256), (16, 512)
+FOR j←0 TO KL\-1
+    i←j * 32
+    IF k1[j] OR *no writemask*
+        THEN
+            IF j *is even*
+                THEN
+                    IF (EVEX.b = 1)
+                        THEN
+                            DEST[i+31:i] ←
+                        RoundFPControl\_MXCSR(SRC2[i+31:i]*SRC3[31:0] + DEST[i+31:i])
+                        ELSE
+                            DEST[i+31:i] ←
+                        RoundFPControl\_MXCSR(SRC2[i+31:i]*SRC3[i+31:i] + DEST[i+31:i])
+                    FI;
+                ELSE
+                    IF (EVEX.b = 1)
+                        THEN
+                            DEST[i+31:i] ←
+                    RoundFPControl\_MXCSR(SRC2[i+31:i]*SRC3[31:0] \- DEST[i+31:i])
+                        ELSE
+                            DEST[i+31:i] ←
+                    RoundFPControl\_MXCSR(SRC2[i+31:i]*SRC3[i+31:i] \- DEST[i+31:i])
+                    FI;
+            FI
+        ELSE
+            IF *merging\-masking* ; merging\-masking
+                THEN *DEST[i+31:i] remains unchanged*
+                ELSE ; zeroing\-masking
+                    DEST[i+31:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS Intel C/C++ Compiler Intrinsic Equivalent
+.PP
+.RS
+
+.nf
+VFMSUBADDxxxPS \_\_m512 \_mm512\_fmsubadd\_ps(\_\_m512 a, \_\_m512 b, \_\_m512 c);
+
+VFMSUBADDxxxPS \_\_m512 \_mm512\_fmsubadd\_round\_ps(\_\_m512 a, \_\_m512 b, \_\_m512 c, int r);
+
+VFMSUBADDxxxPS \_\_m512 \_mm512\_mask\_fmsubadd\_ps(\_\_m512 a, \_\_mmask16 k, \_\_m512 b, \_\_m512 c);
+
+VFMSUBADDxxxPS \_\_m512 \_mm512\_maskz\_fmsubadd\_ps(\_\_mmask16 k, \_\_m512 a, \_\_m512 b, \_\_m512 c);
+
+VFMSUBADDxxxPS \_\_m512 \_mm512\_mask3\_fmsubadd\_ps(\_\_m512 a, \_\_m512 b, \_\_m512 c, \_\_mmask16 k);
+
+VFMSUBADDxxxPS \_\_m512 \_mm512\_mask\_fmsubadd\_round\_ps(\_\_m512 a, \_\_mmask16 k, \_\_m512 b, \_\_m512 c, int r);
+
+VFMSUBADDxxxPS \_\_m512 \_mm512\_maskz\_fmsubadd\_round\_ps(\_\_mmask16 k, \_\_m512 a, \_\_m512 b, \_\_m512 c, int r);
+
+VFMSUBADDxxxPS \_\_m512 \_mm512\_mask3\_fmsubadd\_round\_ps(\_\_m512 a, \_\_m512 b, \_\_m512 c, \_\_mmask16 k, int r);
+
+VFMSUBADDxxxPS \_\_m256 \_mm256\_mask\_fmsubadd\_ps(\_\_m256 a, \_\_mmask8 k, \_\_m256 b, \_\_m256 c);
+
+VFMSUBADDxxxPS \_\_m256 \_mm256\_maskz\_fmsubadd\_ps(\_\_mmask8 k, \_\_m256 a, \_\_m256 b, \_\_m256 c);
+
+VFMSUBADDxxxPS \_\_m256 \_mm256\_mask3\_fmsubadd\_ps(\_\_m256 a, \_\_m256 b, \_\_m256 c, \_\_mmask8 k);
+
+VFMSUBADDxxxPS \_\_m128 \_mm\_mask\_fmsubadd\_ps(\_\_m128 a, \_\_mmask8 k, \_\_m128 b, \_\_m128 c);
+
+VFMSUBADDxxxPS \_\_m128 \_mm\_maskz\_fmsubadd\_ps(\_\_mmask8 k, \_\_m128 a, \_\_m128 b, \_\_m128 c);
+
+VFMSUBADDxxxPS \_\_m128 \_mm\_mask3\_fmsubadd\_ps(\_\_m128 a, \_\_m128 b, \_\_m128 c, \_\_mmask8 k);
+
+VFMSUBADDxxxPS \_\_m128 \_mm\_fmsubadd\_ps (\_\_m128 a, \_\_m128 b, \_\_m128 c);
+
+VFMSUBADDxxxPS \_\_m256 \_mm256\_fmsubadd\_ps (\_\_m256 a, \_\_m256 b, \_\_m256 c);
+
+.fi
+.RE
+
+.SS SIMD Floating\-Point Exceptions
+.PP
+Overflow, Underflow, Invalid, Precision, Denormal
+
+.SS Other Exceptions
+.PP
+VEX\-encoded instructions, see Exceptions Type 2.
+
+.PP
+EVEX\-encoded instructions, see Exceptions Type E2.
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+Copyleft TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

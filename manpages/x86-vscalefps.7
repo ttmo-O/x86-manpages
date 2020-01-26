@@ -1,0 +1,212 @@
+.nh
+.TH "X86-VSCALEFPS" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+VSCALEFPS - SCALE PACKED FLOAT32 VALUES WITH FLOAT32 VALUES
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp/En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+T{
+EVEX.128.66.0F38.W0 2C /r VSCALEFPS xmm1 {k1}{z}, xmm2, xmm3/m128/m32bcst
+T}
+	A	V/V	AVX512VL AVX512F	T{
+Scale the packed single\-precision floating\-point values in xmm2 using values from xmm3/m128/m32bcst. Under writemask k1.
+T}
+T{
+EVEX.256.66.0F38.W0 2C /r VSCALEFPS ymm1 {k1}{z}, ymm2, ymm3/m256/m32bcst
+T}
+	A	V/V	AVX512VL AVX512F	T{
+Scale the packed single\-precision values in ymm2 using floating point values from ymm3/m256/m32bcst. Under writemask k1.
+T}
+T{
+EVEX.512.66.0F38.W0 2C /r VSCALEFPS zmm1 {k1}{z}, zmm2, zmm3/m512/m32bcst{er}
+T}
+	A	V/V	AVX512F	T{
+Scale the packed single\-precision floating\-point values in zmm2 using floating\-point values from zmm3/m512/m32bcst. Under writemask k1.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+Op/En	Tuple Type	Operand 1	Operand 2	Operand 3	Operand 4
+A	Full	ModRM:reg (w)	EVEX.vvvv (r)	ModRM:r/m (r)	NA
+.TE
+
+.SS Description
+.PP
+Performs a floating\-point scale of the packed single\-precision
+floating\-point values in the first source operand by multiplying it by 2
+power of the float32 values in second source operand.
+
+.PP
+The equation of this operation is given by:
+
+.PP
+zmm1 := zmm2*2floor(zmm3).
+
+.PP
+Floor(zmm3) means maximum integer value ≤ zmm3.
+
+.PP
+If the result cannot be represented in single precision, then the proper
+overflow response (for positive scaling operand), or the proper
+underflow response (for negative scaling operand) is issued. The
+overflow and underflow responses are dependent on the rounding mode (for
+IEEE\-compliant rounding), as well as on other settings in MXCSR
+(exception mask bits, FTZ bit), and on the SAE bit.
+
+.PP
+EVEX.512 encoded version: The first source operand is a ZMM register.
+The second source operand is a ZMM register, a 512\-bit memory location
+or a 512\-bit vector broadcasted from a 32\-bit memory location. The
+destination operand is a ZMM register conditionally updated with
+writemask k1.
+
+.PP
+EVEX.256 encoded version: The first source operand is a YMM register.
+The second source operand is a YMM register, a 256\-bit memory location,
+or a 256\-bit vector broadcasted from a 32\-bit memory location. The
+destination operand is a YMM register, conditionally updated using
+writemask k1.
+
+.PP
+EVEX.128 encoded version: The first source operand is an XMM register.
+The second source operand is a XMM register, a 128\-bit memory location,
+or a 128\-bit vector broadcasted from a 32\-bit memory location. The
+destination operand is a XMM register, conditionally updated using
+writemask k1.
+
+.PP
+Handling of special\-case input values are listed in Table 5\-32.
+
+.TS
+allbox;
+l l l 
+l l l .
+\fB\fCSpecial Case\fR	\fB\fCReturned value\fR	\fB\fCFaults\fR
+|result| \&lt; 2\-149	T{
+±0 or ±Min\-Denormal (Src1 sign)
+T}
+	Underflow
+|result| ≥ 2128	T{
+±INF (Src1 sign) or ±Max\-normal (Src1 sign)
+T}
+	Overflow
+.TE
+
+.PP
+Table 5\-32. Additional VSCALEFPS/SS Special Cases
+
+.SS Operation
+.PP
+.RS
+
+.nf
+SCALE(SRC1, SRC2)
+{ ; Check for denormal operands
+TMP\_SRC2 ← SRC2
+TMP\_SRC1 ← SRC1
+IF (SRC2 is denormal AND MXCSR.DAZ) THEN TMP\_SRC2=0
+IF (SRC1 is denormal AND MXCSR.DAZ) THEN TMP\_SRC1=0
+/* SRC2 is a 32 bits floating\-point value */
+DEST[31:0]←TMP\_SRC1[31:0] * POW(2, Floor(TMP\_SRC2[31:0]))
+}
+
+.fi
+.RE
+
+.SS VSCALEFPS (EVEX encoded versions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (4, 128), (8, 256), (16, 512)
+IF (VL = 512) AND (EVEX.b = 1) AND (SRC2 *is register*)
+    THEN
+        SET\_RM(EVEX.RC);
+    ELSE
+        SET\_RM(MXCSR.RM);
+FI;
+FOR j←0 TO KL\-1
+    i←j * 32
+    IF k1[j] OR *no writemask* THEN
+            IF (EVEX.b = 1) AND (SRC2 *is memory*)
+                THEN DEST[i+31:i]←SCALE(SRC1[i+31:i], SRC2[31:0]);
+                ELSE DEST[i+31:i]←SCALE(SRC1[i+31:i], SRC2[i+31:i]);
+            FI;
+        ELSE
+            IF *merging\-masking* ; merging\-masking
+                THEN *DEST[i+31:i] remains unchanged*
+                ELSE ; zeroing\-masking
+                    DEST[i+31:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0;
+
+.fi
+.RE
+
+.SS Intel C/C++ Compiler Intrinsic Equivalent
+.PP
+.RS
+
+.nf
+VSCALEFPS \_\_m512 \_mm512\_scalef\_round\_ps(\_\_m512 a, \_\_m512 b, int rounding);
+
+VSCALEFPS \_\_m512 \_mm512\_mask\_scalef\_round\_ps(\_\_m512 s, \_\_mmask16 k, \_\_m512 a, \_\_m512 b, int rounding);
+
+VSCALEFPS \_\_m512 \_mm512\_maskz\_scalef\_round\_ps(\_\_mmask16 k, \_\_m512 a, \_\_m512 b, int rounding);
+
+VSCALEFPS \_\_m512 \_mm512\_scalef\_ps(\_\_m512 a, \_\_m512 b);
+
+VSCALEFPS \_\_m512 \_mm512\_mask\_scalef\_ps(\_\_m512 s, \_\_mmask16 k, \_\_m512 a, \_\_m512 b);
+
+VSCALEFPS \_\_m512 \_mm512\_maskz\_scalef\_ps(\_\_mmask16 k, \_\_m512 a, \_\_m512 b);
+
+VSCALEFPS \_\_m256 \_mm256\_scalef\_ps(\_\_m256 a, \_\_m256 b);
+
+VSCALEFPS \_\_m256 \_mm256\_mask\_scalef\_ps(\_\_m256 s, \_\_mmask8 k, \_\_m256 a, \_\_m256 b);
+
+VSCALEFPS \_\_m256 \_mm256\_maskz\_scalef\_ps(\_\_mmask8 k, \_\_m256 a, \_\_m256 b);
+
+VSCALEFPS \_\_m128 \_mm\_scalef\_ps(\_\_m128 a, \_\_m128 b);
+
+VSCALEFPS \_\_m128 \_mm\_mask\_scalef\_ps(\_\_m128 s, \_\_mmask8 k, \_\_m128 a, \_\_m128 b);
+
+VSCALEFPS \_\_m128 \_mm\_maskz\_scalef\_ps(\_\_mmask8 k, \_\_m128 a, \_\_m128 b);
+
+.fi
+.RE
+
+.SS SIMD Floating\-Point Exceptions
+.PP
+Overflow, Underflow, Invalid, Precision, Denormal (for Src1).
+
+.PP
+Denormal is not reported for Src2.
+
+.SS Other Exceptions
+.PP
+See Exceptions Type E2.
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+Copyleft TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

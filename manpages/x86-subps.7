@@ -1,0 +1,251 @@
+.nh
+.TH "X86-SUBPS" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+SUBPS - SUBTRACT PACKED SINGLE-PRECISION FLOATING-POINT VALUES
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp/En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+T{
+NP 0F 5C /r SUBPS xmm1, xmm2/m128
+T}
+	A	V/V	SSE	T{
+Subtract packed single\-precision floating\-point values in xmm2/mem from xmm1 and store result in xmm1.
+T}
+T{
+VEX.128.0F.WIG 5C /r VSUBPS xmm1,xmm2, xmm3/m128
+T}
+	B	V/V	AVX	T{
+Subtract packed single\-precision floating\-point values in xmm3/mem from xmm2 and stores result in xmm1.
+T}
+T{
+VEX.256.0F.WIG 5C /r VSUBPS ymm1, ymm2, ymm3/m256
+T}
+	B	V/V	AVX	T{
+Subtract packed single\-precision floating\-point values in ymm3/mem from ymm2 and stores result in ymm1.
+T}
+T{
+EVEX.128.0F.W0 5C /r VSUBPS xmm1 {k1}{z}, xmm2, xmm3/m128/m32bcst
+T}
+	C	V/V	AVX512VL AVX512F	T{
+Subtract packed single\-precision floating\-point values from xmm3/m128/m32bcst to xmm2 and stores result in xmm1 with writemask k1.
+T}
+T{
+EVEX.256.0F.W0 5C /r VSUBPS ymm1 {k1}{z}, ymm2, ymm3/m256/m32bcst
+T}
+	C	V/V	AVX512VL AVX512F	T{
+Subtract packed single\-precision floating\-point values from ymm3/m256/m32bcst to ymm2 and stores result in ymm1 with writemask k1.
+T}
+T{
+EVEX.512.0F.W0 5C /r VSUBPS zmm1 {k1}{z}, zmm2, zmm3/m512/m32bcst{er}
+T}
+	C	V/V	AVX512F	T{
+Subtract packed single\-precision floating\-point values in zmm3/m512/m32bcst from zmm2 and stores result in zmm1 with writemask k1.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+Op/En	Tuple Type	Operand 1	Operand 2	Operand 3	Operand 4
+A	NA	ModRM:reg (r, w)	ModRM:r/m (r)	NA	NA
+B	NA	ModRM:reg (w)	VEX.vvvv (r)	ModRM:r/m (r)	NA
+C	Full	ModRM:reg (w)	EVEX.vvvv (r)	ModRM:r/m (r)	NA
+.TE
+
+.SS Description
+.PP
+Performs a SIMD subtract of the packed single\-precision floating\-point
+values in the second Source operand from the First Source operand, and
+stores the packed single\-precision floating\-point results in the
+destination operand.
+
+.PP
+VEX.128 and EVEX.128 encoded versions: The second source operand is an
+XMM register or an 128\-bit memory location. The first source operand and
+destination operands are XMM registers. Bits (MAXVL\-1:128) of the
+corresponding destination register are zeroed.
+
+.PP
+VEX.256 and EVEX.256 encoded versions: The second source operand is an
+YMM register or an 256\-bit memory location. The first source operand and
+destination operands are YMM registers. Bits (MAXVL\-1:256) of the
+corresponding destination register are zeroed.
+
+.PP
+EVEX.512 encoded version: The second source operand is a ZMM register, a
+512\-bit memory location or a 512\-bit vector broadcasted from a 32\-bit
+memory location. The first source operand and destination operands are
+ZMM registers. The destination operand is conditionally updated
+according to the writemask.
+
+.PP
+128\-bit Legacy SSE version: The second source can be an XMM register or
+an 128\-bit memory location. The destination is not distinct from the
+first source XMM register and the upper Bits (MAXVL\-1:128) of the
+corresponding register destination are unmodified.
+
+.SS Operation
+.SS VSUBPS (EVEX encoded versions) when src2 operand is a vector register
+.PP
+.RS
+
+.nf
+(KL, VL) = (4, 128), (8, 256), (16, 512)
+IF (VL = 512) AND (EVEX.b = 1)
+    THEN
+        SET\_RM(EVEX.RC);
+    ELSE
+        SET\_RM(MXCSR.RM);
+FI;
+FOR j←0 TO KL\-1
+    i←j * 32
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+31:i]←SRC1[i+31:i] \- SRC2[i+31:i]
+    ELSE
+        IF *merging\-masking* ; merging\-masking
+            THEN *DEST[31:0] remains unchanged*
+            ELSE ; zeroing\-masking
+                DEST[31:0] ← 0
+        FI;
+    FI;
+ENDFOR;
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS VSUBPS (EVEX encoded versions) when src2 operand is a memory source
+.PP
+.RS
+
+.nf
+(KL, VL) = (4, 128), (8, 256),(16, 512)
+FOR j←0 TO KL\-1
+    i←j * 32
+    IF k1[j] OR *no writemask* THEN
+            IF (EVEX.b = 1)
+                THEN DEST[i+31:i]←SRC1[i+31:i] \- SRC2[31:0];
+                ELSE DEST[i+31:i]←SRC1[i+31:i] \- SRC2[i+31:i];
+            FI;
+    ELSE
+        IF *merging\-masking* ; merging\-masking
+            THEN *DEST[31:0] remains unchanged*
+            ELSE ; zeroing\-masking
+                DEST[31:0] ← 0
+        FI;
+    FI;
+ENDFOR;
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS VSUBPS (VEX.256 encoded version)
+.PP
+.RS
+
+.nf
+DEST[31:0]←SRC1[31:0] \- SRC2[31:0]
+DEST[63:32]←SRC1[63:32] \- SRC2[63:32]
+DEST[95:64]←SRC1[95:64] \- SRC2[95:64]
+DEST[127:96]←SRC1[127:96] \- SRC2[127:96]
+DEST[159:128]←SRC1[159:128] \- SRC2[159:128]
+DEST[191:160]←SRC1[191:160] \- SRC2[191:160]
+DEST[223:192]←SRC1[223:192] \- SRC2[223:192]
+DEST[255:224]←SRC1[255:224] \- SRC2[255:224].
+DEST[MAXVL\-1:256] ← 0
+
+.fi
+.RE
+
+.SS VSUBPS (VEX.128 encoded version)
+.PP
+.RS
+
+.nf
+DEST[31:0]←SRC1[31:0] \- SRC2[31:0]
+DEST[63:32]←SRC1[63:32] \- SRC2[63:32]
+DEST[95:64]←SRC1[95:64] \- SRC2[95:64]
+DEST[127:96]←SRC1[127:96] \- SRC2[127:96]
+DEST[MAXVL\-1:128] ← 0
+
+.fi
+.RE
+
+.SS SUBPS (128\-bit Legacy SSE version)
+.PP
+.RS
+
+.nf
+DEST[31:0]←SRC1[31:0] \- SRC2[31:0]
+DEST[63:32]←SRC1[63:32] \- SRC2[63:32]
+DEST[95:64]←SRC1[95:64] \- SRC2[95:64]
+DEST[127:96]←SRC1[127:96] \- SRC2[127:96]
+DEST[MAXVL\-1:128] (Unmodified)
+
+.fi
+.RE
+
+.SS Intel C/C++ Compiler Intrinsic Equivalent
+.PP
+.RS
+
+.nf
+VSUBPS \_\_m512 \_mm512\_sub\_ps (\_\_m512 a, \_\_m512 b);
+
+VSUBPS \_\_m512 \_mm512\_mask\_sub\_ps (\_\_m512 s, \_\_mmask16 k, \_\_m512 a, \_\_m512 b);
+
+VSUBPS \_\_m512 \_mm512\_maskz\_sub\_ps (\_\_mmask16 k, \_\_m512 a, \_\_m512 b);
+
+VSUBPS \_\_m512 \_mm512\_sub\_round\_ps (\_\_m512 a, \_\_m512 b, int);
+
+VSUBPS \_\_m512 \_mm512\_mask\_sub\_round\_ps (\_\_m512 s, \_\_mmask16 k, \_\_m512 a, \_\_m512 b, int);
+
+VSUBPS \_\_m512 \_mm512\_maskz\_sub\_round\_ps (\_\_mmask16 k, \_\_m512 a, \_\_m512 b, int);
+
+VSUBPS \_\_m256 \_mm256\_sub\_ps (\_\_m256 a, \_\_m256 b);
+
+VSUBPS \_\_m256 \_mm256\_mask\_sub\_ps (\_\_m256 s, \_\_mmask8 k, \_\_m256 a, \_\_m256 b);
+
+VSUBPS \_\_m256 \_mm256\_maskz\_sub\_ps (\_\_mmask16 k, \_\_m256 a, \_\_m256 b);
+
+SUBPS \_\_m128 \_mm\_sub\_ps (\_\_m128 a, \_\_m128 b);
+
+VSUBPS \_\_m128 \_mm\_mask\_sub\_ps (\_\_m128 s, \_\_mmask8 k, \_\_m128 a, \_\_m128 b);
+
+VSUBPS \_\_m128 \_mm\_maskz\_sub\_ps (\_\_mmask16 k, \_\_m128 a, \_\_m128 b);
+
+.fi
+.RE
+
+.SS SIMD Floating\-Point Exceptions
+.PP
+Overflow, Underflow, Invalid, Precision, Denormal
+
+.SS Other Exceptions
+.PP
+VEX\-encoded instructions, see Exceptions Type 2.
+
+.PP
+EVEX\-encoded instructions, see Exceptions Type E2.
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+Copyleft TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

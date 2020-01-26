@@ -1,0 +1,283 @@
+.nh
+.TH "X86-UNPCKHPD" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+UNPCKHPD - UNPACK AND INTERLEAVE HIGH PACKED DOUBLE-PRECISION FLOATING-POINT VALUES
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp/En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+T{
+66 0F 15 /r UNPCKHPD xmm1, xmm2/m128
+T}
+	A	V/V	SSE2	T{
+Unpacks and Interleaves double\-precision floating\-point values from high quadwords of xmm1 and xmm2/m128.
+T}
+T{
+VEX.128.66.0F.WIG 15 /r VUNPCKHPD xmm1,xmm2, xmm3/m128
+T}
+	B	V/V	AVX	T{
+Unpacks and Interleaves double\-precision floating\-point values from high quadwords of xmm2 and xmm3/m128.
+T}
+T{
+VEX.256.66.0F.WIG 15 /r VUNPCKHPD ymm1,ymm2, ymm3/m256
+T}
+	B	V/V	AVX	T{
+Unpacks and Interleaves double\-precision floating\-point values from high quadwords of ymm2 and ymm3/m256.
+T}
+T{
+EVEX.128.66.0F.W1 15 /r VUNPCKHPD xmm1 {k1}{z}, xmm2, xmm3/m128/m64bcst
+T}
+	C	V/V	AVX512VL AVX512F	T{
+Unpacks and Interleaves double precision floating\-point values from high quadwords of xmm2 and xmm3/m128/m64bcst subject to writemask k1.
+T}
+T{
+EVEX.256.66.0F.W1 15 /r VUNPCKHPD ymm1 {k1}{z}, ymm2, ymm3/m256/m64bcst
+T}
+	C	V/V	AVX512VL AVX512F	T{
+Unpacks and Interleaves double precision floating\-point values from high quadwords of ymm2 and ymm3/m256/m64bcst subject to writemask k1.
+T}
+T{
+EVEX.512.66.0F.W1 15 /r VUNPCKHPD zmm1 {k1}{z}, zmm2, zmm3/m512/m64bcst
+T}
+	C	V/V	AVX512F	T{
+Unpacks and Interleaves double\-precision floating\-point values from high quadwords of zmm2 and zmm3/m512/m64bcst subject to writemask k1.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+Op/En	Tuple Type	Operand 1	Operand 2	Operand 3	Operand 4
+A	NA	ModRM:reg (r, w)	ModRM:r/m (r)	NA	NA
+B	NA	ModRM:reg (w)	VEX.vvvv (r)	ModRM:r/m (r)	NA
+C	Full	ModRM:reg (w)	EVEX.vvvv (r)	ModRM:r/m (r)	NA
+.TE
+
+.SS Description
+.PP
+Performs an interleaved unpack of the high double\-precision
+floating\-point values from the first source operand and the second
+source operand. See Figure 4\-15 in the Intel® 64 and IA\-32 Architectures
+Software Developer’s Manual, Volume 2B.
+
+.PP
+128\-bit Legacy SSE version: The second source can be an XMM register or
+an 128\-bit memory location. The destination is not distinct from the
+first source XMM register and the upper bits (MAXVL\-1:128) of the
+corresponding ZMM register destination are unmodified. When unpacking
+from a memory operand, an implementation may fetch only the appropriate
+64 bits; however, alignment to 16\-byte boundary and normal segment
+checking will still be enforced.
+
+.PP
+VEX.128 encoded version: The first source operand is a XMM register. The
+second source operand can be a XMM register or a 128\-bit memory
+location. The destination operand is a XMM register. The upper bits
+(MAXVL\-1:128) of the corresponding ZMM register destination are zeroed.
+
+.PP
+VEX.256 encoded version: The first source operand is a YMM register. The
+second source operand can be a YMM register or a 256\-bit memory
+location. The destination operand is a YMM register.
+
+.PP
+EVEX.512 encoded version: The first source operand is a ZMM register.
+The second source operand is a ZMM register, a 512\-bit memory location,
+or a 512\-bit vector broadcasted from a 64\-bit memory location. The
+destination operand is a ZMM register, conditionally updated using
+writemask k1.
+
+.PP
+EVEX.256 encoded version: The first source operand is a YMM register.
+The second source operand is a YMM register, a 256\-bit memory location,
+or a 256\-bit vector broadcasted from a 64\-bit memory location. The
+destination operand is a YMM register, conditionally updated using
+writemask k1.
+
+.PP
+EVEX.128 encoded version: The first source operand is a XMM register.
+The second source operand is a XMM register, a 128\-bit memory location,
+or a 128\-bit vector broadcasted from a 64\-bit memory location. The
+destination operand is a XMM register, conditionally updated using
+writemask k1.
+
+.SS Operation
+.SS VUNPCKHPD (EVEX encoded versions when SRC2 is a register)
+.PP
+.RS
+
+.nf
+(KL, VL) = (2, 128), (4, 256), (8, 512)
+IF VL >= 128
+    TMP\_DEST[63:0] ← SRC1[127:64]
+    TMP\_DEST[127:64] ← SRC2[127:64]
+FI;
+IF VL >= 256
+    TMP\_DEST[191:128] ← SRC1[255:192]
+    TMP\_DEST[255:192] ← SRC2[255:192]
+FI;
+IF VL >= 512
+    TMP\_DEST[319:256] ← SRC1[383:320]
+    TMP\_DEST[383:320] ← SRC2[383:320]
+    TMP\_DEST[447:384] ← SRC1[511:448]
+    TMP\_DEST[511:448] ← SRC2[511:448]
+FI;
+FOR j←0 TO KL\-1
+    i←j * 64
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+63:i]←TMP\_DEST[i+63:i]
+        ELSE
+            IF *merging\-masking*
+                        ; merging\-masking
+                THEN *DEST[i+63:i] remains unchanged*
+                ELSE *zeroing\-masking*
+                            ; zeroing\-masking
+                    DEST[i+63:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS VUNPCKHPD (EVEX encoded version when SRC2 is memory)
+.PP
+.RS
+
+.nf
+(KL, VL) = (2, 128), (4, 256), (8, 512)
+FOR j←0 TO KL\-1
+    i←j * 64
+    IF (EVEX.b = 1)
+        THEN TMP\_SRC2[i+63:i]←SRC2[63:0]
+        ELSE TMP\_SRC2[i+63:i]←SRC2[i+63:i]
+    FI;
+ENDFOR;
+IF VL >= 128
+    TMP\_DEST[63:0] ← SRC1[127:64]
+    TMP\_DEST[127:64] ← TMP\_SRC2[127:64]
+FI;
+IF VL >= 256
+    TMP\_DEST[191:128] ← SRC1[255:192]
+    TMP\_DEST[255:192] ← TMP\_SRC2[255:192]
+FI;
+IF VL >= 512
+    TMP\_DEST[319:256] ← SRC1[383:320]
+    TMP\_DEST[383:320] ← TMP\_SRC2[383:320]
+    TMP\_DEST[447:384] ← SRC1[511:448]
+    TMP\_DEST[511:448] ← TMP\_SRC2[511:448]
+FI;
+FOR j←0 TO KL\-1
+    i←j * 64
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+63:i]←TMP\_DEST[i+63:i]
+        ELSE
+            IF *merging\-masking*
+                        ; merging\-masking
+                THEN *DEST[i+63:i] remains unchanged*
+                ELSE *zeroing\-masking*
+                            ; zeroing\-masking
+                    DEST[i+63:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS VUNPCKHPD (VEX.256 encoded version)
+.PP
+.RS
+
+.nf
+DEST[63:0] ←SRC1[127:64]
+DEST[127:64] ←SRC2[127:64]
+DEST[191:128]←SRC1[255:192]
+DEST[255:192]←SRC2[255:192]
+DEST[MAXVL\-1:256] ←0
+
+.fi
+.RE
+
+.SS VUNPCKHPD (VEX.128 encoded version)
+.PP
+.RS
+
+.nf
+DEST[63:0] ←SRC1[127:64]
+DEST[127:64] ←SRC2[127:64]
+DEST[MAXVL\-1:128] ←0
+
+.fi
+.RE
+
+.SS UNPCKHPD (128\-bit Legacy SSE version)
+.PP
+.RS
+
+.nf
+DEST[63:0] ←SRC1[127:64]
+DEST[127:64] ←SRC2[127:64]
+DEST[MAXVL\-1:128] (Unmodified)
+
+.fi
+.RE
+
+.SS Intel C/C++ Compiler Intrinsic Equivalent
+.PP
+.RS
+
+.nf
+VUNPCKHPD \_\_m512d \_mm512\_unpackhi\_pd( \_\_m512d a, \_\_m512d b);
+
+VUNPCKHPD \_\_m512d \_mm512\_mask\_unpackhi\_pd(\_\_m512d s, \_\_mmask8 k, \_\_m512d a, \_\_m512d b);
+
+VUNPCKHPD \_\_m512d \_mm512\_maskz\_unpackhi\_pd(\_\_mmask8 k, \_\_m512d a, \_\_m512d b);
+
+VUNPCKHPD \_\_m256d \_mm256\_unpackhi\_pd(\_\_m256d a, \_\_m256d b)
+
+VUNPCKHPD \_\_m256d \_mm256\_mask\_unpackhi\_pd(\_\_m256d s, \_\_mmask8 k, \_\_m256d a, \_\_m256d b);
+
+VUNPCKHPD \_\_m256d \_mm256\_maskz\_unpackhi\_pd(\_\_mmask8 k, \_\_m256d a, \_\_m256d b);
+
+UNPCKHPD \_\_m128d \_mm\_unpackhi\_pd(\_\_m128d a, \_\_m128d b)
+
+VUNPCKHPD \_\_m128d \_mm\_mask\_unpackhi\_pd(\_\_m128d s, \_\_mmask8 k, \_\_m128d a, \_\_m128d b);
+
+VUNPCKHPD \_\_m128d \_mm\_maskz\_unpackhi\_pd(\_\_mmask8 k, \_\_m128d a, \_\_m128d b);
+
+.fi
+.RE
+
+.SS SIMD Floating\-Point Exceptions
+.PP
+None
+
+.SS Other Exceptions
+.PP
+Non\-EVEX\-encoded instructions, see Exceptions Type 4.
+
+.PP
+EVEX\-encoded instructions, see Exceptions Type E4NF.
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+Copyleft TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

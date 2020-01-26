@@ -1,0 +1,283 @@
+.nh
+.TH "X86-XSAVE" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+XSAVE - SAVE PROCESSOR EXTENDED STATES
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode / Instruction\fR	\fB\fCOp/En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+NP 0F AE /4 XSAVE mem	M	V/V	XSAVE	T{
+Save state components specified by EDX:EAX to mem.
+T}
+T{
+NP REX.W + 0F AE /4 XSAVE64 mem
+T}
+	M	V/N.E.	XSAVE	T{
+Save state components specified by EDX:EAX to mem.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l 
+l l l l l .
+Op/En	Operand 1	Operand 2	Operand 3	Operand 4
+M	ModRM:r/m (w)	NA	NA	NA
+.TE
+
+.SH DESCRIPTION
+.PP
+Performs a full or partial save of processor state components to the
+XSAVE area located at the memory address specified by the destination
+operand. The implicit EDX:EAX register pair specifies a 64\-bit
+instruction mask. The specific state components saved correspond to the
+bits set in the requested\-feature bitmap (RFBM), which is the
+logical\-AND of EDX:EAX and XCR0.
+
+.PP
+The format of the XSAVE area is detailed in Section 13.4, “XSAVE Area,”
+of Intel® 64 and IA\-32 Architectures Software Developer’s Manual, Volume
+1.
+
+.PP
+Section 13.7, “Operation of XSAVE,” of Intel® 64 and IA\-32 Architectures
+Software Developer’s Manual, Volume 1 provides a detailed description of
+the operation of the XSAVE instruction. The following items provide a
+high\-level outline:
+
+.RS
+.IP \(bu 2
+XSAVE saves state component i] = 1.1
+.IP \(bu 2
+XSAVE does not modify bytes 511:464 of the legacy region of the
+XSAVE area (see Section 13.4.1, “Legacy Region of an XSAVE Area” of
+Intel® 64 and IA\-32 Architectures Software Developer’s Manual,
+Volume 1).
+.IP \(bu 2
+XSAVE reads the XSTATE\_BV field of the XSAVE header (see Section
+13.4.2, “XSAVE Header” of i] with the value that it read from
+memory (it does not modify the bit). XSAVE does not write to any
+part of the XSAVE header other than the XSTATE\_BV field.
+.IP \(bu 2
+XSAVE always uses the standard format of the extended region of the
+XSAVE area (see Section 13.4.3, “Extended Region of an XSAVE Area”
+of Volume 1).
+
+.RE
+
+.PP
+.RS
+
+.PP
+1\&. An exception is made for MXCSR and MXCSR\_MASK, which belong to
+state component 1 — SSE. XSAVE saves these values to memory if either
+RFBM[1] or RFBM[2] is 1.
+
+.RE
+
+.PP
+Use of a destination operand not aligned to 64\-byte boundary (in either
+64\-bit or 32\-bit modes) results in a general\-protection (#GP)
+exception. In 64\-bit mode, the upper 32 bits of RDX and RAX are ignored.
+
+.SH OPERATION
+.PP
+.RS
+
+.nf
+RFBM ← XCR0 AND EDX:EAX; /* bitwise logical AND */
+OLD\_BV ← XSTATE\_BV field from XSAVE header;
+IF RFBM[0] = 1
+    THEN store x87 state into legacy region of XSAVE area;
+FI;
+IF RFBM[1] = 1
+    THEN store XMM registers into legacy region of XSAVE area; // this step does not save MXCSR or MXCSR\_MASK
+FI;
+IF RFBM[1] = 1 OR RFBM[2] = 1
+    THEN store MXCSR and MXCSR\_MASK into legacy region of XSAVE area;
+FI;
+FOR i ← 2 TO 62
+    IF RFBM[i] = 1
+        THEN save XSAVE state component i at offset n from base of XSAVE area (n enumerated by CPUID(EAX=0DH,ECX=i):EBX);
+    FI;
+ENDFOR;
+XSTATE\_BV field in XSAVE header ← (OLD\_BV AND NOT RFBM) OR (XINUSE AND RFBM);
+
+.fi
+.RE
+
+.SH FLAGS AFFECTED
+.PP
+None.
+
+.SH INTEL C/C++ COMPILER INTRINSIC EQUIVALENT
+.PP
+.RS
+
+.nf
+XSAVE: void \_xsave( void * , unsigned \_\_int64);
+
+XSAVE: void \_xsave64( void * , unsigned \_\_int64);
+
+.fi
+.RE
+
+.SH PROTECTED MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP(0)	T{
+If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit.
+T}
+	T{
+If a memory operand is not aligned on a 64\-byte boundary, regardless of segment.
+T}
+#SS(0)	T{
+If a memory operand effective address is outside the SS segment limit.
+T}
+#PF(fault\-code)	If a page fault occurs.
+#NM	If CR0.TS
+[
+bit 3
+]
+ = 1.
+#UD	If CPUID.01H:ECX.XSAVE
+[
+bit 26
+]
+ = 0.
+	If CR4.OSXSAVE
+[
+bit 18
+]
+ = 0.
+	If the LOCK prefix is used.
+#AC	T{
+If this exception is disabled a general protection exception (
+T}
+#
+T{
+GP) is signaled if the memory operand is not aligned on a 64\-byte boundary, as described above. If the alignment check exception (
+T}
+#
+T{
+AC) is enabled (and the CPL is 3), signaling of 
+T}
+#
+T{
+AC is not guaranteed and may vary with implementation, as follows. In all implementations where 
+T}
+#
+T{
+AC is not signaled, a general protection exception is signaled in its place. In addition, the width of the alignment check may also vary with implementation. For instance, for a given implementation, an alignment check exception might be signaled for a 2\-byte misalignment, whereas a general protection exception might be signaled for all other misalignments (4\-, 8\-, or 16\-byte misalignments).
+T}
+.TE
+
+.SH REAL\-ADDRESS MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP	T{
+If a memory operand is not aligned on a 64\-byte boundary, regardless of segment.
+T}
+	T{
+If any part of the operand lies outside the effective address space from 0 to FFFFH.
+T}
+#NM	If CR0.TS
+[
+bit 3
+]
+ = 1.
+#UD	If CPUID.01H:ECX.XSAVE
+[
+bit 26
+]
+ = 0.
+	If CR4.OSXSAVE
+[
+bit 18
+]
+ = 0.
+	If the LOCK prefix is used.
+.TE
+
+.SH VIRTUAL\-8086 MODE EXCEPTIONS
+.PP
+Same exceptions as in protected mode.
+
+.SH COMPATIBILITY MODE EXCEPTIONS
+.PP
+Same exceptions as in protected mode.
+
+.SH 64\-BIT MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP(0)	T{
+If the memory address is in a non\-canonical form.
+T}
+	T{
+If a memory operand is not aligned on a 64\-byte boundary, regardless of segment.
+T}
+#SS(0)	T{
+If a memory address referencing the SS segment is in a non\-canonical form.
+T}
+#PF(fault\-code)	If a page fault occurs.
+#NM	If CR0.TS
+[
+bit 3
+]
+ = 1.
+#UD	If CPUID.01H:ECX.XSAVE
+[
+bit 26
+]
+ = 0.
+	If CR4.OSXSAVE
+[
+bit 18
+]
+ = 0.
+	If the LOCK prefix is used.
+#AC	T{
+If this exception is disabled a general protection exception (
+T}
+#
+T{
+GP) is signaled if the memory operand is not aligned on a 64\-byte boundary, as described above. If the alignment check exception (
+T}
+#
+T{
+AC) is enabled (and the CPL is 3), signaling of 
+T}
+#
+T{
+AC is not guaranteed and may vary with implementation, as follows. In all implementations where 
+T}
+#
+T{
+AC is not signaled, a general protection exception is signaled in its place. In addition, the width of the alignment check may also vary with implementation. For instance, for a given implementation, an alignment check exception might be signaled for a 2\-byte misalignment, whereas a general protection exception might be signaled for all other misalignments (4\-, 8\-, or 16\-byte misalignments).
+T}
+.TE
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+Copyleft TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

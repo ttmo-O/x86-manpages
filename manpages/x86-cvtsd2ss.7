@@ -1,0 +1,174 @@
+.nh
+.TH "X86-CVTSD2SS" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+CVTSD2SS - CONVERT SCALAR DOUBLE-PRECISION FLOATING-POINT VALUE TO SCALAR SINGLE-PRECISION FLOATING-POINT VALUE
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp / En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+T{
+F2 0F 5A /r CVTSD2SS xmm1, xmm2/m64
+T}
+	A	V/V	SSE2	T{
+Convert one double\-precision floating\-point value in xmm2/m64 to one single\-precision floating\-point value in xmm1.
+T}
+T{
+VEX.LIG.F2.0F.WIG 5A /r VCVTSD2SS xmm1,xmm2, xmm3/m64
+T}
+	B	V/V	AVX	T{
+Convert one double\-precision floating\-point value in xmm3/m64 to one single\-precision floating\-point value and merge with high bits in xmm2.
+T}
+T{
+EVEX.LIG.F2.0F.W1 5A /r VCVTSD2SS xmm1 {k1}{z}, xmm2, xmm3/m64{er}
+T}
+	C	V/V	AVX512F	T{
+Convert one double\-precision floating\-point value in xmm3/m64 to one single\-precision floating\-point value and merge with high bits in xmm2 under writemask k1.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+Op/En	Tuple Type	Operand 1	Operand 2	Operand 3	Operand 4
+A	NA	ModRM:reg (w)	ModRM:r/m (r)	NA	NA
+B	NA	ModRM:reg (w)	VEX.vvvv	ModRM:r/m (r)	NA
+C	Tuple1 Scalar	ModRM:reg (w)	EVEX.vvvv	ModRM:r/m (r)	NA
+.TE
+
+.SH DESCRIPTION
+.PP
+Converts a double\-precision floating\-point value in the “convert\-from”
+source operand (the second operand in SSE2 version, otherwise the third
+operand) to a single\-precision floating\-point value in the destination
+operand.
+
+.PP
+When the “convert\-from” operand is an XMM register, the double\-precision
+floating\-point value is contained in the low quadword of the register.
+The result is stored in the low doubleword of the destination operand.
+When the conversion is inexact, the value returned is rounded according
+to the rounding control bits in the MXCSR register.
+
+.PP
+128\-bit Legacy SSE version: The “convert\-from” source operand (the
+second operand) is an XMM register or memory location. Bits (MAXVL\-1:32)
+of the corresponding destination register remain unchanged. The
+destination operand is an XMM register.
+
+.PP
+VEX.128 and EVEX encoded versions: The “convert\-from” source operand
+(the third operand) can be an XMM register or a 64\-bit memory location.
+The first source and destination operands are XMM registers. Bits
+(127:32) of the XMM register destination are copied from the
+corresponding bits in the first source operand. Bits (MAXVL\-1:128) of
+the destination register are zeroed.
+
+.PP
+EVEX encoded version: the converted result in written to the low
+doubleword element of the destination under the writemask.
+
+.PP
+Software should ensure VCVTSD2SS is encoded with VEX.L=0. Encoding
+VCVTSD2SS with VEX.L=1 may encounter unpredictable behavior across
+different processor generations.
+
+.SH OPERATION
+.SS VCVTSD2SS (EVEX encoded version)
+.PP
+.RS
+
+.nf
+IF (SRC2 *is register*) AND (EVEX.b = 1)
+    THEN
+        SET\_RM(EVEX.RC);
+    ELSE
+        SET\_RM(MXCSR.RM);
+FI;
+IF k1[0] or *no writemask*
+    THEN DEST[31:0] ← Convert\_Double\_Precision\_To\_Single\_Precision\_Floating\_Point(SRC2[63:0]);
+    ELSE
+        IF *merging\-masking* ; merging\-masking
+            THEN *DEST[31:0] remains unchanged*
+            ELSE ; zeroing\-masking
+                THEN DEST[31:0]←0
+        FI;
+FI;
+DEST[127:32] ← SRC1[127:32]
+DEST[MAXVL\-1:128] ← 0
+
+.fi
+.RE
+
+.SS VCVTSD2SS (VEX.128 encoded version)
+.PP
+.RS
+
+.nf
+DEST[31:0] ←Convert\_Double\_Precision\_To\_Single\_Precision\_Floating\_Point(SRC2[63:0]);
+DEST[127:32] ←SRC1[127:32]
+DEST[MAXVL\-1:128] ←0
+
+.fi
+.RE
+
+.SS CVTSD2SS (128\-bit Legacy SSE version)
+.PP
+.RS
+
+.nf
+DEST[31:0] ←Convert\_Double\_Precision\_To\_Single\_Precision\_Floating\_Point(SRC[63:0]);
+(* DEST[MAXVL\-1:32] Unmodified *)
+
+.fi
+.RE
+
+.SH INTEL C/C++ COMPILER INTRINSIC EQUIVALENT
+.PP
+.RS
+
+.nf
+VCVTSD2SS \_\_m128 \_mm\_mask\_cvtsd\_ss(\_\_m128 s, \_\_mmask8 k, \_\_m128 a, \_\_m128d b);
+
+VCVTSD2SS \_\_m128 \_mm\_maskz\_cvtsd\_ss( \_\_mmask8 k, \_\_m128 a,\_\_m128d b);
+
+VCVTSD2SS \_\_m128 \_mm\_cvt\_roundsd\_ss(\_\_m128 a, \_\_m128d b, int r);
+
+VCVTSD2SS \_\_m128 \_mm\_mask\_cvt\_roundsd\_ss(\_\_m128 s, \_\_mmask8 k, \_\_m128 a, \_\_m128d b, int r);
+
+VCVTSD2SS \_\_m128 \_mm\_maskz\_cvt\_roundsd\_ss( \_\_mmask8 k, \_\_m128 a,\_\_m128d b, int r);
+
+CVTSD2SS \_\_m128\_mm\_cvtsd\_ss(\_\_m128 a, \_\_m128d b)
+
+.fi
+.RE
+
+.SH SIMD FLOATING\-POINT EXCEPTIONS
+.PP
+Overflow, Underflow, Invalid, Precision, Denormal
+
+.SH OTHER EXCEPTIONS
+.PP
+VEX\-encoded instructions, see Exceptions Type 3.
+
+.PP
+EVEX\-encoded instructions, see Exceptions Type E3.
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+Copyleft TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

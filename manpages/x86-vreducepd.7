@@ -1,0 +1,236 @@
+.nh
+.TH "X86-VREDUCEPD" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+VREDUCEPD - PERFORM REDUCTION TRANSFORMATION ON PACKED FLOAT64 VALUES
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp/En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+T{
+EVEX.128.66.0F3A.W1 56 /r ib VREDUCEPD xmm1 {k1}{z}, xmm2/m128/m64bcst, imm8
+T}
+	A	V/V	AVX512VL AVX512DQ	T{
+Perform reduction transformation on packed double\-precision floating point values in xmm2/m128/m32bcst by subtracting a number of fraction bits specified by the imm8 field. Stores the result in xmm1 register under writemask k1.
+T}
+T{
+EVEX.256.66.0F3A.W1 56 /r ib VREDUCEPD ymm1 {k1}{z}, ymm2/m256/m64bcst, imm8
+T}
+	A	V/V	AVX512VL AVX512DQ	T{
+Perform reduction transformation on packed double\-precision floating point values in ymm2/m256/m32bcst by subtracting a number of fraction bits specified by the imm8 field. Stores the result in ymm1 register under writemask k1.
+T}
+T{
+EVEX.512.66.0F3A.W1 56 /r ib VREDUCEPD zmm1 {k1}{z}, zmm2/m512/m64bcst{sae}, imm8
+T}
+	A	V/V	AVX512DQ	T{
+Perform reduction transformation on double\-precision floating point values in zmm2/m512/m32bcst by subtracting a number of fraction bits specified by the imm8 field. Stores the result in zmm1 register under writemask k1.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+Op/En	Tuple Type	Operand 1	Operand 2	Operand 3	Operand 4
+A	Full	ModRM:reg (w)	ModRM:r/m (r)	Imm8	NA
+.TE
+
+.SS Description
+.PP
+Perform reduction transformation of the packed binary encoded
+double\-precision FP values in the source operand (the second operand)
+and store the reduced results in binary FP format to the destination
+operand (the first operand) under the writemask k1.
+
+.PP
+The reduction transformation subtracts the integer part and the leading
+M fractional bits from the binary FP source value, where M is a unsigned
+integer specified by imm8[7:4], see Figure 5\-28. Specifically, the
+reduction transformation can be expressed as:
+
+.PP
+dest = src – (ROUND(2\-M;
+
+.PP
+where “Round()” treats “src”, “2M”, and their product as binary FP
+numbers with normalized significand and biased exponents.
+
+.PP
+The magnitude of the reduced result can be expressed by considering src=
+2p*man2,
+
+.PP
+where ‘man2’ is the normalized significand and ‘p’ is the unbiased
+exponent
+
+.PP
+Then if RC = RNE: 0\&lt;=|Reduced Result|\&lt;=2p\-M\-1
+
+.PP
+Then if RC ≠ RNE: 0\&lt;=|Reduced Result|\&lt;2p\-M
+
+.PP
+This instruction might end up with a precision exception set. However,
+in case of SPE set (i.e. Suppress Precision Exception, which is
+imm8[3]=1), no precision exception is reported.
+
+.PP
+EVEX.vvvv is reserved and must be 1111b otherwise instructions will
+#UD.
+
+.TP
+of fixed points to subtractImm8[1:0] = 01b : Round downImm8[2] = 0b
+Use Imm8[1:0]Imm8[3] = 1b : SuppressImm8[1:0] = 10b : Round
+upImm8[2] = 1b : Use MXCSRImm8[1:0] = 11b : Truncate
+
+.TP
+of fixed points to subtractImm8[1:0] = 01b : Round downImm8[2] = 0b
+Use Imm8[1:0]Imm8[3] = 1b : SuppressImm8[1:0] = 10b : Round
+upImm8[2] = 1b : Use MXCSRImm8[1:0] = 11b : Truncate
+
+.PP
+1b : Truncate
+
+.PP
+Figure 5\-28. Imm8 Controls for VREDUCEPD/SD/PS/SS
+
+.PP
+Handling of special case of input values are listed in Table 5\-24.
+
+.TS
+allbox;
+l l l 
+l l l .
+|Src1| \&lt; 2\-M\-1	RNE	Src1
+\-M	RPI, Src1 \&gt; 0	Round (Src1\-2\-M) 
+*
+	RPI, Src1 ≤ 0	Src1
+	RNI, Src1 ≥ 0	Src1
+	RNI, Src1 \&lt; 0	Round (Src1+2\-M) 
+*
+T{
+Src1 = ±0, or Dest = ±0 (Src1!=INF)
+T}
+	NOT RNI	+0.0
+	RNI	\-0.0
+Src1 = ±INF	any	+0.0
+Src1= ±NAN	n/a	QNaN(Src1)
+.TE
+
+.PP
+Table 5\-24. VREDUCEPD/SD/PS/SS Special Cases
+
+.PP
+* Round control = (imm8.MS1)? MXCSR.RC: imm8.RC
+
+.SS Operation
+.PP
+.RS
+
+.nf
+ReduceArgumentDP(SRC[63:0], imm8[7:0])
+{
+    // Check for NaN
+    IF (SRC [63:0] = NAN) THEN
+        RETURN (Convert SRC[63:0] to QNaN); FI;
+    M ← imm8[7:4]; // Number of fraction bits of the normalized significand to be subtracted
+    RC←imm8[1:0];// Round Control for ROUND() operation
+    RC source←imm[2];
+    SPE←0;// Suppress Precision Exception
+    TMP[63:0] ← 2M as standard binary FP values
+    TMP[63:0]←SRC[63:0] – TMP[63:0]; // subtraction under the same RC,SPE controls
+    RETURN TMP[63:0]; // binary encoded FP with biased exponent and normalized significand
+}
+
+.fi
+.RE
+
+.SS VREDUCEPD
+.PP
+.RS
+
+.nf
+(KL, VL) = (2, 128), (4, 256), (8, 512)
+FOR j←0 TO KL\-1
+    i←j * 64
+    IF k1[j] OR *no writemask* THEN
+            IF (EVEX.b == 1) AND (SRC *is memory*)
+                THEN DEST[i+63:i]←ReduceArgumentDP(SRC[63:0], imm8[7:0]);
+                ELSE DEST[i+63:i]←ReduceArgumentDP(SRC[i+63:i], imm8[7:0]);
+            FI;
+    ELSE
+        IF *merging\-masking* ; merging\-masking
+            THEN *DEST[i+63:i] remains unchanged*
+            ELSE
+                    ; zeroing\-masking
+                DEST[i+63:i] = 0
+        FI;
+    FI;
+ENDFOR;
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS Intel C/C++ Compiler Intrinsic Equivalent
+.PP
+.RS
+
+.nf
+VREDUCEPD \_\_m512d \_mm512\_mask\_reduce\_pd( \_\_m512d a, int imm, int sae)
+
+VREDUCEPD \_\_m512d \_mm512\_mask\_reduce\_pd(\_\_m512d s, \_\_mmask8 k, \_\_m512d a, int imm, int sae)
+
+VREDUCEPD \_\_m512d \_mm512\_maskz\_reduce\_pd(\_\_mmask8 k, \_\_m512d a, int imm, int sae)
+
+VREDUCEPD \_\_m256d \_mm256\_mask\_reduce\_pd( \_\_m256d a, int imm)
+
+VREDUCEPD \_\_m256d \_mm256\_mask\_reduce\_pd(\_\_m256d s, \_\_mmask8 k, \_\_m256d a, int imm)
+
+VREDUCEPD \_\_m256d \_mm256\_maskz\_reduce\_pd(\_\_mmask8 k, \_\_m256d a, int imm)
+
+VREDUCEPD \_\_m128d \_mm\_mask\_reduce\_pd( \_\_m128d a, int imm)
+
+VREDUCEPD \_\_m128d \_mm\_mask\_reduce\_pd(\_\_m128d s, \_\_mmask8 k, \_\_m128d a, int imm)
+
+VREDUCEPD \_\_m128d \_mm\_maskz\_reduce\_pd(\_\_mmask8 k, \_\_m128d a, int imm)
+
+.fi
+.RE
+
+.SS SIMD Floating\-Point Exceptions
+.PP
+Invalid, Precision
+
+.PP
+If SPE is enabled, precision exception is not reported (regardless of
+MXCSR exception mask).
+
+.SS Other Exceptions
+.PP
+See Exceptions Type E2, additionally
+
+.TS
+allbox;
+l l 
+l l .
+#UD	If EVEX.vvvv != 1111B.
+.TE
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+Copyleft TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

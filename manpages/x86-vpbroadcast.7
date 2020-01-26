@@ -1,0 +1,717 @@
+.nh
+.TH "X86-VPBROADCAST" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+VPBROADCAST - LOAD INTEGER AND BROADCAST
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp/En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+T{
+VEX.128.66.0F38.W0 78 /r VPBROADCASTB xmm1, xmm2/m8
+T}
+	A	V/V	AVX2	T{
+Broadcast a byte integer in the source operand to sixteen locations in xmm1.
+T}
+T{
+VEX.256.66.0F38.W0 78 /r VPBROADCASTB ymm1, xmm2/m8
+T}
+	A	V/V	AVX2	T{
+Broadcast a byte integer in the source operand to thirty\-two locations in ymm1.
+T}
+T{
+EVEX.128.66.0F38.W0 78 /r VPBROADCASTB xmm1{k1}{z}, xmm2/m8
+T}
+	B	V/V	AVX512VL AVX512BW	T{
+Broadcast a byte integer in the source operand to locations in xmm1 subject to writemask k1.
+T}
+T{
+EVEX.256.66.0F38.W0 78 /r VPBROADCASTB ymm1{k1}{z}, xmm2/m8
+T}
+	B	V/V	AVX512VL AVX512BW	T{
+Broadcast a byte integer in the source operand to locations in ymm1 subject to writemask k1.
+T}
+T{
+EVEX.512.66.0F38.W0 78 /r VPBROADCASTB zmm1{k1}{z}, xmm2/m8
+T}
+	B	V/V	AVX512BW	T{
+Broadcast a byte integer in the source operand to 64 locations in zmm1 subject to writemask k1.
+T}
+T{
+VEX.128.66.0F38.W0 79 /r VPBROADCASTW xmm1, xmm2/m16
+T}
+	A	V/V	AVX2	T{
+Broadcast a word integer in the source operand to eight locations in xmm1.
+T}
+T{
+VEX.256.66.0F38.W0 79 /r VPBROADCASTW ymm1, xmm2/m16
+T}
+	A	V/V	AVX2	T{
+Broadcast a word integer in the source operand to sixteen locations in ymm1.
+T}
+T{
+EVEX.128.66.0F38.W0 79 /r VPBROADCASTW xmm1{k1}{z}, xmm2/m16
+T}
+	B	V/V	AVX512VL AVX512BW	T{
+Broadcast a word integer in the source operand to locations in xmm1 subject to writemask k1.
+T}
+T{
+EVEX.256.66.0F38.W0 79 /r VPBROADCASTW ymm1{k1}{z}, xmm2/m16
+T}
+	B	V/V	AVX512VL AVX512BW	T{
+Broadcast a word integer in the source operand to locations in ymm1 subject to writemask k1.
+T}
+T{
+EVEX.512.66.0F38.W0 79 /r VPBROADCASTW zmm1{k1}{z}, xmm2/m16
+T}
+	B	V/V	AVX512BW	T{
+Broadcast a word integer in the source operand to 32 locations in zmm1 subject to writemask k1.
+T}
+T{
+VEX.128.66.0F38.W0 58 /r VPBROADCASTD xmm1, xmm2/m32
+T}
+	A	V/V	AVX2	T{
+Broadcast a dword integer in the source operand to four locations in xmm1.
+T}
+T{
+VEX.256.66.0F38.W0 58 /r VPBROADCASTD ymm1, xmm2/m32
+T}
+	A	V/V	AVX2	T{
+Broadcast a dword integer in the source operand to eight locations in ymm1.
+T}
+T{
+EVEX.128.66.0F38.W0 58 /r VPBROADCASTD xmm1 {k1}{z}, xmm2/m32
+T}
+	B	V/V	AVX512VL AVX512F	T{
+Broadcast a dword integer in the source operand to locations in xmm1 subject to writemask k1.
+T}
+T{
+EVEX.256.66.0F38.W0 58 /r VPBROADCASTD ymm1 {k1}{z}, xmm2/m32
+T}
+	B	V/V	AVX512VL AVX512F	T{
+Broadcast a dword integer in the source operand to locations in ymm1 subject to writemask k1.
+T}
+T{
+EVEX.512.66.0F38.W0 58 /r VPBROADCASTD zmm1 {k1}{z}, xmm2/m32
+T}
+	B	V/V	AVX512F	T{
+Broadcast a dword integer in the source operand to locations in zmm1 subject to writemask k1.
+T}
+T{
+VEX.128.66.0F38.W0 59 /r VPBROADCASTQ xmm1, xmm2/m64
+T}
+	A	V/V	AVX2	T{
+Broadcast a qword element in source operand to two locations in xmm1.
+T}
+T{
+VEX.256.66.0F38.W0 59 /r VPBROADCASTQ ymm1, xmm2/m64
+T}
+	A	V/V	AVX2	T{
+Broadcast a qword element in source operand to four locations in ymm1.
+T}
+T{
+EVEX.128.66.0F38.W1 59 /r VPBROADCASTQ xmm1 {k1}{z}, xmm2/m64
+T}
+	B	V/V	AVX512VL AVX512F	T{
+Broadcast a qword element in source operand to locations in xmm1 subject to writemask k1.
+T}
+T{
+EVEX.256.66.0F38.W1 59 /r VPBROADCASTQ ymm1 {k1}{z}, xmm2/m64
+T}
+	B	V/V	AVX512VL AVX512F	T{
+Broadcast a qword element in source operand to locations in ymm1 subject to writemask k1.
+T}
+T{
+EVEX.512.66.0F38.W1 59 /r VPBROADCASTQ zmm1 {k1}{z}, xmm2/m64
+T}
+	B	V/V	AVX512F	T{
+Broadcast a qword element in source operand to locations in zmm1 subject to writemask k1.
+T}
+T{
+EVEX.128.66.0F38.W0 59 /r VBROADCASTI32x2 xmm1 {k1}{z}, xmm2/m64
+T}
+	C	V/V	AVX512VL AVX512DQ	T{
+Broadcast two dword elements in source operand to locations in xmm1 subject to writemask k1.
+T}
+T{
+EVEX.256.66.0F38.W0 59 /r VBROADCASTI32x2 ymm1 {k1}{z}, xmm2/m64
+T}
+	C	V/V	AVX512VL AVX512DQ	T{
+Broadcast two dword elements in source operand to locations in ymm1 subject to writemask k1.
+T}
+T{
+EVEX.512.66.0F38.W0 59 /r VBROADCASTI32x2 zmm1 {k1}{z}, xmm2/m64
+T}
+	C	V/V	AVX512DQ	T{
+Broadcast two dword elements in source operand to locations in zmm1 subject to writemask k1.
+T}
+T{
+VEX.256.66.0F38.W0 5A /r VBROADCASTI128 ymm1, m128
+T}
+	A	V/V	AVX2	T{
+Broadcast 128 bits of integer data in mem to low and high 128\-bits in ymm1.
+T}
+T{
+EVEX.256.66.0F38.W0 5A /r VBROADCASTI32X4 ymm1 {k1}{z}, m128
+T}
+	D	V/V	AVX512VL AVX512F	T{
+Broadcast 128 bits of 4 doubleword integer data in mem to locations in ymm1 using writemask k1.
+T}
+T{
+EVEX.512.66.0F38.W0 5A /r VBROADCASTI32X4 zmm1 {k1}{z}, m128
+T}
+	D	V/V	AVX512F	T{
+Broadcast 128 bits of 4 doubleword integer data in mem to locations in zmm1 using writemask k1.
+T}
+T{
+EVEX.256.66.0F38.W1 5A /r VBROADCASTI64X2 ymm1 {k1}{z}, m128
+T}
+	C	V/V	AVX512VL AVX512DQ	T{
+Broadcast 128 bits of 2 quadword integer data in mem to locations in ymm1 using writemask k1.
+T}
+T{
+EVEX.512.66.0F38.W1 5A /r VBROADCASTI64X2 zmm1 {k1}{z}, m128
+T}
+	C	V/V	AVX512DQ	T{
+Broadcast 128 bits of 2 quadword integer data in mem to locations in zmm1 using writemask k1.
+T}
+T{
+EVEX.512.66.0F38.W0 5B /r VBROADCASTI32X8 zmm1 {k1}{z}, m256
+T}
+	E	V/V	AVX512DQ	T{
+Broadcast 256 bits of 8 doubleword integer data in mem to locations in zmm1 using writemask k1.
+T}
+T{
+EVEX.512.66.0F38.W1 5B /r VBROADCASTI64X4 zmm1 {k1}{z}, m256
+T}
+	D	V/V	AVX512F	T{
+Broadcast 256 bits of 4 quadword integer data in mem to locations in zmm1 using writemask k1.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+Op/En	Tuple Type	Operand 1	Operand 2	Operand 3	Operand 4
+A	NA	ModRM:reg (w)	ModRM:r/m (r)	NA	NA
+B	Tuple1 Scalar	ModRM:reg (w)	ModRM:r/m (r)	NA	NA
+C	Tuple2	ModRM:reg (w)	ModRM:r/m (r)	NA	NA
+D	Tuple4	ModRM:reg (w)	ModRM:r/m (r)	NA	NA
+E	Tuple8	ModRM:reg (w)	ModRM:r/m (r)	NA	NA
+.TE
+
+.SS Description
+.PP
+Load integer data from the source operand (the second operand) and
+broadcast to all elements of the destination operand (the first
+operand).
+
+.PP
+VEX256\-encoded VPBROADCASTB/W/D/Q: The source operand is 8\-bit, 16\-bit,
+32\-bit, 64\-bit memory location or the low 8\-bit, 16\-bit 32\-bit, 64\-bit
+data in an XMM register. The destination operand is a YMM register.
+VPBROADCASTI128 support the source operand of 128\-bit memory location.
+Register source encodings for VPBROADCASTI128 is reserved and will #UD.
+Bits (MAXVL\-1:256) of the destination register are zeroed.
+
+.PP
+EVEX\-encoded VPBROADCASTD/Q: The source operand is a 32\-bit, 64\-bit
+memory location or the low 32\-bit, 64\-bit data in an XMM register. The
+destination operand is a ZMM/YMM/XMM register and updated according to
+the writemask k1.
+
+.PP
+VPBROADCASTI32X4 and VPBROADCASTI64X4: The destination operand is a ZMM
+register and updated according to the writemask k1. The source operand
+is 128\-bit or 256\-bit memory location. Register source encodings for
+VBROADCASTI32X4 and VBROADCASTI64X4 are reserved and will #UD.
+
+.PP
+Note: VEX.vvvv and EVEX.vvvv are reserved and must be 1111b otherwise
+instructions will #UD.
+
+.PP
+If VPBROADCASTI128 is encoded with VEX.L= 0, an attempt to execute the
+instruction encoded with VEX.L= 0 will cause an #UD exception.
+
+.PP
+X0m32DESTX0X0X0X0X0X0X0X0
+
+.PP
+Figure 5\-16. VPBROADCASTD Operation (VEX.256 encoded version)
+
+.PP
+X0m32DEST0000X0X0X0X0
+
+.PP
+Figure 5\-17. VPBROADCASTD Operation (128\-bit version)
+
+.PP
+m64X0DESTX0X0X0
+
+.PP
+Figure 5\-18. VPBROADCASTQ Operation (256\-bit version)
+
+.PP
+m128X0DESTX0X0
+
+.PP
+Figure 5\-19. VBROADCASTI128 Operation (256\-bit version)
+
+.PP
+m256X0DESTX0X0
+
+.PP
+Figure 5\-20. VBROADCASTI256 Operation (512\-bit version)
+
+.SS Operation
+.SS VPBROADCASTB (EVEX encoded versions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (16, 128), (32, 256), (64, 512)
+FOR j←0 TO KL\-1
+    i←j * 8
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+7:i]←SRC[7:0]
+        ELSE
+            IF *merging\-masking*
+                        ; merging\-masking
+                THEN *DEST[i+7:i] remains unchanged*
+                ELSE
+                        ; zeroing\-masking
+                    DEST[i+7:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS VPBROADCASTW (EVEX encoded versions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (8, 128), (16, 256), (32, 512)
+FOR j←0 TO KL\-1
+    i←j * 16
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+15:i]←SRC[15:0]
+        ELSE
+            IF *merging\-masking*
+                        ; merging\-masking
+                THEN *DEST[i+15:i] remains unchanged*
+                ELSE
+                        ; zeroing\-masking
+                    DEST[i+15:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS VPBROADCASTD (128 bit version)
+.PP
+.RS
+
+.nf
+temp ← SRC[31:0]
+DEST[31:0] ← temp
+DEST[63:32] ← temp
+DEST[95:64] ← temp
+DEST[127:96] ← temp
+DEST[MAXVL\-1:128] ← 0
+
+.fi
+.RE
+
+.SS VPBROADCASTD (VEX.256 encoded version)
+.PP
+.RS
+
+.nf
+temp ← SRC[31:0]
+DEST[31:0] ← temp
+DEST[63:32] ← temp
+DEST[95:64] ← temp
+DEST[127:96] ← temp
+DEST[159:128] ← temp
+DEST[191:160] ← temp
+DEST[223:192] ← temp
+DEST[255:224] ← temp
+DEST[MAXVL\-1:256] ← 0
+VPBROADCASTD (EVEX encoded versions)
+(KL, VL) = (4, 128), (8, 256), (16, 512)
+FOR j←0 TO KL\-1
+    i←j * 32
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+31:i]←SRC[31:0]
+        ELSE
+            IF *merging\-masking*
+                        ; merging\-masking
+                THEN *DEST[i+31:i] remains unchanged*
+                ELSE
+                        ; zeroing\-masking
+                    DEST[i+31:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS VPBROADCASTQ (VEX.256 encoded version)
+.PP
+.RS
+
+.nf
+temp ← SRC[63:0]
+DEST[63:0] ← temp
+DEST[127:64] ← temp
+DEST[191:128] ← temp
+DEST[255:192] ← temp
+DEST[MAXVL\-1:256] ← 0
+
+.fi
+.RE
+
+.SS VPBROADCASTQ (EVEX encoded versions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (2, 128), (4, 256), (8, 512)
+FOR j←0 TO KL\-1
+    i←j * 64
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+63:i]←SRC[63:0]
+        ELSE
+            IF *merging\-masking*
+                        ; merging\-masking
+                THEN *DEST[i+63:i] remains unchanged*
+                ELSE
+                        ; zeroing\-masking
+                    DEST[i+63:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+VBROADCASTI32x2 (EVEX encoded versions)
+(KL, VL) = (4, 128), (8, 256), (16, 512)
+FOR j←0 TO KL\-1
+    i← j * 32
+    n← (j mod 2) * 32
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+31:i]←SRC[n+31:n]
+        ELSE
+            IF *merging\-masking*
+                        ; merging\-masking
+                THEN *DEST[i+31:i] remains unchanged*
+                ELSE
+                        ; zeroing\-masking
+                    DEST[i+31:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS VBROADCASTI128 (VEX.256 encoded version)
+.PP
+.RS
+
+.nf
+temp ← SRC[127:0]
+DEST[127:0] ← temp
+DEST[255:128] ← temp
+DEST[MAXVL\-1:256] ← 0
+
+.fi
+.RE
+
+.SS VBROADCASTI32X4 (EVEX encoded versions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (8, 256), (16, 512)
+FOR j←0 TO KL\-1
+    i← j* 32
+    n← (j modulo 4) * 32
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+31:i]←SRC[n+31:n]
+        ELSE
+            IF *merging\-masking*
+                        ; merging\-masking
+                THEN *DEST[i+31:i] remains unchanged*
+                ELSE
+                        ; zeroing\-masking
+                    DEST[i+31:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS VBROADCASTI64X2 (EVEX encoded versions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (8, 256), (16, 512)
+FOR j←0 TO KL\-1
+    i←j * 64
+    n←(j modulo 2) * 64
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+63:i]←SRC[n+63:n]
+        ELSE
+            IF *merging\-masking*
+                THEN *DEST[i+63:i] remains unchanged*
+                ELSE ; zeroing\-masking
+                    DEST[i+63:i] = 0
+            FI
+    FI;
+ENDFOR;
+
+.fi
+.RE
+
+.SS VBROADCASTI32X8 (EVEX.U1.512 encoded version)
+.PP
+.RS
+
+.nf
+FOR j←0 TO 15
+    i←j * 32
+    n←(j modulo 8) * 32
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+31:i]←SRC[n+31:n]
+        ELSE
+            IF *merging\-masking*
+                        ; merging\-masking
+                THEN *DEST[i+31:i] remains unchanged*
+                ELSE
+                        ; zeroing\-masking
+                    DEST[i+31:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS VBROADCASTI64X4 (EVEX.512 encoded version)
+.PP
+.RS
+
+.nf
+FOR j←0 TO 7
+    i←j * 64
+    n← (j modulo 4) * 64
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+63:i]←SRC[n+63:n]
+        ELSE
+            IF *merging\-masking*
+                THEN *DEST[i+63:i] remains unchanged*
+                ELSE ; zeroing\-masking
+                    DEST[i+63:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS Intel C/C++ Compiler Intrinsic Equivalent
+.PP
+.RS
+
+.nf
+VPBROADCASTB \_\_m512i \_mm512\_broadcastb\_epi8( \_\_m128i a);
+
+VPBROADCASTB \_\_m512i \_mm512\_mask\_broadcastb\_epi8(\_\_m512i s, \_\_mmask64 k, \_\_m128i a);
+
+VPBROADCASTB \_\_m512i \_mm512\_maskz\_broadcastb\_epi8( \_\_mmask64 k, \_\_m128i a);
+
+VPBROADCASTB \_\_m256i \_mm256\_broadcastb\_epi8(\_\_m128i a);
+
+VPBROADCASTB \_\_m256i \_mm256\_mask\_broadcastb\_epi8(\_\_m256i s, \_\_mmask32 k, \_\_m128i a);
+
+VPBROADCASTB \_\_m256i \_mm256\_maskz\_broadcastb\_epi8( \_\_mmask32 k, \_\_m128i a);
+
+VPBROADCASTB \_\_m128i \_mm\_mask\_broadcastb\_epi8(\_\_m128i s, \_\_mmask16 k, \_\_m128i a);
+
+VPBROADCASTB \_\_m128i \_mm\_maskz\_broadcastb\_epi8( \_\_mmask16 k, \_\_m128i a);
+
+VPBROADCASTB \_\_m128i \_mm\_broadcastb\_epi8(\_\_m128i a);
+
+VPBROADCASTD \_\_m512i \_mm512\_broadcastd\_epi32( \_\_m128i a);
+
+VPBROADCASTD \_\_m512i \_mm512\_mask\_broadcastd\_epi32(\_\_m512i s, \_\_mmask16 k, \_\_m128i a);
+
+VPBROADCASTD \_\_m512i \_mm512\_maskz\_broadcastd\_epi32( \_\_mmask16 k, \_\_m128i a);
+
+VPBROADCASTD \_\_m256i \_mm256\_broadcastd\_epi32( \_\_m128i a);
+
+VPBROADCASTD \_\_m256i \_mm256\_mask\_broadcastd\_epi32(\_\_m256i s, \_\_mmask8 k, \_\_m128i a);
+
+VPBROADCASTD \_\_m256i \_mm256\_maskz\_broadcastd\_epi32( \_\_mmask8 k, \_\_m128i a);
+
+VPBROADCASTD \_\_m128i \_mm\_broadcastd\_epi32(\_\_m128i a);
+
+VPBROADCASTD \_\_m128i \_mm\_mask\_broadcastd\_epi32(\_\_m128i s, \_\_mmask8 k, \_\_m128i a);
+
+VPBROADCASTD \_\_m128i \_mm\_maskz\_broadcastd\_epi32( \_\_mmask8 k, \_\_m128i a);
+
+VPBROADCASTQ \_\_m512i \_mm512\_broadcastq\_epi64( \_\_m128i a);
+
+VPBROADCASTQ \_\_m512i \_mm512\_mask\_broadcastq\_epi64(\_\_m512i s, \_\_mmask8 k, \_\_m128i a);
+
+VPBROADCASTQ \_\_m512i \_mm512\_maskz\_broadcastq\_epi64( \_\_mmask8 k, \_\_m128i a);
+
+VPBROADCASTQ \_\_m256i \_mm256\_broadcastq\_epi64(\_\_m128i a);
+
+VPBROADCASTQ \_\_m256i \_mm256\_mask\_broadcastq\_epi64(\_\_m256i s, \_\_mmask8 k, \_\_m128i a);
+
+VPBROADCASTQ \_\_m256i \_mm256\_maskz\_broadcastq\_epi64( \_\_mmask8 k, \_\_m128i a);
+
+VPBROADCASTQ \_\_m128i \_mm\_broadcastq\_epi64(\_\_m128i a);
+
+VPBROADCASTQ \_\_m128i \_mm\_mask\_broadcastq\_epi64(\_\_m128i s, \_\_mmask8 k, \_\_m128i a);
+
+VPBROADCASTQ \_\_m128i \_mm\_maskz\_broadcastq\_epi64( \_\_mmask8 k, \_\_m128i a);
+
+VPBROADCASTW \_\_m512i \_mm512\_broadcastw\_epi16(\_\_m128i a);
+
+VPBROADCASTW \_\_m512i \_mm512\_mask\_broadcastw\_epi16(\_\_m512i s, \_\_mmask32 k, \_\_m128i a);
+
+VPBROADCASTW \_\_m512i \_mm512\_maskz\_broadcastw\_epi16( \_\_mmask32 k, \_\_m128i a);
+
+VPBROADCASTW \_\_m256i \_mm256\_broadcastw\_epi16(\_\_m128i a);
+
+VPBROADCASTW \_\_m256i \_mm256\_mask\_broadcastw\_epi16(\_\_m256i s, \_\_mmask16 k, \_\_m128i a);
+
+VPBROADCASTW \_\_m256i \_mm256\_maskz\_broadcastw\_epi16( \_\_mmask16 k, \_\_m128i a);
+
+VPBROADCASTW \_\_m128i \_mm\_broadcastw\_epi16(\_\_m128i a);
+
+VPBROADCASTW \_\_m128i \_mm\_mask\_broadcastw\_epi16(\_\_m128i s, \_\_mmask8 k, \_\_m128i a);
+
+VPBROADCASTW \_\_m128i \_mm\_maskz\_broadcastw\_epi16( \_\_mmask8 k, \_\_m128i a);
+
+VBROADCASTI32x2 \_\_m512i \_mm512\_broadcast\_i32x2( \_\_m128i a);
+
+VBROADCASTI32x2 \_\_m512i \_mm512\_mask\_broadcast\_i32x2(\_\_m512i s, \_\_mmask16 k, \_\_m128i a);
+
+VBROADCASTI32x2 \_\_m512i \_mm512\_maskz\_broadcast\_i32x2( \_\_mmask16 k, \_\_m128i a);
+
+VBROADCASTI32x2 \_\_m256i \_mm256\_broadcast\_i32x2( \_\_m128i a);
+
+VBROADCASTI32x2 \_\_m256i \_mm256\_mask\_broadcast\_i32x2(\_\_m256i s, \_\_mmask8 k, \_\_m128i a);
+
+VBROADCASTI32x2 \_\_m256i \_mm256\_maskz\_broadcast\_i32x2( \_\_mmask8 k, \_\_m128i a);
+
+VBROADCASTI32x2 \_\_m128i \_mm\_broadcast\_i32x2(\_\_m128i a);
+
+VBROADCASTI32x2 \_\_m128i \_mm\_mask\_broadcast\_i32x2(\_\_m128i s, \_\_mmask8 k, \_\_m128i a);
+
+VBROADCASTI32x2 \_\_m128i \_mm\_maskz\_broadcast\_i32x2( \_\_mmask8 k, \_\_m128i a);
+
+VBROADCASTI32x4 \_\_m512i \_mm512\_broadcast\_i32x4( \_\_m128i a);
+
+VBROADCASTI32x4 \_\_m512i \_mm512\_mask\_broadcast\_i32x4(\_\_m512i s, \_\_mmask16 k, \_\_m128i a);
+
+VBROADCASTI32x4 \_\_m512i \_mm512\_maskz\_broadcast\_i32x4( \_\_mmask16 k, \_\_m128i a);
+
+VBROADCASTI32x4 \_\_m256i \_mm256\_broadcast\_i32x4( \_\_m128i a);
+
+VBROADCASTI32x4 \_\_m256i \_mm256\_mask\_broadcast\_i32x4(\_\_m256i s, \_\_mmask8 k, \_\_m128i a);
+
+VBROADCASTI32x4 \_\_m256i \_mm256\_maskz\_broadcast\_i32x4( \_\_mmask8 k, \_\_m128i a);
+
+VBROADCASTI32x8 \_\_m512i \_mm512\_broadcast\_i32x8( \_\_m256i a);
+
+VBROADCASTI32x8 \_\_m512i \_mm512\_mask\_broadcast\_i32x8(\_\_m512i s, \_\_mmask16 k, \_\_m256i a);
+
+VBROADCASTI32x8 \_\_m512i \_mm512\_maskz\_broadcast\_i32x8( \_\_mmask16 k, \_\_m256i a);
+
+VBROADCASTI64x2 \_\_m512i \_mm512\_broadcast\_i64x2( \_\_m128i a);
+
+VBROADCASTI64x2 \_\_m512i \_mm512\_mask\_broadcast\_i64x2(\_\_m512i s, \_\_mmask8 k, \_\_m128i a);
+
+VBROADCASTI64x2 \_\_m512i \_mm512\_maskz\_broadcast\_i64x2( \_\_mmask8 k, \_\_m128i a);
+
+VBROADCASTI64x2 \_\_m256i \_mm256\_broadcast\_i64x2( \_\_m128i a);
+
+VBROADCASTI64x2 \_\_m256i \_mm256\_mask\_broadcast\_i64x2(\_\_m256i s, \_\_mmask8 k, \_\_m128i a);
+
+VBROADCASTI64x2 \_\_m256i \_mm256\_maskz\_broadcast\_i64x2( \_\_mmask8 k, \_\_m128i a);
+
+VBROADCASTI64x4 \_\_m512i \_mm512\_broadcast\_i64x4( \_\_m256i a);
+
+VBROADCASTI64x4 \_\_m512i \_mm512\_mask\_broadcast\_i64x4(\_\_m512i s, \_\_mmask8 k, \_\_m256i a);
+
+VBROADCASTI64x4 \_\_m512i \_mm512\_maskz\_broadcast\_i64x4( \_\_mmask8 k, \_\_m256i a);
+
+.fi
+.RE
+
+.SS SIMD Floating\-Point Exceptions
+.PP
+None
+
+.SS Other Exceptions
+.PP
+EVEX\-encoded instructions, see Exceptions Type 6;
+
+.PP
+EVEX\-encoded instructions, syntax with reg/mem operand, see Exceptions
+Type E6.
+
+.TS
+allbox;
+l l 
+l l .
+#UD	T{
+If VEX.L = 0 for VPBROADCASTQ, VPBROADCASTI128.
+T}
+	T{
+If EVEX.L’L = 0 for VBROADCASTI32X4/VBROADCASTI64X2.
+T}
+	If EVEX.L’L 
+\&lt;
+T{
+ 10b for VBROADCASTI32X8/VBROADCASTI64X4.
+T}
+.TE
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+Copyleft TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

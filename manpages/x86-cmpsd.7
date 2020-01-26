@@ -1,0 +1,346 @@
+.nh
+.TH "X86-CMPSD" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+CMPSD - COMPARE SCALAR DOUBLE-PRECISION FLOATING-POINT VALUE
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp / En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+T{
+F2 0F C2 /r ib CMPSD xmm1, xmm2/m64, imm8
+T}
+	A	V/V	SSE2	T{
+Compare low double\-precision floating\-point value in xmm2/m64 and xmm1 using bits 2:0 of imm8 as comparison predicate.
+T}
+T{
+VEX.LIG.F2.0F.WIG C2 /r ib VCMPSD xmm1, xmm2, xmm3/m64, imm8
+T}
+	B	V/V	AVX	T{
+Compare low double\-precision floating\-point value in xmm3/m64 and xmm2 using bits 4:0 of imm8 as comparison predicate.
+T}
+T{
+EVEX.LIG.F2.0F.W1 C2 /r ib VCMPSD k1 {k2}, xmm2, xmm3/m64{sae}, imm8
+T}
+	C	V/V	AVX512F	T{
+Compare low double\-precision floating\-point value in xmm3/m64 and xmm2 using bits 4:0 of imm8 as comparison predicate with writemask k2 and leave the result in mask register k1.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+Op/En	Tuple Type	Operand 1	Operand 2	Operand 3	Operand 4
+A	NA	ModRM:reg (r, w)	ModRM:r/m (r)	Imm8	NA
+B	NA	ModRM:reg (w)	VEX.vvvv	ModRM:r/m (r)	Imm8
+C	Tuple1 Scalar	ModRM:reg (w)	EVEX.vvvv	ModRM:r/m (r)	Imm8
+.TE
+
+.SH DESCRIPTION
+.PP
+Compares the low double\-precision floating\-point values in the second
+source operand and the first source operand and returns the results in
+of the comparison to the destination operand. The comparison predicate
+operand (immediate operand) specifies the type of comparison performed.
+
+.PP
+128\-bit Legacy SSE version: The first source and destination operand
+(first operand) is an XMM register. The second source operand (second
+operand) can be an XMM register or 64\-bit memory location. Bits
+(MAXVL\-1:64) of the corresponding YMM destination register remain
+unchanged. The comparison result is a quadword mask of all 1s
+(comparison true) or all 0s (comparison false).
+
+.PP
+VEX.128 encoded version: The first source operand (second operand) is an
+XMM register. The second source operand (third operand) can be an XMM
+register or a 64\-bit memory location. The result is stored in the low
+quadword of the destination operand; the high quadword is filled with
+the contents of the high quadword of the first source operand. Bits
+(MAXVL\-1:128) of the destination ZMM register are zeroed. The comparison
+result is a quadword mask of all 1s (comparison true) or all 0s
+(comparison false).
+
+.PP
+EVEX encoded version: The first source operand (second operand) is an
+XMM register. The second source operand can be a XMM register or a
+64\-bit memory location. The destination operand (first operand) is an
+opmask register. The comparison result is a single mask bit of 1
+(comparison true) or 0 (comparison false), written to the destination
+starting from the LSB according to the writemask k2. Bits
+(MAX\_KL\-1:128) of the destination register are cleared.
+
+.PP
+The comparison predicate operand is an 8\-bit immediate:
+
+.RS
+.IP \(bu 2
+For instructions encoded using the VEX prefix, bits 4:0 define the
+type of comparison to be performed (see Table 3\-1). Bits 5 through 7
+of the immediate are reserved.
+.IP \(bu 2
+For instruction encodings that do not use VEX prefix, bits 2:0
+define the type of comparison to be made (see the first 8 rows of
+Table 3\-1). Bits 3 through 7 of the immediate are reserved.
+
+.RE
+
+.PP
+The unordered relationship is true when at least one of the two source
+operands being compared is a NaN; the ordered relationship is true when
+neither source operand is a NaN.
+
+.PP
+A subsequent computational instruction that uses the mask result in the
+destination operand as an input operand will not generate an exception,
+because a mask of all 0s corresponds to a floating\-point value of +0.0
+and a mask of all 1s corresponds to a QNaN.
+
+.PP
+Note that processors with “CPUID.1H:ECX.AVX =0” do not implement the
+“greater\-than”, “greater\-than\-or\-equal”, “not\-greater than”, and
+“not\-greater\-than\-or\-equal relations” predicates. These comparisons can
+be made either by using the inverse relationship (that is, use the
+“not\-less\-than\-or\-equal” to make a “greater\-than” comparison)
+
+.PP
+or by using software emulation. When using software emulation, the
+program must swap the operands (copying registers when necessary to
+protect the data that will now be in the destination), and then perform
+the compare using a different predicate. The predicate to be used for
+these emulations is listed in the first 8 rows of Table 3\-7 (Intel 64
+and IA\-32 Architectures Software Developer’s Manual Volume 2A) under the
+heading Emulation.
+
+.PP
+Compilers and assemblers may implement the following two\-operand
+pseudo\-ops in addition to the three\-operand CMPSD instruction, for
+processors with “CPUID.1H:ECX.AVX =0”. See Table 3\-6. Compiler should
+treat reserved Imm8 values as illegal syntax.
+
+.TS
+allbox;
+l l 
+l l .
+\fB\fCPseudo\-Op\fR	\fB\fCCMPSD Implementation\fR
+CMPEQSD xmm1, xmm2	CMPSD xmm1, xmm2, 0
+CMPLTSD xmm1, xmm2	CMPSD xmm1, xmm2, 1
+CMPLESD xmm1, xmm2	CMPSD xmm1, xmm2, 2
+CMPUNORDSD xmm1, xmm2	CMPSD xmm1, xmm2, 3
+CMPNEQSD xmm1, xmm2	CMPSD xmm1, xmm2, 4
+CMPNLTSD xmm1, xmm2	CMPSD xmm1, xmm2, 5
+CMPNLESD xmm1, xmm2	CMPSD xmm1, xmm2, 6
+CMPORDSD xmm1, xmm2	CMPSD xmm1, xmm2, 7
+.TE
+
+.PP
+Table 3\-6. Pseudo\-Op and CMPSD Implementation
+
+.PP
+The greater\-than relations that the processor does not implement require
+more than one instruction to emulate in software and therefore should
+not be implemented as pseudo\-ops. (For these, the programmer should
+reverse the operands of the corresponding less than relations and use
+move instructions to ensure that the mask is moved to the correct
+destination register and that the source operand is left intact.)
+
+.PP
+Processors with “CPUID.1H:ECX.AVX =1” implement the full complement of
+32 predicates shown in Table 3\-7.
+
+.TS
+allbox;
+l l 
+l l .
+\fB\fCPseudo\-Op\fR	\fB\fCCMPSD Implementation\fR
+VCMPEQSD reg1, reg2, reg3	VCMPSD reg1, reg2, reg3, 0
+VCMPLTSD reg1, reg2, reg3	VCMPSD reg1, reg2, reg3, 1
+VCMPLESD reg1, reg2, reg3	VCMPSD reg1, reg2, reg3, 2
+VCMPUNORDSD reg1, reg2, reg3	VCMPSD reg1, reg2, reg3, 3
+VCMPNEQSD reg1, reg2, reg3	VCMPSD reg1, reg2, reg3, 4
+VCMPNLTSD reg1, reg2, reg3	VCMPSD reg1, reg2, reg3, 5
+VCMPNLESD reg1, reg2, reg3	VCMPSD reg1, reg2, reg3, 6
+VCMPORDSD reg1, reg2, reg3	VCMPSD reg1, reg2, reg3, 7
+VCMPEQ\_UQSD reg1, reg2, reg3	VCMPSD reg1, reg2, reg3, 8
+VCMPNGESD reg1, reg2, reg3	VCMPSD reg1, reg2, reg3, 9
+VCMPNGTSD reg1, reg2, reg3	VCMPSD reg1, reg2, reg3, 0AH
+VCMPFALSESD reg1, reg2, reg3	VCMPSD reg1, reg2, reg3, 0BH
+VCMPNEQ\_OQSD reg1, reg2, reg3	VCMPSD reg1, reg2, reg3, 0CH
+VCMPGESD reg1, reg2, reg3	VCMPSD reg1, reg2, reg3, 0DH
+.TE
+
+.PP
+Table 3\-7. Pseudo\-Op and VCMPSD Implementation
+
+.TS
+allbox;
+l l 
+l l .
+\fB\fCPseudo\-Op\fR	\fB\fCCMPSD Implementation\fR
+VCMPGTSD reg1, reg2, reg3	VCMPSD reg1, reg2, reg3, 0EH
+VCMPTRUESD reg1, reg2, reg3	VCMPSD reg1, reg2, reg3, 0FH
+VCMPEQ\_OSSD reg1, reg2, reg3	VCMPSD reg1, reg2, reg3, 10H
+VCMPLT\_OQSD reg1, reg2, reg3	VCMPSD reg1, reg2, reg3, 11H
+VCMPLE\_OQSD reg1, reg2, reg3	VCMPSD reg1, reg2, reg3, 12H
+VCMPUNORD\_SSD reg1, reg2, reg3	VCMPSD reg1, reg2, reg3, 13H
+VCMPNEQ\_USSD reg1, reg2, reg3	VCMPSD reg1, reg2, reg3, 14H
+VCMPNLT\_UQSD reg1, reg2, reg3	VCMPSD reg1, reg2, reg3, 15H
+VCMPNLE\_UQSD reg1, reg2, reg3	VCMPSD reg1, reg2, reg3, 16H
+VCMPORD\_SSD reg1, reg2, reg3	VCMPSD reg1, reg2, reg3, 17H
+VCMPEQ\_USSD reg1, reg2, reg3	VCMPSD reg1, reg2, reg3, 18H
+VCMPNGE\_UQSD reg1, reg2, reg3	VCMPSD reg1, reg2, reg3, 19H
+VCMPNGT\_UQSD reg1, reg2, reg3	VCMPSD reg1, reg2, reg3, 1AH
+VCMPFALSE\_OSSD reg1, reg2, reg3	VCMPSD reg1, reg2, reg3, 1BH
+VCMPNEQ\_OSSD reg1, reg2, reg3	VCMPSD reg1, reg2, reg3, 1CH
+VCMPGE\_OQSD reg1, reg2, reg3	VCMPSD reg1, reg2, reg3, 1DH
+VCMPGT\_OQSD reg1, reg2, reg3	VCMPSD reg1, reg2, reg3, 1EH
+VCMPTRUE\_USSD reg1, reg2, reg3	VCMPSD reg1, reg2, reg3, 1FH
+.TE
+
+.PP
+Table 3\-7. Pseudo\-Op and VCMPSD Implementation
+
+.PP
+Software should ensure VCMPSD is encoded with VEX.L=0. Encoding VCMPSD
+with VEX.L=1 may encounter unpredictable behavior across different
+processor generations.
+
+.SH OPERATION
+.PP
+.RS
+
+.nf
+CASE (COMPARISON PREDICATE) OF
+    0: OP3←EQ\_OQ; OP5←EQ\_OQ;
+    1: OP3←LT\_OS; OP5←LT\_OS;
+    2: OP3←LE\_OS; OP5←LE\_OS;
+    3: OP3←UNORD\_Q; OP5←UNORD\_Q;
+    4: OP3←NEQ\_UQ; OP5←NEQ\_UQ;
+    5: OP3←NLT\_US; OP5←NLT\_US;
+    6: OP3←NLE\_US; OP5←NLE\_US;
+    7: OP3←ORD\_Q; OP5←ORD\_Q;
+    8: OP5←EQ\_UQ;
+    9: OP5←NGE\_US;
+    10: OP5←NGT\_US;
+    11: OP5←FALSE\_OQ;
+    12: OP5←NEQ\_OQ;
+    13: OP5←GE\_OS;
+    14: OP5←GT\_OS;
+    15: OP5←TRUE\_UQ;
+    16: OP5←EQ\_OS;
+    17: OP5←LT\_OQ;
+    18: OP5←LE\_OQ;
+    19: OP5←UNORD\_S;
+    20: OP5←NEQ\_US;
+    21: OP5←NLT\_UQ;
+    22: OP5←NLE\_UQ;
+    23: OP5←ORD\_S;
+    24: OP5←EQ\_US;
+    25: OP5←NGE\_UQ;
+    26: OP5←NGT\_UQ;
+    27: OP5←FALSE\_OS;
+    28: OP5←NEQ\_OS;
+    29: OP5←GE\_OQ;
+    30: OP5←GT\_OQ;
+    31: OP5←TRUE\_US;
+    DEFAULT: Reserved
+ESAC;
+
+.fi
+.RE
+
+.SS VCMPSD (EVEX encoded version)
+.PP
+.RS
+
+.nf
+CMP0←SRC1[63:0] OP5 SRC2[63:0];
+IF k2[0] or *no writemask*
+    THEN IF CMP0 = TRUE
+        THEN DEST[0]←1;
+        ELSE DEST[0]←0; FI;
+    ELSE DEST[0]←0
+            ; zeroing\-masking only
+FI;
+DEST[MAX\_KL\-1:1] ← 0
+
+.fi
+.RE
+
+.SS CMPSD (128\-bit Legacy SSE version)
+.PP
+.RS
+
+.nf
+CMP0←DEST[63:0] OP3 SRC[63:0];
+IF CMP0 = TRUE
+THEN DEST[63:0]←FFFFFFFFFFFFFFFFH;
+ELSE DEST[63:0]←0000000000000000H; FI;
+DEST[MAXVL\-1:64] (Unmodified)
+
+.fi
+.RE
+
+.SS VCMPSD (VEX.128 encoded version)
+.PP
+.RS
+
+.nf
+CMP0←SRC1[63:0] OP5 SRC2[63:0];
+IF CMP0 = TRUE
+THEN DEST[63:0]←FFFFFFFFFFFFFFFFH;
+ELSE DEST[63:0]←0000000000000000H; FI;
+DEST[127:64] ←SRC1[127:64]
+DEST[MAXVL\-1:128] ←0
+
+.fi
+.RE
+
+.SH INTEL C/C++ COMPILER INTRINSIC EQUIVALENT
+.PP
+.RS
+
+.nf
+VCMPSD \_\_mmask8 \_mm\_cmp\_sd\_mask( \_\_m128d a, \_\_m128d b, int imm);
+
+VCMPSD \_\_mmask8 \_mm\_cmp\_round\_sd\_mask( \_\_m128d a, \_\_m128d b, int imm, int sae);
+
+VCMPSD \_\_mmask8 \_mm\_mask\_cmp\_sd\_mask( \_\_mmask8 k1, \_\_m128d a, \_\_m128d b, int imm);
+
+VCMPSD \_\_mmask8 \_mm\_mask\_cmp\_round\_sd\_mask( \_\_mmask8 k1, \_\_m128d a, \_\_m128d b, int imm, int sae);
+
+(V)CMPSD \_\_m128d \_mm\_cmp\_sd(\_\_m128d a, \_\_m128d b, const int imm)
+
+.fi
+.RE
+
+.SH SIMD FLOATING\-POINT EXCEPTIONS
+.PP
+Invalid if SNaN operand, Invalid if QNaN and predicate as listed in
+Table 3\-1 Denormal.
+
+.SH OTHER EXCEPTIONS
+.PP
+VEX\-encoded instructions, see Exceptions Type 3.
+
+.PP
+EVEX\-encoded instructions, see Exceptions Type E3.
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+Copyleft TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

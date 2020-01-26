@@ -1,0 +1,506 @@
+.nh
+.TH "X86-IMUL" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+IMUL - SIGNED MULTIPLY
+.PP
+Opcode
+
+.PP
+Instruction
+
+.PP
+Op/En
+
+.PP
+64\-Bit Mode
+
+.PP
+Compat/Leg Mode
+
+.PP
+Description
+
+.PP
+F6 /5
+
+.PP
+IMUL r/m8*
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+AX← AL ∗ r/m byte.
+
+.PP
+F7 /5
+
+.PP
+IMUL r/m16
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+DX:AX ← AX ∗ r/m word.
+
+.PP
+F7 /5
+
+.PP
+IMUL r/m32
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+EDX:EAX ← EAX ∗ r/m32.
+
+.PP
+REX.W + F7 /5
+
+.PP
+IMUL r/m64
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+N.E.
+
+.PP
+RDX:RAX ← RAX ∗ r/m64.
+
+.PP
+0F AF /r
+
+.PP
+IMUL r16, r/m16
+
+.PP
+RM
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+word register ← word register ∗ r/m16.
+
+.PP
+0F AF /r
+
+.PP
+IMUL r32, r/m32
+
+.PP
+RM
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+doubleword register ← doubleword register ∗ r/m32.
+
+.PP
+REX.W + 0F AF /r
+
+.PP
+IMUL r64, r/m64
+
+.PP
+RM
+
+.PP
+Valid
+
+.PP
+N.E.
+
+.PP
+Quadword register ← Quadword register ∗ r/m64.
+
+.PP
+6B /r ib
+
+.PP
+IMUL r16, r/m16, imm8
+
+.PP
+RMI
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+word register ← r/m16 ∗ sign\-extended immediate byte.
+
+.PP
+6B /r ib
+
+.PP
+IMUL r32, r/m32, imm8
+
+.PP
+RMI
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+doubleword register ← r/m32 ∗ sign\-extended immediate byte.
+
+.PP
+REX.W + 6B /r ib
+
+.PP
+IMUL r64, r/m64, imm8
+
+.PP
+RMI
+
+.PP
+Valid
+
+.PP
+N.E.
+
+.PP
+Quadword register ← r/m64 ∗ sign\-extended immediate byte.
+
+.PP
+69 /r iw
+
+.PP
+IMUL r16, r/m16, imm16
+
+.PP
+RMI
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+word register ← r/m16 ∗ immediate word.
+
+.PP
+69 /r id
+
+.PP
+IMUL r32, r/m32, imm32
+
+.PP
+RMI
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+doubleword register ← r/m32 ∗ immediate doubleword.
+
+.PP
+REX.W + 69 /r id
+
+.PP
+IMUL r64, r/m64, imm32
+
+.PP
+RMI
+
+.PP
+Valid
+
+.PP
+N.E.
+
+.PP
+Quadword register ← r/m64 ∗ immediate doubleword.
+
+.PP
+NOTES: *
+In64\-bitmode,r/m8cannotbeencodedtoaccessthefollowingbyteregistersifaREXprefixisused:AH,BH,CH,DH.
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l 
+l l l l l .
+Op/En	Operand 1	Operand 2	Operand 3	Operand 4
+M	ModRM:r/m (r, w)	NA	NA	NA
+RM	ModRM:reg (r, w)	ModRM:r/m (r)	NA	NA
+RMI	ModRM:reg (r, w)	ModRM:r/m (r)	imm8/16/32	NA
+.TE
+
+.SH DESCRIPTION
+.PP
+Performs a signed multiplication of two operands. This instruction has
+three forms, depending on the number of operands.
+
+.RS
+.IP \(bu 2
+One\-operand form — This form is identical to that used by the MUL
+instruction. Here, the source operand (in a general\-purpose register
+or memory location) is multiplied by the value in the AL, AX, EAX,
+or RAX register (depending on the operand size) and the product
+(twice the size of the input operand) is stored in the AX, DX:AX,
+EDX:EAX, or RDX:RAX registers, respectively.
+.IP \(bu 2
+Two\-operand form — With this form the destination operand (the first
+operand) is multiplied by the source operand (second operand). The
+destination operand is a general\-purpose register and the source
+operand is an immediate value, a general\-purpose register, or a
+memory location. The intermediate product (twice the size of the
+input operand) is truncated and stored in the destination operand
+location.
+.IP \(bu 2
+Three\-operand form — This form requires a destination operand (the
+first operand) and two source operands (the second and the third
+operands). Here, the first source operand (which can be a
+general\-purpose register or a memory location) is multiplied by the
+second source operand (an immediate value). The intermediate product
+(twice the size of the first source operand) is truncated and stored
+in the destination operand (a general\-purpose register).
+
+.RE
+
+.PP
+When an immediate value is used as an operand, it is sign\-extended to
+the length of the destination operand format.
+
+.PP
+The CF and OF flags are set when the signed integer value of the
+intermediate product differs from the sign extended
+operand\-size\-truncated product, otherwise the CF and OF flags are
+cleared.
+
+.PP
+The three forms of the IMUL instruction are similar in that the length
+of the product is calculated to twice the length of the operands. With
+the one\-operand form, the product is stored exactly in the destination.
+With the two\- and three\- operand forms, however, the result is truncated
+to the length of the destination before it is stored in the destination
+register. Because of this truncation, the CF or OF flag should be tested
+to ensure that no significant bits are lost.
+
+.PP
+The two\- and three\-operand forms may also be used with unsigned operands
+because the lower half of the product is the same regardless if the
+operands are signed or unsigned. The CF and OF flags, however, cannot be
+used to determine if the upper half of the result is non\-zero.
+
+.PP
+In 64\-bit mode, the instruction’s default operation size is 32 bits. Use
+of the REX.R prefix permits access to additional registers (R8\-R15). Use
+of the REX.W prefix promotes operation to 64 bits. Use of REX.W modifies
+the three forms of the instruction as follows.
+
+.RS
+.IP \(bu 2
+One\-operand form —The source operand (in a 64\-bit general\-purpose
+register or memory location) is multiplied by the value in the RAX
+register and the product is stored in the RDX:RAX registers.
+.IP \(bu 2
+Two\-operand form — The source operand is promoted to 64 bits if it
+is a register or a memory location. The destination operand is
+promoted to 64 bits.
+.IP \(bu 2
+Three\-operand form — The first source operand (either a register or
+a memory location) and destination operand are promoted to 64 bits.
+If the source operand is an immediate, it is sign extended to 64
+bits.
+
+.RE
+
+.SH OPERATION
+.PP
+.RS
+
+.nf
+IF (NumberOfOperands = 1)
+    THEN IF (OperandSize = 8)
+        THEN
+            TMP\_XP ← AL ∗ SRC (* Signed multiplication; TMP\_XP is a signed integer at twice the width of the SRC *);
+            AX ← TMP\_XP[15:0];
+            IF SignExtend(TMP\_XP[7:0]) = TMP\_XP
+                THEN CF ← 0; OF ← 0;
+                ELSE CF ← 1; OF ← 1; FI;
+        ELSE IF OperandSize = 16
+            THEN
+                TMP\_XP ← AX ∗ SRC (* Signed multiplication; TMP\_XP is a signed integer at twice the width of the SRC *)
+                DX:AX ← TMP\_XP[31:0];
+                IF SignExtend(TMP\_XP[15:0]) = TMP\_XP
+                    THEN CF ← 0; OF ← 0;
+                    ELSE CF ← 1; OF ← 1; FI;
+            ELSE IF OperandSize = 32
+                THEN
+                    TMP\_XP ← EAX ∗ SRC (* Signed multiplication; TMP\_XP is a signed integer at twice the width of the SRC*)
+                    EDX:EAX ← TMP\_XP[63:0];
+                    IF SignExtend(TMP\_XP[31:0]) = TMP\_XP
+                        THEN CF ← 0; OF ← 0;
+                        ELSE CF ← 1; OF ← 1; FI;
+                ELSE (* OperandSize = 64 *)
+                    TMP\_XP ← RAX ∗ SRC (* Signed multiplication; TMP\_XP is a signed integer at twice the width of the SRC *)
+                    EDX:EAX ← TMP\_XP[127:0];
+                    IF SignExtend(TMP\_XP[63:0]) = TMP\_XP
+                        THEN CF ← 0; OF ← 0;
+                        ELSE CF ← 1; OF ← 1; FI;
+                FI;
+        FI;
+    ELSE IF (NumberOfOperands = 2)
+        THEN
+            TMP\_XP ← DEST ∗ SRC (* Signed multiplication; TMP\_XP is a signed integer at twice the width of the SRC *)
+            DEST ← TruncateToOperandSize(TMP\_XP);
+            IF SignExtend(DEST) ≠ TMP\_XP
+                THEN CF ← 1; OF ← 1;
+                ELSE CF ← 0; OF ← 0; FI;
+        ELSE (* NumberOfOperands = 3 *)
+            TMP\_XP ← SRC1 ∗ SRC2 (* Signed multiplication; TMP\_XP is a signed integer at twice the width of the SRC1 *)
+            DEST ← TruncateToOperandSize(TMP\_XP);
+            IF SignExtend(DEST) ≠ TMP\_XP
+                THEN CF ← 1; OF ← 1;
+                ELSE CF ← 0; OF ← 0; FI;
+    FI;
+FI;
+
+.fi
+.RE
+
+.SH FLAGS AFFECTED
+.PP
+For the one operand form of the instruction, the CF and OF flags are set
+when significant bits are carried into the upper half of the result and
+cleared when the result fits exactly in the lower half of the result.
+For the two\- and three\-operand forms of the instruction, the CF and OF
+flags are set when the result must be truncated to fit in the
+destination operand size and cleared when the result fits exactly in the
+destination operand size. The SF, ZF, AF, and PF flags are undefined.
+
+.SH PROTECTED MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP(0)	T{
+If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit.
+T}
+	T{
+If the DS, ES, FS, or GS register is used to access memory and it contains a NULL NULL segment selector.
+T}
+#SS(0)	T{
+If a memory operand effective address is outside the SS segment limit.
+T}
+#PF(fault\-code)	If a page fault occurs.
+#AC(0)	T{
+If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3.
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH REAL\-ADDRESS MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP	T{
+If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit.
+T}
+#SS	T{
+If a memory operand effective address is outside the SS segment limit.
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH VIRTUAL\-8086 MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP(0)	T{
+If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit.
+T}
+#SS(0)	T{
+If a memory operand effective address is outside the SS segment limit.
+T}
+#PF(fault\-code)	If a page fault occurs.
+#AC(0)	T{
+If alignment checking is enabled and an unaligned memory reference is made.
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH COMPATIBILITY MODE EXCEPTIONS
+.PP
+Same exceptions as in protected mode.
+
+.SH 64\-BIT MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#SS(0)	T{
+If a memory address referencing the SS segment is in a non\-canonical form.
+T}
+#GP(0)	T{
+If the memory address is in a non\-canonical form.
+T}
+#PF(fault\-code)	If a page fault occurs.
+#AC(0)	T{
+If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3.
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+Copyleft TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

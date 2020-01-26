@@ -1,0 +1,277 @@
+.nh
+.TH "X86-VPERMQ" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+VPERMQ - QWORDS ELEMENT PERMUTATION
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp / En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+T{
+VEX.256.66.0F3A.W1 00 /r ib VPERMQ ymm1, ymm2/m256, imm8
+T}
+	A	V/V	AVX2	T{
+Permute qwords in ymm2/m256 using indices in imm8 and store the result in ymm1.
+T}
+T{
+EVEX.256.66.0F3A.W1 00 /r ib VPERMQ ymm1 {k1}{z}, ymm2/m256/m64bcst, imm8
+T}
+	B	V/V	AVX512VL AVX512F	T{
+Permute qwords in ymm2/m256/m64bcst using indexes in imm8 and store the result in ymm1.
+T}
+T{
+EVEX.512.66.0F3A.W1 00 /r ib VPERMQ zmm1 {k1}{z}, zmm2/m512/m64bcst, imm8
+T}
+	B	V/V	AVX512F	T{
+Permute qwords in zmm2/m512/m64bcst using indices in imm8 and store the result in zmm1.
+T}
+T{
+EVEX.256.66.0F38.W1 36 /r VPERMQ ymm1 {k1}{z}, ymm2, ymm3/m256/m64bcst
+T}
+	C	V/V	AVX512VL AVX512F	T{
+Permute qwords in ymm3/m256/m64bcst using indexes in ymm2 and store the result in ymm1.
+T}
+T{
+EVEX.512.66.0F38.W1 36 /r VPERMQ zmm1 {k1}{z}, zmm2, zmm3/m512/m64bcst
+T}
+	C	V/V	AVX512F	T{
+Permute qwords in zmm3/m512/m64bcst using indices in zmm2 and store the result in zmm1.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+Op/En	Tuple Type	Operand 1	Operand 2	Operand 3	Operand 4
+A	NA	ModRM:reg (w)	ModRM:r/m (r)	Imm8	NA
+B	Full	ModRM:reg (w)	ModRM:r/m (r)	Imm8	NA
+C	Full	ModRM:reg (w)	EVEX.vvvv (r)	ModRM:r/m (r)	NA
+.TE
+
+.SS Description
+.PP
+The imm8 version: Copies quadwords from the source operand (the second
+operand) to the destination operand (the first operand) according to the
+indices specified by the immediate operand (the third operand). Each
+two\-bit value in the immediate byte selects a qword element in the
+source operand.
+
+.PP
+VEX version: The source operand can be a YMM register or a memory
+location. Bits (MAXVL\-1:256) of the corresponding destination register
+are zeroed.
+
+.PP
+In EVEX.512 encoded version, The elements in the destination are updated
+using the writemask k1 and the imm8 bits are reused as control bits for
+the upper 256\-bit half when the control bits are coming from immediate.
+The source operand can be a ZMM register, a 512\-bit memory location or a
+512\-bit vector broadcasted from a 64\-bit memory location.
+
+.PP
+Immediate control versions: VEX.vvvv and EVEX.vvvv are reserved and must
+be 1111b otherwise instructions will #UD.
+
+.PP
+The vector control version: Copies quadwords from the second source
+operand (the third operand) to the destination operand (the first
+operand) according to the indices in the first source operand (the
+second operand). The first 3 bits of each 64 bit element in the index
+operand selects which quadword in the second source operand to copy. The
+first and second operands are ZMM registers, the third operand can be a
+ZMM register, a 512\-bit memory location or a 512\-bit vector broadcasted
+from a 64\-bit memory location. The elements in the destination are
+updated using the writemask k1.
+
+.PP
+Note that this instruction permits a qword in the source operand to be
+copied to multiple locations in the destination operand.
+
+.PP
+If VPERMPQ is encoded with VEX.L= 0 or EVEX.128, an attempt to execute
+the instruction will cause an #UD exception.
+
+.SS Operation
+.SS VPERMQ (EVEX \- imm8 control forms)
+.PP
+.RS
+
+.nf
+(KL, VL) = (4, 256), (8, 512)
+FOR j←0 TO KL\-1
+    i←j * 64
+    IF (EVEX.b = 1) AND (SRC *is memory*)
+        THEN TMP\_SRC[i+63:i]←SRC[63:0];
+        ELSE TMP\_SRC[i+63:i]←SRC[i+63:i];
+    FI;
+ENDFOR;
+    TMP\_DEST[63:0]←(TMP\_SRC[255:0] >> (IMM8[1:0] * 64))[63:0];
+    TMP\_DEST[127:64]←(TMP\_SRC[255:0] >> (IMM8[3:2] * 64))[63:0];
+    TMP\_DEST[191:128]←(TMP\_SRC[255:0] >> (IMM8[5:4] * 64))[63:0];
+    TMP\_DEST[255:192]←(TMP\_SRC[255:0] >> (IMM8[7:6] * 64))[63:0];
+IF VL >= 512
+    TMP\_DEST[319:256]←(TMP\_SRC[511:256] >> (IMM8[1:0] * 64))[63:0];
+    TMP\_DEST[383:320]←(TMP\_SRC[511:256] >> (IMM8[3:2] * 64))[63:0];
+    TMP\_DEST[447:384]←(TMP\_SRC[511:256] >> (IMM8[5:4] * 64))[63:0];
+    TMP\_DEST[511:448]←(TMP\_SRC[511:256] >> (IMM8[7:6] * 64))[63:0];
+FI;
+FOR j←0 TO KL\-1
+    i←j * 64
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+63:i]←TMP\_DEST[i+63:i]
+        ELSE
+            IF *merging\-masking*
+                THEN *DEST[i+63:i] remains unchanged*
+                ELSE
+                        ; zeroing\-masking
+                    DEST[i+63:i] ← 0
+                            ;zeroing\-masking
+            FI;
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS VPERMQ (EVEX \- vector control forms)
+.PP
+.RS
+
+.nf
+(KL, VL) = (4, 256), (8, 512)
+FOR j←0 TO KL\-1
+    i←j * 64
+    IF (EVEX.b = 1) AND (SRC2 *is memory*)
+        THEN TMP\_SRC2[i+63:i]←SRC2[63:0];
+        ELSE TMP\_SRC2[i+63:i]←SRC2[i+63:i];
+    FI;
+ENDFOR;
+IF VL = 256
+    TMP\_DEST[63:0]←(TMP\_SRC2[255:0] >> (SRC1[1:0] * 64))[63:0];
+    TMP\_DEST[127:64]←(TMP\_SRC2[255:0] >> (SRC1[65:64] * 64))[63:0];
+    TMP\_DEST[191:128]←(TMP\_SRC2[255:0] >> (SRC1[129:128] * 64))[63:0];
+    TMP\_DEST[255:192]←(TMP\_SRC2[255:0] >> (SRC1[193:192] * 64))[63:0];
+FI;
+IF VL = 512
+    TMP\_DEST[63:0]←(TMP\_SRC2[511:0] >> (SRC1[2:0] * 64))[63:0];
+    TMP\_DEST[127:64]←(TMP\_SRC2[511:0] >> (SRC1[66:64] * 64))[63:0];
+    TMP\_DEST[191:128]←(TMP\_SRC2[511:0] >> (SRC1[130:128] * 64))[63:0];
+    TMP\_DEST[255:192]←(TMP\_SRC2[511:0] >> (SRC1[194:192] * 64))[63:0];
+    TMP\_DEST[319:256]←(TMP\_SRC2[511:0] >> (SRC1[258:256] * 64))[63:0];
+    TMP\_DEST[383:320]←(TMP\_SRC2[511:0] >> (SRC1[322:320] * 64))[63:0];
+    TMP\_DEST[447:384]←(TMP\_SRC2[511:0] >> (SRC1[386:384] * 64))[63:0];
+    TMP\_DEST[511:448]←(TMP\_SRC2[511:0] >> (SRC1[450:448] * 64))[63:0];
+FI;
+FOR j←0 TO KL\-1
+    i←j * 64
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+63:i]←TMP\_DEST[i+63:i]
+        ELSE
+            IF *merging\-masking*
+                THEN *DEST[i+63:i] remains unchanged*
+                ELSE
+                        ; zeroing\-masking
+                    DEST[i+63:i] ← 0
+                            ;zeroing\-masking
+            FI;
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS VPERMQ (VEX.256 encoded version)
+.PP
+.RS
+
+.nf
+DEST[63:0]←(SRC[255:0] >> (IMM8[1:0] * 64))[63:0];
+DEST[127:64]←(SRC[255:0] >> (IMM8[3:2] * 64))[63:0];
+DEST[191:128]←(SRC[255:0] >> (IMM8[5:4] * 64))[63:0];
+DEST[255:192]←(SRC[255:0] >> (IMM8[7:6] * 64))[63:0];
+DEST[MAXVL\-1:256] ← 0
+
+.fi
+.RE
+
+.SS Intel C/C++ Compiler Intrinsic Equivalent
+.PP
+.RS
+
+.nf
+VPERMQ \_\_m512i \_mm512\_permutex\_epi64( \_\_m512i a, int imm);
+
+VPERMQ \_\_m512i \_mm512\_mask\_permutex\_epi64(\_\_m512i s, \_\_mmask8 k, \_\_m512i a, int imm);
+
+VPERMQ \_\_m512i \_mm512\_maskz\_permutex\_epi64( \_\_mmask8 k, \_\_m512i a, int imm);
+
+VPERMQ \_\_m512i \_mm512\_permutexvar\_epi64( \_\_m512i a, \_\_m512i b);
+
+VPERMQ \_\_m512i \_mm512\_mask\_permutexvar\_epi64(\_\_m512i s, \_\_mmask8 k, \_\_m512i a, \_\_m512i b);
+
+VPERMQ \_\_m512i \_mm512\_maskz\_permutexvar\_epi64( \_\_mmask8 k, \_\_m512i a, \_\_m512i b);
+
+VPERMQ \_\_m256i \_mm256\_permutex\_epi64( \_\_m256i a, int imm);
+
+VPERMQ \_\_m256i \_mm256\_mask\_permutex\_epi64(\_\_m256i s, \_\_mmask8 k, \_\_m256i a, int imm);
+
+VPERMQ \_\_m256i \_mm256\_maskz\_permutex\_epi64( \_\_mmask8 k, \_\_m256i a, int imm);
+
+VPERMQ \_\_m256i \_mm256\_permutexvar\_epi64( \_\_m256i a, \_\_m256i b);
+
+VPERMQ \_\_m256i \_mm256\_mask\_permutexvar\_epi64(\_\_m256i s, \_\_mmask8 k, \_\_m256i a, \_\_m256i b);
+
+VPERMQ \_\_m256i \_mm256\_maskz\_permutexvar\_epi64( \_\_mmask8 k, \_\_m256i a, \_\_m256i b);
+
+.fi
+.RE
+
+.SS SIMD Floating\-Point Exceptions
+.PP
+None
+
+.SS Other Exceptions
+.PP
+Non\-EVEX\-encoded instruction, see Exceptions Type 4; additionally
+
+.TS
+allbox;
+l l 
+l l .
+#UD	If VEX.L = 0.
+	If VEX.vvvv != 1111B.
+.TE
+
+.PP
+EVEX\-encoded instruction, see Exceptions Type E4NF.
+
+.TS
+allbox;
+l l 
+l l .
+#UD	If encoded with EVEX.128.
+	T{
+If EVEX.vvvv != 1111B and with imm8.
+T}
+.TE
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+Copyleft TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

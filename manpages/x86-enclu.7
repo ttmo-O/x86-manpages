@@ -1,0 +1,234 @@
+.nh
+.TH "X86-ENCLU" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+ENCLU - EXECUTE AN ENCLAVE USER FUNCTION OF SPECIFIED LEAF NUMBER
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp/En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+NP 0F 01 D7 ENCLU	NP	V/V	NA	T{
+This instruction is used to execute non\-privileged Intel SGX leaf functions.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l 
+l l l l l .
+Op/En	Operand 1	Operand 2	Operand 3	Implicit Register Operands
+NP	NA	NA	NA	See Section 40.4
+.TE
+
+.SS Description
+.PP
+The ENCLU instruction invokes the specified non\-privileged Intel SGX
+leaf functions. Software specifies the leaf function by setting the
+appropriate value in the register EAX as input. The registers RBX, RCX,
+and RDX have leaf\-specific purpose, and may act as input, as output, or
+may be unused. In 64\-bit mode, the instruction ignores upper 32 bits of
+the RAX register.
+
+.PP
+The ENCLU instruction produces an invalid\-opcode exception (#UD) if
+CR0.PE = 0 or RFLAGS.VM = 1, or if it is executed in system\-management
+mode (SMM). Additionally, any attempt to execute this instruction when
+CPL \&lt; 3 results in #UD. The instruction produces a
+general\-protection exception (#GP) if either CR0.PG or CR0.NE is 0, or
+if an attempt is made to invoke an undefined leaf function. The ENCLU
+instruction produces a device not available exception (#NM) if CR0.TS =
+1.
+
+.PP
+Addresses and operands are 32 bits outside 64\-bit mode (IA32\_EFER.LMA =
+0 or CS.L = 0) and are 64 bits in 64\-bit mode (IA32\_EFER.LMA = 1 and
+CS.L = 1). CS.D value has no impact on address calculation. The DS
+segment is used to create linear addresses.
+
+.PP
+Segment override prefixes and address\-size override prefixes are
+ignored, as is the REX prefix in 64\-bit mode.
+
+.SS Operation
+.PP
+.RS
+
+.nf
+IN\_64BIT\_MODE← 0;
+IF TSX\_ACTIVE
+    THEN GOTO TSX\_ABORT\_PROCESSING; FI;
+IF CR0.PE= 0 or RFLAGS.VM = 1 or in SMM or CPUID.SGX\_LEAF.0:EAX.SE1 = 0
+    THEN #UD; FI;
+IF CR0.TS = 1
+    THEN #NM; FI;
+IF CPL < 3
+    THEN #UD; FI;
+IF IA32\_FEATURE\_CONTROL.LOCK = 0 or IA32\_FEATURE\_CONTROL.SGX\_ENABLE = 0
+    THEN #GP(0); FI;
+IF EAX is invalid leaf number
+    THEN #GP(0); FI;
+IF CR0.PG = 0 or CR0.NE = 0
+    THEN #GP(0); FI;
+IN\_64BIT\_MODE←IA32\_EFER.LMA AND CS.L ? 1 : 0;
+(* Check not in 16\-bit mode and DS is not a 16\-bit segment *)
+IF not in 64\-bit mode and (CS.D = 0 or DS.B = 0)
+    THEN #GP(0); FI;
+IF CR\_ENCLAVE\_MODE = 1 and (EAX = 2 or EAX = 3) (* EENTER or ERESUME *)
+    THEN #GP(0); FI;
+IF CR\_ENCLAVE\_MODE = 0 and (EAX = 0 or EAX = 1 or EAX = 4 or EAX = 5 or EAX = 6 or EAX = 7)
+(* EREPORT, EGETKEY, EEXIT, EACCEPT, EMODPE, or EACCEPTCOPY *)
+    THEN #GP(0); FI;
+Jump to leaf specific flow
+
+.fi
+.RE
+
+.SS Flags Affected
+.PP
+See individual leaf functions
+
+.SS Protected Mode Exceptions
+.TS
+allbox;
+l l 
+l l .
+#UD	T{
+If any of the LOCK/OSIZE/REP/VEX prefix is used.
+T}
+	T{
+If current privilege level is not 3.
+T}
+	T{
+If CPUID.(EAX=12H,ECX=0):EAX.SGX1 
+T}
+[
+bit 0
+]
+ = 0.
+	T{
+If logical processor is in SMM.
+T}
+#GP(0)	If IA32
+\_
+FEATURE
+\_
+CONTROL.LOCK = 0.
+	If IA32
+\_
+FEATURE
+\_
+CONTROL.SGX
+\_
+ENABLE = 0.
+	T{
+If input value in EAX encodes an unsupported leaf.
+T}
+	T{
+If input value in EAX encodes EENTER/ERESUME and ENCLAVE
+T}
+\_
+MODE = 1.
+	T{
+If input value in EAX encodes EGETKEY/EREPORT/EEXIT/EACCEPT/EACCEPTCOPY/EMODPE and ENCLAVE
+T}
+\_
+MODE = 0.
+	If operating in 16\-bit mode.
+	T{
+If data segment is in 16\-bit mode.
+T}
+	If CR0.PG = 0 or CR0.NE= 0.
+#NM	If CR0.TS = 1.
+.TE
+
+.SS Real\-Address Mode Exceptions
+.TS
+allbox;
+l l 
+l l .
+#UD	T{
+ENCLS is not recognized in real mode.
+T}
+.TE
+
+.SS Virtual\-8086 Mode Exceptions
+.TS
+allbox;
+l l 
+l l .
+#UD	T{
+ENCLS is not recognized in virtual\-8086 mode.
+T}
+.TE
+
+.SS Compatibility Mode Exceptions
+.PP
+Same exceptions as in protected mode.
+
+.SS 64\-Bit Mode Exceptions
+.TS
+allbox;
+l l 
+l l .
+#UD	T{
+If any of the LOCK/OSIZE/REP/VEX prefix is used.
+T}
+	T{
+If current privilege level is not 3.
+T}
+	T{
+If CPUID.(EAX=12H,ECX=0):EAX.SGX1 
+T}
+[
+bit 0
+]
+ = 0.
+	T{
+If logical processor is in SMM.
+T}
+#GP(0)	If IA32
+\_
+FEATURE
+\_
+CONTROL.LOCK = 0.
+	If IA32
+\_
+FEATURE
+\_
+CONTROL.SGX
+\_
+ENABLE = 0.
+	T{
+If input value in EAX encodes an unsupported leaf.
+T}
+	T{
+If input value in EAX encodes EENTER/ERESUME and ENCLAVE
+T}
+\_
+MODE = 1.
+	T{
+If input value in EAX encodes EGETKEY/EREPORT/EEXIT/EACCEPT/EACCEPTCOPY/EMODPE and ENCLAVE
+T}
+\_
+MODE = 0.
+	If CR0.NE= 0.
+#NM	If CR0.TS = 1.
+.TE
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+Copyleft TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

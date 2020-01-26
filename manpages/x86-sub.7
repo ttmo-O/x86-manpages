@@ -1,0 +1,199 @@
+.nh
+.TH "X86-SUB" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+SUB - SUBTRACT
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+\fB\fCOpcode\fR	\fB\fCInstruction\fR	\fB\fCOp/En\fR	\fB\fC64\-Bit Mode\fR	\fB\fCCompat/Leg Mode\fR	\fB\fCDescription\fR
+2C ib	SUB AL, imm8	I	Valid	Valid	Subtract imm8 from AL.
+2D iw	SUB AX, imm16	I	Valid	Valid	Subtract imm16 from AX.
+2D id	SUB EAX, imm32	I	Valid	Valid	Subtract imm32 from EAX.
+REX.W + 2D id	SUB RAX, imm32	I	Valid	N.E.	T{
+Subtract imm32 sign\-extended to 64\-bits from RAX.
+T}
+80 /5 ib	SUB r/m8, imm8	MI	Valid	Valid	Subtract r/m8.
+REX + 80 /5 ib	SUB r/m8*, imm8	MI	Valid	N.E.	Subtract r/m8.
+81 /5 iw	SUB r/m16, imm16	MI	Valid	Valid	Subtract r/m16.
+81 /5 id	SUB r/m32, imm32	MI	Valid	Valid	Subtract r/m32.
+REX.W + 81 /5 id	SUB r/m64, imm32	MI	Valid	N.E.	Subtract r/m64.
+83 /5 ib	SUB r/m16, imm8	MI	Valid	Valid	Subtract sign\-extended r/m16.
+83 /5 ib	SUB r/m32, imm8	MI	Valid	Valid	Subtract sign\-extended r/m32.
+REX.W + 83 /5 ib	SUB r/m64, imm8	MI	Valid	N.E.	Subtract sign\-extended r/m64.
+28 /r	SUB r/m8, r8	MR	Valid	Valid	Subtract r/m8.
+REX + 28 /r	SUB r/m8*, r8*	MR	Valid	N.E.	Subtract r/m8.
+29 /r	SUB r/m16, r16	MR	Valid	Valid	Subtract r/m16.
+29 /r	SUB r/m32, r32	MR	Valid	Valid	Subtract r/m32.
+REX.W + 29 /r	SUB r/m64, r64	MR	Valid	N.E.	Subtract r/m64.
+2A /r	SUB r8, r/m8	RM	Valid	Valid	Subtract r8.
+REX + 2A /r	SUB r8*, r/m8*	RM	Valid	N.E.	Subtract r8.
+2B /r	SUB r16, r/m16	RM	Valid	Valid	Subtract r16.
+2B /r	SUB r32, r/m32	RM	Valid	Valid	Subtract r32.
+REX.W + 2B /r	SUB r64, r/m64	RM	Valid	N.E.	Subtract r64.
+.TE
+
+.PP
+.RS
+
+.PP
+*
+In64\-bitmode,r/m8cannotbeencodedtoaccessthefollowingbyteregistersifaREXprefixisused:AH,BH,CH,DH.
+
+.RE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l 
+l l l l l .
+Op/En	Operand 1	Operand 2	Operand 3	Operand 4
+I	AL/AX/EAX/RAX	imm8/16/32	NA	NA
+MI	ModRM:r/m (r, w)	imm8/16/32	NA	NA
+MR	ModRM:r/m (r, w)	ModRM:reg (r)	NA	NA
+RM	ModRM:reg (r, w)	ModRM:r/m (r)	NA	NA
+.TE
+
+.SH DESCRIPTION
+.PP
+Subtracts the second operand (source operand) from the first operand
+(destination operand) and stores the result in the destination operand.
+The destination operand can be a register or a memory location; the
+source operand can be an immediate, register, or memory location.
+(However, two memory operands cannot be used in one instruction.) When
+an immediate value is used as an operand, it is sign\-extended to the
+length of the destination operand format.
+
+.PP
+The SUB instruction performs integer subtraction. It evaluates the
+result for both signed and unsigned integer operands and sets the OF and
+CF flags to indicate an overflow in the signed or unsigned result,
+respectively. The SF flag indicates the sign of the signed result.
+
+.PP
+In 64\-bit mode, the instruction’s default operation size is 32 bits.
+Using a REX prefix in the form of REX.R permits access to additional
+registers (R8\-R15). Using a REX prefix in the form of REX.W promotes
+operation to 64 bits. See the summary chart at the beginning of this
+section for encoding data and limits.
+
+.PP
+This instruction can be used with a LOCK prefix to allow the instruction
+to be executed atomically.
+
+.SH OPERATION
+.PP
+.RS
+
+.nf
+DEST ← (DEST – SRC);
+
+.fi
+.RE
+
+.SH FLAGS AFFECTED
+.PP
+The OF, SF, ZF, AF, PF, and CF flags are set according to the result.
+
+.SH PROTECTED MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP(0)	T{
+If the destination is located in a non\-writable segment.
+T}
+	T{
+If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit.
+T}
+	T{
+If the DS, ES, FS, or GS register contains a NULL segment selector.
+T}
+#SS(0)	T{
+If a memory operand effective address is outside the SS segment limit.
+T}
+#PF(fault\-code)	If a page fault occurs.
+#AC(0)	T{
+If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3.
+T}
+#UD	T{
+If the LOCK prefix is used but the destination is not a memory operand.
+T}
+.TE
+
+.SH REAL\-ADDRESS MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP	T{
+If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit.
+T}
+#SS	T{
+If a memory operand effective address is outside the SS segment limit.
+T}
+#UD	T{
+If the LOCK prefix is used but the destination is not a memory operand.
+T}
+.TE
+
+.SH VIRTUAL\-8086 MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP(0)	T{
+If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit.
+T}
+#SS(0)	T{
+If a memory operand effective address is outside the SS segment limit.
+T}
+#PF(fault\-code)	If a page fault occurs.
+#AC(0)	T{
+If alignment checking is enabled and an unaligned memory reference is made.
+T}
+#UD	T{
+If the LOCK prefix is used but the destination is not a memory operand.
+T}
+.TE
+
+.SH COMPATIBILITY MODE EXCEPTIONS
+.PP
+Same exceptions as in protected mode.
+
+.SH 64\-BIT MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#SS(0)	T{
+If a memory address referencing the SS segment is in a non\-canonical form.
+T}
+#GP(0)	T{
+If the memory address is in a non\-canonical form.
+T}
+#PF(fault\-code)	If a page fault occurs.
+#AC(0)	T{
+If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3.
+T}
+#UD	T{
+If the LOCK prefix is used but the destination is not a memory operand.
+T}
+.TE
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+Copyleft TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

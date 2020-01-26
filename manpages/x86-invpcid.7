@@ -1,0 +1,345 @@
+.nh
+.TH "X86-INVPCID" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+INVPCID - INVALIDATE PROCESS-CONTEXT IDENTIFIER
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp/En\fR	\fB\fC64/32\-bit Mode\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+T{
+66 0F 38 82 /r INVPCID r32, m128
+T}
+	RM	NE/V	INVPCID	T{
+Invalidates entries in the TLBs and paging\-structure caches based on invalidation type in r32 and descriptor in m128.
+T}
+T{
+66 0F 38 82 /r INVPCID r64, m128
+T}
+	RM	V/NE	INVPCID	T{
+Invalidates entries in the TLBs and paging\-structure caches based on invalidation type in r64 and descriptor in m128.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l 
+l l l l l .
+Op/En	Operand 1	Operand 2	Operand 3	Operand 4
+RM	ModRM:reg (r)	ModRM:r/m (r)	NA	NA
+.TE
+
+.SH DESCRIPTION
+.PP
+Invalidates mappings in the translation lookaside buffers (TLBs) and
+paging\-structure caches based on process\-context identifier (PCID). (See
+Section 4.10, “Caching Translation Information,” in Intel 64 and IA\-32
+Architecture Software Developer’s Manual, Volume 3A.) Invalidation is
+based on the INVPCID type specified in the register operand and the
+INVPCID descriptor specified in the memory operand.
+
+.PP
+Outside 64\-bit mode, the register operand is always 32 bits, regardless
+of the value of CS.D. In 64\-bit mode the register operand has 64 bits.
+
+.PP
+There are four INVPCID types currently defined:
+
+.RS
+.IP \(bu 2
+Individual\-address invalidation: If the INVPCID type is 0, the
+logical processor invalidates mappings—except global
+translations—for the linear address and PCID specified in the
+INVPCID descriptor.1 In some cases, the instruction may invalidate
+global translations or mappings for other linear addresses (or other
+PCIDs) as well.
+.IP \(bu 2
+Single\-context invalidation: If the INVPCID type is 1, the logical
+processor invalidates all mappings—except global
+translations—associated with the PCID specified in the INVPCID
+descriptor. In some cases, the instruction may invalidate global
+translations or mappings for other PCIDs as well.
+.IP \(bu 2
+All\-context invalidation, including global translations: If the
+INVPCID type is 2, the logical processor invalidates all
+mappings—including global translations—associated with any PCID.
+.IP \(bu 2
+All\-context invalidation: If the INVPCID type is 3, the logical
+processor invalidates all mappings—except global
+translations—associated with any PCID. In some case, the instruction
+may invalidate global translations as well.
+
+.RE
+
+.PP
+.RS
+
+.PP
+1\&. If the paging structures map the linear address using a page
+larger than 4 KBytes and there are multiple TLB entries for that page
+(see Section 4.10.2.3, “Details of TLB Use,” in the Intel® 64 and
+IA\-32 Architectures Software Developer’s Manual, Volume 3A), the
+instruction invalidates all of them.
+
+.RE
+
+.PP
+The INVPCID descriptor comprises 128 bits and consists of a PCID and a
+linear address as shown in Figure 3\-24. For INVPCID type 0, the
+processor uses the full 64 bits of the linear address even outside
+64\-bit mode; the linear address is not used for other INVPCID types.
+
+.PP
+12764631211 0Linear AddressReserved (must be zero)PCID
+
+.PP
+Figure 3\-24. INVPCID Descriptor
+
+.PP
+If CR4.PCIDE = 0, a logical processor does not cache information for any
+PCID other than 000H. In this case, executions with INVPCID types 0 and
+1 are allowed only if the PCID specified in the INVPCID descriptor is
+000H; executions with INVPCID types 2 and 3 invalidate mappings only for
+PCID 000H. Note that CR4.PCIDE must be 0 outside 64\-bit mode (see
+Chapter 4.10.1, “Process\-Context Identifiers (PCIDs)‚” of the Intel® 64
+and IA\-32 Architectures Software Developer’s Manual, Volume 3A).
+
+.SH OPERATION
+.PP
+.RS
+
+.nf
+INVPCID\_TYPE ← value of register operand; // must be in the range of 0–3
+INVPCID\_DESC ← value of memory operand;
+CASE INVPCID\_TYPE OF
+    0:
+            // individual\-address invalidation
+        PCID ← INVPCID\_DESC[11:0];
+        L\_ADDR ← INVPCID\_DESC[127:64];
+        Invalidate mappings for L\_ADDR associated with PCID except global translations;
+        BREAK;
+    1:
+            // single PCID invalidation
+        PCID ← INVPCID\_DESC[11:0];
+        Invalidate all mappings associated with PCID except global translations;
+        BREAK;
+    2:
+            // all PCID invalidation including global translations
+        Invalidate all mappings for all PCIDs, including global translations;
+        BREAK;
+    3:
+            // all PCID invalidation retaining global translations
+        Invalidate all mappings for all PCIDs except global translations;
+        BREAK;
+ESAC;
+
+.fi
+.RE
+
+.SH INTEL C/C++ COMPILER INTRINSIC EQUIVALENT
+.PP
+.RS
+
+.nf
+INVPCID: void \_invpcid(unsigned \_\_int32 type, void * descriptor);
+
+.fi
+.RE
+
+.SH SIMD FLOATING\-POINT EXCEPTIONS
+.PP
+None
+
+.SH PROTECTED MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP(0)	T{
+If the current privilege level is not 0.
+T}
+	T{
+If the memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit.
+T}
+	T{
+If the DS, ES, FS, or GS register contains an unusable segment.
+T}
+	T{
+If the source operand is located in an execute\-only code segment.
+T}
+	T{
+If an invalid type is specified in the register operand, i.e., INVPCID
+T}
+\_
+TYPE 
+\&gt;
+ 3.
+	If bits 63:12 of INVPCID
+\_
+DESC are not all zero.
+	If INVPCID
+\_
+T{
+TYPE is either 0 or 1 and INVPCID
+T}
+\_
+DESC
+[
+11:0
+]
+ is not zero.
+	If INVPCID
+\_
+T{
+TYPE is 0 and the linear address in INVPCID
+T}
+\_
+DESC
+[
+127:64
+]
+ is not canonical.
+#PF(fault\-code)	T{
+If a page fault occurs in accessing the memory operand.
+T}
+#SS(0)	T{
+If the memory operand effective address is outside the SS segment limit.
+T}
+	T{
+If the SS register contains an unusable segment.
+T}
+#UD	T{
+If if CPUID.(EAX=07H, ECX=0H):EBX.INVPCID (bit 10) = 0.
+T}
+	If the LOCK prefix is used.
+.TE
+
+.SH REAL\-ADDRESS MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP	T{
+If an invalid type is specified in the register operand, i.e., INVPCID
+T}
+\_
+TYPE 
+\&gt;
+ 3.
+	If bits 63:12 of INVPCID
+\_
+DESC are not all zero.
+	If INVPCID
+\_
+T{
+TYPE is either 0 or 1 and INVPCID
+T}
+\_
+DESC
+[
+11:0
+]
+ is not zero.
+	If INVPCID
+\_
+T{
+TYPE is 0 and the linear address in INVPCID
+T}
+\_
+DESC
+[
+127:64
+]
+ is not canonical.
+#UD	T{
+If CPUID.(EAX=07H, ECX=0H):EBX.INVPCID (bit 10) = 0.
+T}
+	If the LOCK prefix is used.
+.TE
+
+.SH VIRTUAL\-8086 MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP(0)	T{
+The INVPCID instruction is not recognized in virtual\-8086 mode.
+T}
+.TE
+
+.SH COMPATIBILITY MODE EXCEPTIONS
+.PP
+Same exceptions as in protected mode.
+
+.SH 64\-BIT MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP(0)	T{
+If the current privilege level is not 0.
+T}
+	T{
+If the memory operand is in the CS, DS, ES, FS, or GS segments and the memory address is in a non\-canonical form.
+T}
+	T{
+If an invalid type is specified in the register operand, i.e., INVPCID
+T}
+\_
+TYPE 
+\&gt;
+ 3.
+	If bits 63:12 of INVPCID
+\_
+DESC are not all zero.
+	If CR4.PCIDE=0, INVPCID
+\_
+T{
+TYPE is either 0 or 1, and INVPCID
+T}
+\_
+DESC
+[
+11:0
+]
+ is not zero.
+	If INVPCID
+\_
+T{
+TYPE is 0 and the linear address in INVPCID
+T}
+\_
+DESC
+[
+127:64
+]
+ is not canonical.
+#PF(fault\-code)	T{
+If a page fault occurs in accessing the memory operand.
+T}
+#SS(0)	T{
+If the memory destination operand is in the SS segment and the memory address is in a non\-canonical form.
+T}
+#UD	If the LOCK prefix is used.
+	T{
+If CPUID.(EAX=07H, ECX=0H):EBX.INVPCID (bit 10) = 0.
+T}
+.TE
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+Copyleft TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

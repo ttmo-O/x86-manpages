@@ -1,0 +1,207 @@
+.nh
+.TH "X86-BLENDVPS" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+BLENDVPS - VARIABLE BLEND PACKED SINGLE PRECISION FLOATING-POINT VALUES
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp/En\fR	\fB\fC64/32\-bit Mode\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+T{
+66 0F 38 14 /r BLENDVPS xmm1, xmm2/m128, 
+T}
+\&lt;XMM0\&gt;	RM0	V/V	SSE4\_1	T{
+Select packed single precision floating\-point values from xmm1.
+T}
+T{
+VEX.128.66.0F3A.W0 4A /r /is4 VBLENDVPS xmm1, xmm2, xmm3/m128, xmm4
+T}
+	RVMR	V/V	AVX	T{
+Conditionally copy single\-precision floating\-point values from xmm2 or xmm3/m128 to xmm1, based on mask bits in the specified mask operand, xmm4.
+T}
+T{
+VEX.256.66.0F3A.W0 4A /r /is4 VBLENDVPS ymm1, ymm2, ymm3/m256, ymm4
+T}
+	RVMR	V/V	AVX	T{
+Conditionally copy single\-precision floating\-point values from ymm2 or ymm3/m256 to ymm1, based on mask bits in the specified mask register, ymm4.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l 
+l l l l l .
+Op/En	Operand 1	Operand 2	Operand 3	Operand 4
+RM0	ModRM:reg (r, w)	ModRM:r/m (r)	implicit XMM0	NA
+RVMR	ModRM:reg (w)	VEX.vvvv (r)	ModRM:r/m (r)	imm8
+[
+7:4
+]
+.TE
+
+.SH DESCRIPTION
+.PP
+Conditionally copy each dword data element of single\-precision
+floating\-point value from the second source operand and the first source
+operand depending on mask bits defined in the mask register operand. The
+mask bits are the most significant bit in each dword element of the mask
+register.
+
+.PP
+Each quadword element of the destination operand is copied from:
+
+.RS
+.IP \(bu 2
+the corresponding dword element in the second source operand, if a
+mask bit is “1”; or
+.IP \(bu 2
+the corresponding dword element in the first source operand, if a
+mask bit is “0”
+
+.RE
+
+.PP
+The register assignment of the implicit mask operand for BLENDVPS is
+defined to be the architectural register XMM0.
+
+.PP
+128\-bit Legacy SSE version: The first source operand and the destination
+operand is the same. Bits (MAXVL\-1:128) of the corresponding YMM
+destination register remain unchanged. The mask register operand is
+implicitly defined to be the architectural register XMM0. An attempt to
+execute BLENDVPS with a VEX prefix will cause #UD.
+
+.PP
+VEX.128 encoded version: The first source operand and the destination
+operand are XMM registers. The second source operand is an XMM register
+or 128\-bit memory location. The mask operand is the third source
+register, and encoded in bits[7:4] of the immediate byte(imm8). The
+bits[3:0] of imm8 are ignored. In 32\-bit mode, imm8[7] is ignored.
+The upper bits (MAXVL\-1:128) of the corresponding YMM register
+(destination register) are zeroed. VEX.W must be 0, otherwise, the
+instruction will #UD.
+
+.PP
+VEX.256 encoded version: The first source operand and destination
+operand are YMM registers. The second source operand can be a YMM
+register or a 256\-bit memory location. The mask operand is the third
+source register, and encoded in bits[7:4] of the immediate byte(imm8).
+The bits[3:0] of imm8 are ignored. In 32\-bit mode, imm8[7] is
+ignored. VEX.W must be 0, otherwise, the instruction will #UD.
+
+.PP
+VBLENDVPS permits the mask to be any XMM or YMM register. In contrast,
+BLENDVPS treats XMM0 implicitly as the mask and do not support
+non\-destructive destination operation.
+
+.SH OPERATION
+.SS BLENDVPS (128\-bit Legacy SSE version)
+.PP
+.RS
+
+.nf
+MASK ← XMM0
+IF (MASK[31] = 0) THEN DEST[31:0]←DEST[31:0]
+    ELSE DEST [31:0]←SRC[31:0] FI
+IF (MASK[63] = 0) THEN DEST[63:32]←DEST[63:32]
+    ELSE DEST [63:32]←SRC[63:32] FI
+IF (MASK[95] = 0) THEN DEST[95:64]←DEST[95:64]
+    ELSE DEST [95:64]←SRC[95:64] FI
+IF (MASK[127] = 0) THEN DEST[127:96]←DEST[127:96]
+    ELSE DEST [127:96]←SRC[127:96] FI
+DEST[MAXVL\-1:128] (Unmodified)
+
+.fi
+.RE
+
+.SS VBLENDVPS (VEX.128 encoded version)
+.PP
+.RS
+
+.nf
+MASK ← SRC3
+IF (MASK[31] = 0) THEN DEST[31:0]←SRC1[31:0]
+    ELSE DEST [31:0]←SRC2[31:0] FI
+IF (MASK[63] = 0) THEN DEST[63:32]←SRC1[63:32]
+    ELSE DEST [63:32]←SRC2[63:32] FI
+IF (MASK[95] = 0) THEN DEST[95:64]←SRC1[95:64]
+    ELSE DEST [95:64]←SRC2[95:64] FI
+IF (MASK[127] = 0) THEN DEST[127:96]←SRC1[127:96]
+    ELSE DEST [127:96]←SRC2[127:96] FI
+DEST[MAXVL\-1:128] ← 0
+
+.fi
+.RE
+
+.SS VBLENDVPS (VEX.256 encoded version)
+.PP
+.RS
+
+.nf
+MASK ← SRC3
+IF (MASK[31] = 0) THEN DEST[31:0]←SRC1[31:0]
+    ELSE DEST [31:0]←SRC2[31:0] FI
+IF (MASK[63] = 0) THEN DEST[63:32]←SRC1[63:32]
+    ELSE DEST [63:32]←SRC2[63:32] FI
+IF (MASK[95] = 0) THEN DEST[95:64]←SRC1[95:64]
+    ELSE DEST [95:64]←SRC2[95:64] FI
+IF (MASK[127] = 0) THEN DEST[127:96]←SRC1[127:96]
+    ELSE DEST [127:96]←SRC2[127:96] FI
+IF (MASK[159] = 0) THEN DEST[159:128]←SRC1[159:128]
+    ELSE DEST [159:128]←SRC2[159:128] FI
+IF (MASK[191] = 0) THEN DEST[191:160]←SRC1[191:160]
+    ELSE DEST [191:160]←SRC2[191:160] FI
+IF (MASK[223] = 0) THEN DEST[223:192]←SRC1[223:192]
+    ELSE DEST [223:192]←SRC2[223:192] FI
+IF (MASK[255] = 0) THEN DEST[255:224]←SRC1[255:224]
+    ELSE DEST [255:224]←SRC2[255:224] FI
+
+.fi
+.RE
+
+.SH INTEL C/C++ COMPILER INTRINSIC EQUIVALENT
+.PP
+.RS
+
+.nf
+BLENDVPS: \_\_m128 \_mm\_blendv\_ps(\_\_m128 v1, \_\_m128 v2, \_\_m128 v3);
+
+VBLENDVPS: \_\_m128 \_mm\_blendv\_ps (\_\_m128 a, \_\_m128 b, \_\_m128 mask);
+
+VBLENDVPS: \_\_m256 \_mm256\_blendv\_ps (\_\_m256 a, \_\_m256 b, \_\_m256 mask);
+
+.fi
+.RE
+
+.SH SIMD FLOATING\-POINT EXCEPTIONS
+.PP
+None
+
+.SH OTHER EXCEPTIONS
+.PP
+See Exceptions Type 4; additionally
+
+.TS
+allbox;
+l l 
+l l .
+#UD	If VEX.W = 1.
+.TE
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+Copyleft TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).
