@@ -1,6 +1,17 @@
 Türkçe açıklama için bkz: BENIOKU.md
 
-# Installation
+# x86-manpages
+
+This is a man page documentation for x86-64 ISA. Instructions are available with e.g:
+
+```
+man x86-jmp
+man x86-call
+```
+
+See `x86-manpages(7)` for a list of instructions.
+
+## Installation
 
 ```
 $ git clone https://github.com/ttmo-O/x86-manpages && cd x86-manpages
@@ -9,7 +20,9 @@ $ git clone https://github.com/ttmo-O/x86-manpages && cd x86-manpages
 ```
 or add "manpages" directory to your `MANPATH` environment variable.
 
-# Methodology
+## Methodology
+
+Man pages are generated from Intel's official documentation like:
 
 PDF --> html --> markdown --> man page
 
@@ -18,7 +31,7 @@ Conversion to html of Intel's PDF documentation is made by [Félix Cloutier](htt
 Other steps are performed in this project; with help of various tools. See "scripts" directory.
 
 
-# Contibution
+## Contibution
 
 Maintainer gave up fixing bug-producing scripts, after he found out most of them could be ignored and perfection was not the goal. If you cannot ignore an imperfection you saw, please consider adding necessary fix to the bash scripts by a PR. Or if you know "troff", you can directly fix outputs (in "manpages" directory) by sending a PR.
 

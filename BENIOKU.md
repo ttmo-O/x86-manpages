@@ -1,4 +1,15 @@
-# Kurulum
+# x86-manpages
+
+x86-64 komut mimarisi için man sayfaları. Man sayfalarına aşağıdaki gibi erişime olanak sağlamakta:
+
+```
+man x86-jmp
+man x86-call
+```
+
+`x86-manpages(7)` sayfasında man sayfasına ulaşabileceğiniz komutları görebilirsiniz.
+
+## Kurulum
 
 ```
 $ git clone https://github.com/ttmo-O/x86-manpages && cd x86-manpages
@@ -7,7 +18,9 @@ $ git clone https://github.com/ttmo-O/x86-manpages && cd x86-manpages
 ```
 veya "manpages" dizinini `MANPATH` çevresel değişkeninize ekleyin.
 
-# Yöntem
+## Yöntem
+
+Man sayfaları, intel'in resmi dökümanından şu şekilde oluşturuldu:
 
 PDF --> html --> markdown --> man page
 
@@ -16,7 +29,7 @@ PDF --> html --> markdown --> man page
 Diğer aşamalar ise çeşitli araçların yardımı ile bu projede gerçeklendi. "scripts" dizinine bakınız.
 
 
-# Katkı
+## Katkı
 
 Geliştiricisi, var olan hataların göz ardı edilebilir olduğunu düşündüğünden, hata üreten script'leri iyileştirmeye çalışmaktan vazgeçti. Ayrıca amaç mükemmeliyet değildi. Eğer gördüğünüz bir mükemmeliyetsizliğe tahammül edemiyorsanız, lütfen script'lerimizi adam edecek PR'lar gönderin. Yahut, eğer "troff" biliyorsanız, doğrudan ("manpages" dizinindeki) çıktılar üzerinde iyileştirmeler yapabilirsiniz, PR'ınızı bekliyoruz.
 
