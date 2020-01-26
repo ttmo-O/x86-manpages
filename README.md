@@ -9,6 +9,11 @@ man x86-jmp
 man x86-call
 ```
 
+<p align="center">
+  <img src="ss.png" align="middle">
+</p>
+
+
 See `x86-manpages(7)` for a list of instructions.
 
 ## Installation

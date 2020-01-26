@@ -7,6 +7,11 @@ man x86-jmp
 man x86-call
 ```
 
+<p align="center">
+  <img src="ss.png" align="middle">
+</p>
+
+
 `x86-manpages(7)` sayfasında man sayfasına ulaşabileceğiniz komutları görebilirsiniz.
 
 ## Kurulum
