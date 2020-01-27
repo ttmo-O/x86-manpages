@@ -36,7 +36,7 @@ Conversion to html of Intel's PDF documentation is made by [Félix Cloutier](htt
 Other steps are performed in this project; with help of various tools. See "scripts" directory.
 
 
-## Contibution
+## Contribution
 
 Maintainer gave up fixing bug-producing scripts, after he found out most of them could be ignored and perfection was not the goal. If you cannot ignore an imperfection you saw, please consider adding necessary fix to the bash scripts by a PR. Or if you know "troff", you can directly fix outputs (in "manpages" directory) by sending a PR.
 
