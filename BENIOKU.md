@@ -29,7 +29,7 @@ Man sayfaları, intel'in resmi dökümanından şu şekilde oluşturuldu:
 
 PDF --> html --> markdown --> man page
 
-İntel'in PDF dökümanlarının html'e çevirilmesi işi [Félix Cloutier](https://www.felixcloutier.com/x86/index.html) tarafından yapıldı; ki işin büyük kısmı buydu.
+İntel'in PDF dökümanlarının html'e çevrilmesi işi [Félix Cloutier](https://www.felixcloutier.com/x86/index.html) tarafından yapıldı; ki işin büyük kısmı buydu.
 
 Diğer aşamalar ise çeşitli araçların yardımı ile bu projede gerçeklendi. "scripts" dizinine bakınız.
 
