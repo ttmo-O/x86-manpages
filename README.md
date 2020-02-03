@@ -18,6 +18,7 @@ See `x86-manpages(7)` for a list of instructions.
 
 ## Installation
 
+### Manually
 ```
 $ git clone https://github.com/ttmo-O/x86-manpages && cd x86-manpages
 # mkdir /usr/local/man/man7
