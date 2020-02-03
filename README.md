@@ -46,4 +46,4 @@ Since scriptized, unhandled exceptions exist. Most of them related to tables; es
 
 ## License
 
-See LICENSE file, which is for the scripts used to generate the man pages. `Copyleft` sign in the ready-to-use outputs in this repo does not claim any rights on the Intel's original documentation; and is just stands for the conversion process made, and more than this, just for fun.
+See LICENSE file, which is for the scripts used to generate the man pages. `Copyleft` sign in the ready-to-use outputs in this repo does not claim any rights on the Intel's original documentation; and just stands for the conversion process made, and more than this, just for fun.
