@@ -41,3 +41,7 @@ Geliştiricisi, var olan hataların göz ardı edilebilir olduğunu düşündü�
 ### Hatalar
 
 Script'lerle otomatize edildiğinden dolayı, çıktılarda bazı hatalar bulunmakta. Bunların çoğu tablolarla, ve özellikle de `rowspan`larla ilgili. Şu an için `rowspan-normalizer` script'i th ve tr rowspan'larını düzleştirebilecek yeteneğe sahip değil. Ayrıca `[` ve `]` ve bazı diğer karakterle oluşan tabloları kırabilmekte; bunlardan muhtemelen döküman daha html safhasındayken kaçınılması gerekiyor.
+
+## Ruhsat
+
+LICENSE dosyasına bakınız. Bu lisans sadece script'leri kapsamaktadır. Repoda bulunan kullanıma hazır man sayfalarında gördüğünüz `copyleft` ile Intel'in orjinal dökümantasyonuna ait herhangi bir hak talebi yapılamamakta; bilakis, bu `copyleft` notasyonu sadece dönüştürme işlemini kapsamakta, ve daha çok da dalgasına bulunmaktadır.
