@@ -25,6 +25,10 @@ $ git clone https://github.com/ttmo-O/x86-manpages && cd x86-manpages
 ```
 or add "manpages" directory to your `MANPATH` environment variable.
 
+### Arch Linux
+
+Alternatively, you can use AUR to get [x86-manpages-git](https://aur.archlinux.org/packages/x86-manpages-git/) package.
+
 ## Methodology
 
 Man pages are generated from Intel's official documentation like:
