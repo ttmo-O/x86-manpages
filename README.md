@@ -43,3 +43,7 @@ Maintainer gave up fixing bug-producing scripts, after he found out most of them
 ### Bugs
 
 Since scriptized, unhandled exceptions exist. Most of them related to tables; especially `rowspan`s. Nowadays, `rowspan-normalizer` script is missing th and tr rowspan normalizer functions. And also `[` and `]` and some other characters break tables; probably they must be escaped while the doc was still in the html form.
+
+## License
+
+See LICENSE file, which is for the scripts used to generate the man pages. `Copyleft` sign in the ready-to-use outputs in this repo does not claim any rights on the Intel's original documentation; and is just stands for the conversion process made, and more than this, just for fun.
