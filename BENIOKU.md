@@ -16,12 +16,18 @@ man x86-call
 
 ## Kurulum
 
+### Elle
 ```
 $ git clone https://github.com/ttmo-O/x86-manpages && cd x86-manpages
 # mkdir /usr/local/man/man7
 # cp manpages/* /usr/local/man/man7/
 ```
 veya "manpages" dizinini `MANPATH` çevresel değişkeninize ekleyin.
+
+### Arch Linux
+
+Ya da bunun yerine, AUR'dan [x86-manpages-git](https://aur.archlinux.org/packages/x86-manpages-git/) paketini edinebilirsiniz.
+
 
 ## Yöntem
 
