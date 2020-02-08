@@ -24,10 +24,13 @@ $ git clone https://github.com/ttmo-O/x86-manpages && cd x86-manpages
 ```
 veya "manpages" dizinini `MANPATH` çevresel değişkeninize ekleyin.
 
-### Arch Linux
+### AUR ile
 
-Ya da bunun yerine, AUR'dan [x86-manpages-git](https://aur.archlinux.org/packages/x86-manpages-git/) paketini edinebilirsiniz.
+AUR'dan [x86-manpages-git](https://aur.archlinux.org/packages/x86-manpages-git/) paketini edinebilirsiniz.
 
+### NIX ile
+
+Nix paket yöneticisi ile şuradan kurabilirsiniz [https://github.com/blitz/x86-manpages-nix](https://github.com/blitz/x86-manpages-nix).
 
 ## Yöntem
 
