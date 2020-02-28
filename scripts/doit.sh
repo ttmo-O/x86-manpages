@@ -40,7 +40,7 @@ cat "$FILE" | htmlbeautifier -t 4 > "$FILE.beautiful"
 ./rowspan-normalizer.sh "$FILE.beautiful"
 
 # uglify html source (to remove line breaks)
-cat "$FILE.beautiful" | ~/node_modules/html-minifier/cli.js --collapse-whitespace > "$FILE.ugly"
+cat "$FILE.beautiful" | html-minifier --collapse-whitespace > "$FILE.ugly"
 
 # remove some unwanted tags
 ./tag-remover.sh "$FILE.ugly" header
