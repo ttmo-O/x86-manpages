@@ -1,0 +1,248 @@
+.nh
+.TH "X86-MINPD" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+MINPD - MINIMUM OF PACKED DOUBLE-PRECISION FLOATING-POINT VALUES
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp/En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+T{
+66 0F 5D /r MINPD xmm1, xmm2/m128
+T}
+	A	V/V	SSE2	T{
+Return the minimum double\-precision floating\-point values between xmm1 and xmm2/mem
+T}
+T{
+VEX.128.66.0F.WIG 5D /r VMINPD xmm1, xmm2, xmm3/m128
+T}
+	B	V/V	AVX	T{
+Return the minimum double\-precision floating\-point values between xmm2 and xmm3/mem.
+T}
+T{
+VEX.256.66.0F.WIG 5D /r VMINPD ymm1, ymm2, ymm3/m256
+T}
+	B	V/V	AVX	T{
+Return the minimum packed double\-precision floating\-point values between ymm2 and ymm3/mem.
+T}
+T{
+EVEX.128.66.0F.W1 5D /r VMINPD xmm1 {k1}{z}, xmm2, xmm3/m128/m64bcst
+T}
+	C	V/V	AVX512VL AVX512F	T{
+Return the minimum packed double\-precision floating\-point values between xmm2 and xmm3/m128/m64bcst and store result in xmm1 subject to writemask k1.
+T}
+T{
+EVEX.256.66.0F.W1 5D /r VMINPD ymm1 {k1}{z}, ymm2, ymm3/m256/m64bcst
+T}
+	C	V/V	AVX512VL AVX512F	T{
+Return the minimum packed double\-precision floating\-point values between ymm2 and ymm3/m256/m64bcst and store result in ymm1 subject to writemask k1.
+T}
+T{
+EVEX.512.66.0F.W1 5D /r VMINPD zmm1 {k1}{z}, zmm2, zmm3/m512/m64bcst{sae}
+T}
+	C	V/V	AVX512F	T{
+Return the minimum packed double\-precision floating\-point values between zmm2 and zmm3/m512/m64bcst and store result in zmm1 subject to writemask k1.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+Op/En	Tuple Type	Operand 1	Operand 2	Operand 3	Operand 4
+A	NA	ModRM:reg (r, w)	ModRM:r/m (r)	NA	NA
+B	NA	ModRM:reg (w)	VEX.vvvv	ModRM:r/m (r)	NA
+C	Full	ModRM:reg (w)	EVEX.vvvv	ModRM:r/m (r)	NA
+.TE
+
+.SS Description
+.PP
+Performs a SIMD compare of the packed double\-precision floating\-point
+values in the first source operand and the second source operand and
+returns the minimum value for each pair of values to the destination
+operand.
+
+.PP
+If the values being compared are both 0.0s (of either sign), the value
+in the second operand (source operand) is returned. If a value in the
+second operand is an SNaN, then SNaN is forwarded unchanged to the
+destination (that is, a QNaN version of the SNaN is not returned).
+
+.PP
+If only one value is a NaN (SNaN or QNaN) for this instruction, the
+second operand (source operand), either a NaN or a valid floating\-point
+value, is written to the result. If instead of this behavior, it is
+required that the NaN source operand (from either the first or second
+operand) be returned, the action of MINPD can be emulated using a
+sequence of instructions, such as, a comparison followed by AND, ANDN
+and OR.
+
+.PP
+EVEX encoded versions: The first source operand (the second operand) is
+a ZMM/YMM/XMM register. The second source operand can be a ZMM/YMM/XMM
+register, a 512/256/128\-bit memory location or a 512/256/128\-bit vector
+broadcasted from a 64\-bit memory location. The destination operand is a
+ZMM/YMM/XMM register conditionally updated with writemask k1.
+
+.PP
+VEX.256 encoded version: The first source operand is a YMM register. The
+second source operand can be a YMM register or a 256\-bit memory
+location. The destination operand is a YMM register. The upper bits
+(MAXVL\-1:256) of the corresponding ZMM register destination are zeroed.
+
+.PP
+VEX.128 encoded version: The first source operand is a XMM register. The
+second source operand can be a XMM register or a 128\-bit memory
+location. The destination operand is a XMM register. The upper bits
+(MAXVL\-1:128) of the corresponding ZMM register destination are zeroed.
+
+.PP
+128\-bit Legacy SSE version: The second source can be an XMM register or
+an 128\-bit memory location. The destination is not distinct from the
+first source XMM register and the upper bits (MAXVL\-1:128) of the
+corresponding ZMM register destination are unmodified.
+
+.SS Operation
+.PP
+.RS
+
+.nf
+MIN(SRC1, SRC2)
+{
+    IF ((SRC1 = 0.0) and (SRC2 = 0.0)) THEN DEST ←SRC2;
+        ELSE IF (SRC1 = SNaN) THEN DEST ←SRC2; FI;
+        ELSE IF (SRC2 = SNaN) THEN DEST ←SRC2; FI;
+        ELSE IF (SRC1 < SRC2) THEN DEST ←SRC1;
+        ELSE DEST←SRC2;
+    FI;
+}
+
+.fi
+.RE
+
+.SS VMINPD (EVEX encoded version)
+.PP
+.RS
+
+.nf
+(KL, VL) = (2, 128), (4, 256), (8, 512)
+FOR j←0 TO KL\-1
+    i←j * 64
+    IF k1[j] OR *no writemask*
+        THEN
+            IF (EVEX.b = 1) AND (SRC2 *is memory*)
+                THEN
+                    DEST[i+63:i]←MIN(SRC1[i+63:i], SRC2[63:0])
+                ELSE
+                    DEST[i+63:i]←MIN(SRC1[i+63:i], SRC2[i+63:i])
+            FI;
+        ELSE
+            IF *merging\-masking* ; merging\-masking
+                THEN *DEST[i+63:i] remains unchanged*
+                ELSE DEST[i+63:i]←0
+                        ; zeroing\-masking
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS VMINPD (VEX.256 encoded version)
+.PP
+.RS
+
+.nf
+DEST[63:0]←MIN(SRC1[63:0], SRC2[63:0])
+DEST[127:64]←MIN(SRC1[127:64], SRC2[127:64])
+DEST[191:128]←MIN(SRC1[191:128], SRC2[191:128])
+DEST[255:192]←MIN(SRC1[255:192], SRC2[255:192])
+
+.fi
+.RE
+
+.SS VMINPD (VEX.128 encoded version)
+.PP
+.RS
+
+.nf
+DEST[63:0]←MIN(SRC1[63:0], SRC2[63:0])
+DEST[127:64]←MIN(SRC1[127:64], SRC2[127:64])
+DEST[MAXVL\-1:128] ←0
+
+.fi
+.RE
+
+.SS MINPD (128\-bit Legacy SSE version)
+.PP
+.RS
+
+.nf
+DEST[63:0]←MIN(SRC1[63:0], SRC2[63:0])
+DEST[127:64]←MIN(SRC1[127:64], SRC2[127:64])
+DEST[MAXVL\-1:128] (Unmodified)
+
+.fi
+.RE
+
+.SS Intel C/C++ Compiler Intrinsic Equivalent
+.PP
+.RS
+
+.nf
+VMINPD \_\_m512d \_mm512\_min\_pd( \_\_m512d a, \_\_m512d b);
+
+VMINPD \_\_m512d \_mm512\_mask\_min\_pd(\_\_m512d s, \_\_mmask8 k, \_\_m512d a, \_\_m512d b);
+
+VMINPD \_\_m512d \_mm512\_maskz\_min\_pd( \_\_mmask8 k, \_\_m512d a, \_\_m512d b);
+
+VMINPD \_\_m512d \_mm512\_min\_round\_pd( \_\_m512d a, \_\_m512d b, int);
+
+VMINPD \_\_m512d \_mm512\_mask\_min\_round\_pd(\_\_m512d s, \_\_mmask8 k, \_\_m512d a, \_\_m512d b, int);
+
+VMINPD \_\_m512d \_mm512\_maskz\_min\_round\_pd( \_\_mmask8 k, \_\_m512d a, \_\_m512d b, int);
+
+VMINPD \_\_m256d \_mm256\_mask\_min\_pd(\_\_m256d s, \_\_mmask8 k, \_\_m256d a, \_\_m256d b);
+
+VMINPD \_\_m256d \_mm256\_maskz\_min\_pd( \_\_mmask8 k, \_\_m256d a, \_\_m256d b);
+
+VMINPD \_\_m128d \_mm\_mask\_min\_pd(\_\_m128d s, \_\_mmask8 k, \_\_m128d a, \_\_m128d b);
+
+VMINPD \_\_m128d \_mm\_maskz\_min\_pd( \_\_mmask8 k, \_\_m128d a, \_\_m128d b);
+
+VMINPD \_\_m256d \_mm256\_min\_pd (\_\_m256d a, \_\_m256d b);
+
+MINPD \_\_m128d \_mm\_min\_pd (\_\_m128d a, \_\_m128d b);
+
+.fi
+.RE
+
+.SS SIMD Floating\-Point Exceptions
+.PP
+Invalid (including QNaN Source Operand), Denormal
+
+.SS Other Exceptions
+.PP
+Non\-EVEX\-encoded instruction, see Exceptions Type 2.
+
+.PP
+EVEX\-encoded instruction, see Exceptions Type E2.
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+MIT licensed by TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

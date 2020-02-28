@@ -1,0 +1,224 @@
+.nh
+.TH "X86-VALIGND-VALIGNQ" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+VALIGND-VALIGNQ - ALIGN DOUBLEWORD-QUADWORD VECTORS
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp/En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+T{
+EVEX.128.66.0F3A.W0 03 /r ib VALIGND xmm1 {k1}{z}, xmm2, xmm3/m128/m32bcst, imm8
+T}
+	A	V/V	AVX512VL AVX512F	T{
+Shift right and merge vectors xmm2 and xmm3/m128/m32bcst with double\-word granularity using imm8 as number of elements to shift, and store the final result in xmm1, under writemask.
+T}
+T{
+EVEX.128.66.0F3A.W1 03 /r ib VALIGNQ xmm1 {k1}{z}, xmm2, xmm3/m128/m64bcst, imm8
+T}
+	A	V/V	AVX512VL AVX512F	T{
+Shift right and merge vectors xmm2 and xmm3/m128/m64bcst with quad\-word granularity using imm8 as number of elements to shift, and store the final result in xmm1, under writemask.
+T}
+T{
+EVEX.256.66.0F3A.W0 03 /r ib VALIGND ymm1 {k1}{z}, ymm2, ymm3/m256/m32bcst, imm8
+T}
+	A	V/V	AVX512VL AVX512F	T{
+Shift right and merge vectors ymm2 and ymm3/m256/m32bcst with double\-word granularity using imm8 as number of elements to shift, and store the final result in ymm1, under writemask.
+T}
+T{
+EVEX.256.66.0F3A.W1 03 /r ib VALIGNQ ymm1 {k1}{z}, ymm2, ymm3/m256/m64bcst, imm8
+T}
+	A	V/V	AVX512VL AVX512F	T{
+Shift right and merge vectors ymm2 and ymm3/m256/m64bcst with quad\-word granularity using imm8 as number of elements to shift, and store the final result in ymm1, under writemask.
+T}
+T{
+EVEX.512.66.0F3A.W0 03 /r ib VALIGND zmm1 {k1}{z}, zmm2, zmm3/m512/m32bcst, imm8
+T}
+	A	V/V	AVX512F	T{
+Shift right and merge vectors zmm2 and zmm3/m512/m32bcst with double\-word granularity using imm8 as number of elements to shift, and store the final result in zmm1, under writemask.
+T}
+T{
+EVEX.512.66.0F3A.W1 03 /r ib VALIGNQ zmm1 {k1}{z}, zmm2, zmm3/m512/m64bcst, imm8
+T}
+	A	V/V	AVX512F	T{
+Shift right and merge vectors zmm2 and zmm3/m512/m64bcst with quad\-word granularity using imm8 as number of elements to shift, and store the final result in zmm1, under writemask.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+Op/En	Tuple Type	Operand 1	Operand 2	Operand 3	Operand 4
+A	Full	ModRM:reg (w)	EVEX.vvvv	ModRM:r/m (r)	NA
+.TE
+
+.SS Description
+.PP
+Concatenates and shifts right doubleword/quadword elements of the first
+source operand (the second operand) and the second source operand (the
+third operand) into a 1024/512/256\-bit intermediate vector. The low
+512/256/128\-bit of the intermediate vector is written to the destination
+operand (the first operand) using the writemask k1. The destination and
+first source operands are ZMM/YMM/XMM registers. The second source
+operand can be a ZMM/YMM/XMM register, a 512/256/128\-bit memory location
+or a 512/256/128\-bit vector broadcasted from a 32/64\-bit memory
+location.
+
+.PP
+This instruction is writemasked, so only those elements with the
+corresponding bit set in vector mask register k1 are computed and stored
+into zmm1. Elements in zmm1 with the corresponding bit clear in k1
+retain their previous values (merging\-masking) or are set to 0
+(zeroing\-masking).
+
+.SS Operation
+.SS VALIGND (EVEX encoded versions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (4, 128), (8, 256), (16, 512)
+IF (SRC2 *is memory*) (AND EVEX.b = 1)
+    THEN
+        FOR j←0 TO KL\-1
+            i←j * 32
+            src[i+31:i] ← SRC2[31:0]
+        ENDFOR;
+    ELSE src←SRC2
+FI
+; Concatenate sources
+tmp[VL\-1:0] ← src[VL\-1:0]
+tmp[2VL\-1:VL] ← SRC1[VL\-1:0]
+; Shift right doubleword elements
+IF VL = 128
+    THEN SHIFT = imm8[1:0]
+    ELSE
+        IF VL = 256
+            THEN SHIFT = imm8[2:0]
+            ELSE SHIFT = imm8[3:0]
+        FI
+FI;
+tmp[2VL\-1:0]←tmp[2VL\-1:0] >> (32*SHIFT)
+; Apply writemask
+FOR j←0 TO KL\-1
+    i←j * 32
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+31:i]←tmp[i+31:i]
+        ELSE
+            IF *merging\-masking*
+                        ; merging\-masking
+                THEN *DEST[i+31:i] remains unchanged*
+                ELSE
+                        ; zeroing\-masking
+                    DEST[i+31:i] ← 0
+            FI
+    FI;
+ENDFOR;
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS VALIGNQ (EVEX encoded versions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (2, 128), (4, 256),(8, 512)
+IF (SRC2 *is memory*) (AND EVEX.b = 1)
+    THEN
+        FOR j←0 TO KL\-1
+            i←j * 64
+            src[i+63:i] ← SRC2[63:0]
+        ENDFOR;
+    ELSE src←SRC2
+FI
+; Concatenate sources
+tmp[VL\-1:0] ← src[VL\-1:0]
+tmp[2VL\-1:VL] ← SRC1[VL\-1:0]
+; Shift right quadword elements
+IF VL = 128
+    THEN SHIFT = imm8[0]
+    ELSE
+        IF VL = 256
+            THEN SHIFT = imm8[1:0]
+            ELSE SHIFT = imm8[2:0]
+        FI
+FI;
+tmp[2VL\-1:0]←tmp[2VL\-1:0] >> (64*SHIFT)
+; Apply writemask
+FOR j←0 TO KL\-1
+    i←j * 64
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+63:i]←tmp[i+63:i]
+        ELSE
+            IF *merging\-masking*
+                THEN *DEST[i+63:i] remains unchanged*
+                ELSE ; zeroing\-masking
+                    DEST[i+63:i] ← 0
+            FI
+    FI;
+ENDFOR;
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS Intel C/C++ Compiler Intrinsic Equivalent
+.PP
+.RS
+
+.nf
+VALIGND \_\_m512i \_mm512\_alignr\_epi32( \_\_m512i a, \_\_m512i b, int cnt);
+
+VALIGND \_\_m512i \_mm512\_mask\_alignr\_epi32(\_\_m512i s, \_\_mmask16 k, \_\_m512i a, \_\_m512i b, int cnt);
+
+VALIGND \_\_m512i \_mm512\_maskz\_alignr\_epi32( \_\_mmask16 k, \_\_m512i a, \_\_m512i b, int cnt);
+
+VALIGND \_\_m256i \_mm256\_mask\_alignr\_epi32(\_\_m256i s, \_\_mmask8 k, \_\_m256i a, \_\_m256i b, int cnt);
+
+VALIGND \_\_m256i \_mm256\_maskz\_alignr\_epi32( \_\_mmask8 k, \_\_m256i a, \_\_m256i b, int cnt);
+
+VALIGND \_\_m128i \_mm\_mask\_alignr\_epi32(\_\_m128i s, \_\_mmask8 k, \_\_m128i a, \_\_m128i b, int cnt);
+
+VALIGND \_\_m128i \_mm\_maskz\_alignr\_epi32( \_\_mmask8 k, \_\_m128i a, \_\_m128i b, int cnt);
+
+VALIGNQ \_\_m512i \_mm512\_alignr\_epi64( \_\_m512i a, \_\_m512i b, int cnt);
+
+VALIGNQ \_\_m512i \_mm512\_mask\_alignr\_epi64(\_\_m512i s, \_\_mmask8 k, \_\_m512i a, \_\_m512i b, int cnt);
+
+VALIGNQ \_\_m512i \_mm512\_maskz\_alignr\_epi64( \_\_mmask8 k, \_\_m512i a, \_\_m512i b, int cnt);
+
+VALIGNQ \_\_m256i \_mm256\_mask\_alignr\_epi64(\_\_m256i s, \_\_mmask8 k, \_\_m256i a, \_\_m256i b, int cnt);
+
+VALIGNQ \_\_m256i \_mm256\_maskz\_alignr\_epi64( \_\_mmask8 k, \_\_m256i a, \_\_m256i b, int cnt);
+
+VALIGNQ \_\_m128i \_mm\_mask\_alignr\_epi64(\_\_m128i s, \_\_mmask8 k, \_\_m128i a, \_\_m128i b, int cnt);
+
+VALIGNQ \_\_m128i \_mm\_maskz\_alignr\_epi64( \_\_mmask8 k, \_\_m128i a, \_\_m128i b, int cnt);
+
+.fi
+.RE
+
+.SS Exceptions
+.PP
+See Exceptions Type E4NF.
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+MIT licensed by TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

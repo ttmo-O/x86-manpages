@@ -1,0 +1,1017 @@
+.nh
+.TH "X86-REP-REPE-REPZ-REPNE-REPNZ" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+REP-REPE-REPZ-REPNE-REPNZ - REPEAT STRING OPERATION PREFIX
+.PP
+Opcode
+
+.PP
+Instruction
+
+.PP
+Op/En
+
+.PP
+64\-Bit Mode
+
+.PP
+Compat/Leg Mode
+
+.PP
+Description
+
+.PP
+F3 6C
+
+.PP
+REP INS m8, DX
+
+.PP
+ZO
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+Input (E)CX bytes from port DX into ES:[(E)DI]\&.
+
+.PP
+F3 6C
+
+.PP
+REP INS m8, DX
+
+.PP
+ZO
+
+.PP
+Valid
+
+.PP
+N.E.
+
+.PP
+Input RCX bytes from port DX into [RDI]\&.
+
+.PP
+F3 6D
+
+.PP
+REP INS m16, DX
+
+.PP
+ZO
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+Input (E)CX words from port DX into ES:[(E)DI.]
+
+.PP
+F3 6D
+
+.PP
+REP INS m32, DX
+
+.PP
+ZO
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+Input (E)CX doublewords from port DX into ES:[(E)DI]\&.
+
+.PP
+F3 6D
+
+.PP
+REP INS r/m32, DX
+
+.PP
+ZO
+
+.PP
+Valid
+
+.PP
+N.E.
+
+.PP
+Input RCX default size from port DX into [RDI]\&.
+
+.PP
+F3 A4
+
+.PP
+REP MOVS m8, m8
+
+.PP
+ZO
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+Move (E)CX bytes from DS:[(E)SI] to ES:[(E)DI]\&.
+
+.PP
+F3 REX.W A4
+
+.PP
+REP MOVS m8, m8
+
+.PP
+ZO
+
+.PP
+Valid
+
+.PP
+N.E.
+
+.PP
+Move RCX bytes from [RSI] to [RDI]\&.
+
+.PP
+F3 A5
+
+.PP
+REP MOVS m16, m16
+
+.PP
+ZO
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+Move (E)CX words from DS:[(E)SI] to ES:[(E)DI]\&.
+
+.PP
+F3 A5
+
+.PP
+REP MOVS m32, m32
+
+.PP
+ZO
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+Move (E)CX doublewords from DS:[(E)SI] to ES:[(E)DI]\&.
+
+.PP
+F3 REX.W A5
+
+.PP
+REP MOVS m64, m64
+
+.PP
+ZO
+
+.PP
+Valid
+
+.PP
+N.E.
+
+.PP
+Move RCX quadwords from [RSI] to [RDI]\&.
+
+.PP
+F3 6E
+
+.PP
+REP OUTS DX, r/m8
+
+.PP
+ZO
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+Output (E)CX bytes from DS:[(E)SI] to port DX.
+
+.PP
+F3 REX.W 6E
+
+.PP
+REP OUTS DX, r/m8*
+
+.PP
+ZO
+
+.PP
+Valid
+
+.PP
+N.E.
+
+.PP
+Output RCX bytes from [RSI] to port DX.
+
+.PP
+F3 6F
+
+.PP
+REP OUTS DX, r/m16
+
+.PP
+ZO
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+Output (E)CX words from DS:[(E)SI] to port DX.
+
+.PP
+F3 6F
+
+.PP
+REP OUTS DX, r/m32
+
+.PP
+ZO
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+Output (E)CX doublewords from DS:[(E)SI] to port DX.
+
+.PP
+F3 REX.W 6F
+
+.PP
+REP OUTS DX, r/m32
+
+.PP
+ZO
+
+.PP
+Valid
+
+.PP
+N.E.
+
+.PP
+Output RCX default size from [RSI] to port DX.
+
+.PP
+F3 AC
+
+.PP
+REP LODS AL
+
+.PP
+ZO
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+Load (E)CX bytes from DS:[(E)SI] to AL.
+
+.PP
+F3 REX.W AC
+
+.PP
+REP LODS AL
+
+.PP
+ZO
+
+.PP
+Valid
+
+.PP
+N.E.
+
+.PP
+Load RCX bytes from [RSI] to AL.
+
+.PP
+F3 AD
+
+.PP
+REP LODS AX
+
+.PP
+ZO
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+Load (E)CX words from DS:[(E)SI] to AX.
+
+.PP
+F3 AD
+
+.PP
+REP LODS EAX
+
+.PP
+ZO
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+Load (E)CX doublewords from DS:[(E)SI] to EAX.
+
+.PP
+F3 REX.W AD
+
+.PP
+REP LODS RAX
+
+.PP
+ZO
+
+.PP
+Valid
+
+.PP
+N.E.
+
+.PP
+Load RCX quadwords from [RSI] to RAX.
+
+.PP
+F3 AA
+
+.PP
+REP STOS m8
+
+.PP
+ZO
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+Fill (E)CX bytes at ES:[(E)DI] with AL.
+
+.PP
+F3 REX.W AA
+
+.PP
+REP STOS m8
+
+.PP
+ZO
+
+.PP
+Valid
+
+.PP
+N.E.
+
+.PP
+Fill RCX bytes at [RDI] with AL.
+
+.PP
+F3 AB
+
+.PP
+REP STOS m16
+
+.PP
+ZO
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+Fill (E)CX words at ES:[(E)DI] with AX.
+
+.PP
+F3 AB
+
+.PP
+REP STOS m32
+
+.PP
+ZO
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+Fill (E)CX doublewords at ES:[(E)DI] with EAX.
+
+.PP
+F3 REX.W AB
+
+.PP
+REP STOS m64
+
+.PP
+ZO
+
+.PP
+Valid
+
+.PP
+N.E.
+
+.PP
+Fill RCX quadwords at [RDI] with RAX.
+
+.PP
+F3 A6
+
+.PP
+REPE CMPS m8, m8
+
+.PP
+ZO
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+Find nonmatching bytes in ES:[(E)DI] and DS:[(E)SI]\&.
+
+.PP
+F3 REX.W A6
+
+.PP
+REPE CMPS m8, m8
+
+.PP
+ZO
+
+.PP
+Valid
+
+.PP
+N.E.
+
+.PP
+Find non\-matching bytes in [RDI] and [RSI]\&.
+
+.PP
+F3 A7
+
+.PP
+REPE CMPS m16, m16
+
+.PP
+ZO
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+Find nonmatching words in ES:[(E)DI] and DS:[(E)SI]\&.
+
+.PP
+F3 A7
+
+.PP
+REPE CMPS m32, m32
+
+.PP
+ZO
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+Find nonmatching doublewords in ES:[(E)DI] and DS:[(E)SI]\&.
+
+.PP
+F3 REX.W A7
+
+.PP
+REPE CMPS m64, m64
+
+.PP
+ZO
+
+.PP
+Valid
+
+.PP
+N.E.
+
+.PP
+Find non\-matching quadwords in [RDI] and [RSI]\&.
+
+.PP
+F3 AE
+
+.PP
+REPE SCAS m8
+
+.PP
+ZO
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+Find non\-AL byte starting at ES:[(E)DI]\&.
+
+.PP
+F3 REX.W AE
+
+.PP
+REPE SCAS m8
+
+.PP
+ZO
+
+.PP
+Valid
+
+.PP
+N.E.
+
+.PP
+Find non\-AL byte starting at [RDI]\&.
+
+.PP
+F3 AF
+
+.PP
+REPE SCAS m16
+
+.PP
+ZO
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+Find non\-AX word starting at ES:[(E)DI]\&.
+
+.PP
+F3 AF
+
+.PP
+REPE SCAS m32
+
+.PP
+ZO
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+Find non\-EAX doubleword starting at ES:[(E)DI]\&.
+
+.PP
+F3 REX.W AF
+
+.PP
+REPE SCAS m64
+
+.PP
+ZO
+
+.PP
+Valid
+
+.PP
+N.E.
+
+.PP
+Find non\-RAX quadword starting at [RDI]\&.
+
+.PP
+F2 A6
+
+.PP
+REPNE CMPS m8, m8
+
+.PP
+ZO
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+Find matching bytes in ES:[(E)DI] and DS:[(E)SI]\&.
+
+.PP
+F2 REX.W A6
+
+.PP
+REPNE CMPS m8, m8
+
+.PP
+ZO
+
+.PP
+Valid
+
+.PP
+N.E.
+
+.PP
+Find matching bytes in [RDI] and [RSI]\&.
+
+.PP
+F2 A7
+
+.PP
+REPNE CMPS m16, m16
+
+.PP
+ZO
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+Find matching words in ES:[(E)DI] and DS:[(E)SI]\&.
+
+.PP
+F2 A7
+
+.PP
+REPNE CMPS m32, m32
+
+.PP
+ZO
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+Find matching doublewords in ES:[(E)DI] and DS:[(E)SI]\&.
+
+.PP
+F2 REX.W A7
+
+.PP
+REPNE CMPS m64, m64
+
+.PP
+ZO
+
+.PP
+Valid
+
+.PP
+N.E.
+
+.PP
+Find matching doublewords in [RDI] and [RSI]\&.
+
+.PP
+F2 AE
+
+.PP
+REPNE SCAS m8
+
+.PP
+ZO
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+Find AL, starting at ES:[(E)DI]\&.
+
+.PP
+F2 REX.W AE
+
+.PP
+REPNE SCAS m8
+
+.PP
+ZO
+
+.PP
+Valid
+
+.PP
+N.E.
+
+.PP
+Find AL, starting at [RDI]\&.
+
+.PP
+F2 AF
+
+.PP
+REPNE SCAS m16
+
+.PP
+ZO
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+Find AX, starting at ES:[(E)DI]\&.
+
+.PP
+F2 AF
+
+.PP
+REPNE SCAS m32
+
+.PP
+ZO
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+Find EAX, starting at ES:[(E)DI]\&.
+
+.PP
+F2 REX.W AF
+
+.PP
+REPNE SCAS m64
+
+.PP
+ZO
+
+.PP
+Valid
+
+.PP
+N.E.
+
+.PP
+Find RAX, starting at [RDI]\&.
+
+.PP
+NOTES: *
+In64\-bitmode,r/m8cannotbeencodedtoaccessthefollowingbyteregistersifaREXprefixisused:AH,BH,CH,DH.
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l 
+l l l l l .
+Op/En	Operand 1	Operand 2	Operand 3	Operand 4
+ZO	NA	NA	NA	NA
+.TE
+
+.SH DESCRIPTION
+.PP
+Repeats a string instruction the number of times specified in the count
+register or until the indicated condition of the ZF flag is no longer
+met. The REP (repeat), REPE (repeat while equal), REPNE (repeat while
+not equal), REPZ (repeat while zero), and REPNZ (repeat while not zero)
+mnemonics are prefixes that can be added to one of the string
+instructions. The REP prefix can be added to the INS, OUTS, MOVS, LODS,
+and STOS instructions, and the REPE, REPNE, REPZ, and REPNZ prefixes can
+be added to the CMPS and SCAS instructions. (The REPZ and REPNZ prefixes
+are synonymous forms of the REPE and REPNE prefixes, respectively.) The
+F3H prefix is defined for the following instructions and undefined for
+the rest:
+
+.RS
+.IP \(bu 2
+F3H as REP/REPE/REPZ for string and input/output instruction.
+.IP \(bu 2
+F3H is a mandatory prefix for POPCNT, LZCNT, and ADOX.
+
+.RE
+
+.PP
+The REP prefixes apply only to one string instruction at a time. To
+repeat a block of instructions, use the LOOP instruction or another
+looping construct. All of these repeat prefixes cause the associated
+instruction to be repeated until the count in register is decremented to
+0. See Table 4\-16.
+
+.TS
+allbox;
+l l l 
+l l l .
+\fB\fCRepeat Prefix\fR	\fB\fCTermination Condition 1*\fR	\fB\fCTermination Condition 2\fR
+REP	RCX or (E)CX = 0	None
+REPE/REPZ	RCX or (E)CX = 0	ZF = 0
+REPNE/REPNZ	RCX or (E)CX = 0	ZF = 1
+.TE
+
+.PP
+Table 4\-16. Repeat Prefixes
+
+.PP
+.RS
+
+.PP
+*
+CountregisterisCX,ECXorRCXbydefault,dependingonattributesoftheoperatingmodes.
+
+.RE
+
+.PP
+The REPE, REPNE, REPZ, and REPNZ prefixes also check the state of the ZF
+flag after each iteration and terminate the repeat loop if the ZF flag
+is not in the specified state. When both termination conditions are
+tested, the cause of a repeat termination can be determined either by
+testing the count register with a JECXZ instruction or by testing the ZF
+flag (with a JZ, JNZ, or JNE instruction).
+
+.PP
+When the REPE/REPZ and REPNE/REPNZ prefixes are used, the ZF flag does
+not require initialization because both the CMPS and SCAS instructions
+affect the ZF flag according to the results of the comparisons they
+make.
+
+.PP
+A repeating string operation can be suspended by an exception or
+interrupt. When this happens, the state of the registers is preserved to
+allow the string operation to be resumed upon a return from the
+exception or interrupt handler. The source and destination registers
+point to the next string elements to be operated on, the EIP register
+points to the string instruction, and the ECX register has the value it
+held following the last successful iteration of the instruction. This
+mechanism allows long string operations to proceed without affecting the
+interrupt response time of the system.
+
+.PP
+When a fault occurs during the execution of a CMPS or SCAS instruction
+that is prefixed with REPE or REPNE, the EFLAGS value is restored to the
+state prior to the execution of the instruction. Since the SCAS and CMPS
+instructions do not use EFLAGS as an input, the processor can resume the
+instruction after the page fault handler.
+
+.PP
+Use the REP INS and REP OUTS instructions with caution. Not all I/O
+ports can handle the rate at which these instructions execute. Note that
+a REP STOS instruction is the fastest way to initialize a large block of
+memory.
+
+.PP
+In 64\-bit mode, the operand size of the count register is associated
+with the address size attribute. Thus the default count register is RCX;
+REX.W has no effect on the address size and the count register. In
+64\-bit mode, if 67H is used to override address size attribute, the
+count register is ECX and any implicit source/destination operand will
+use the corresponding 32\-bit index register. See the summary chart at
+the beginning of this section for encoding data and limits.
+
+.PP
+REP INS may read from the I/O port without writing to the memory
+location if an exception or VM exit occurs due to the write (e.g. #PF).
+If this would be problematic, for example because the I/O port read has
+side\-effects, software should ensure the write to the memory location
+does not cause an exception or VM exit.
+
+.SH OPERATION
+.PP
+.RS
+
+.nf
+IF AddressSize = 16
+    THEN
+            Use CX for CountReg;
+            Implicit Source/Dest operand for memory use of SI/DI;
+    ELSE IF AddressSize = 64
+            THEN Use RCX for CountReg;
+            Implicit Source/Dest operand for memory use of RSI/RDI;
+    ELSE
+            Use ECX for CountReg;
+            Implicit Source/Dest operand for memory use of ESI/EDI;
+FI;
+WHILE CountReg ≠ 0
+        DO
+                Service pending interrupts (if any);
+                Execute associated string instruction;
+                CountReg ← (CountReg – 1);
+                IF CountReg = 0
+                    THEN exit WHILE loop; FI;
+                IF (Repeat prefix is REPZ or REPE) and (ZF = 0)
+                or (Repeat prefix is REPNZ or REPNE) and (ZF = 1)
+                    THEN exit WHILE loop; FI;
+        OD;
+
+.fi
+.RE
+
+.SH FLAGS AFFECTED
+.PP
+None; however, the CMPS and SCAS instructions do set the status flags in
+the EFLAGS register.
+
+.SH EXCEPTIONS (ALL OPERATING MODES)
+.PP
+Exceptions may be generated by an instruction associated with the
+prefix.
+
+.SH 64\-BIT MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP(0)	T{
+If the memory address is in a non\-canonical form.
+T}
+.TE
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+MIT licensed by TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

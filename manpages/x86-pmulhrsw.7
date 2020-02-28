@@ -1,0 +1,315 @@
+.nh
+.TH "X86-PMULHRSW" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+PMULHRSW - PACKED MULTIPLY HIGH WITH ROUND AND SCALE
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp/En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+T{
+NP 0F 38 0B /r1 PMULHRSW mm1, mm2/m64
+T}
+	A	V/V	SSSE3	T{
+Multiply 16\-bit signed words, scale and round signed doublewords, pack high 16 bits to mm1.
+T}
+T{
+66 0F 38 0B /r PMULHRSW xmm1, xmm2/m128
+T}
+	A	V/V	SSSE3	T{
+Multiply 16\-bit signed words, scale and round signed doublewords, pack high 16 bits to xmm1.
+T}
+T{
+VEX.128.66.0F38.WIG 0B /r VPMULHRSW xmm1, xmm2, xmm3/m128
+T}
+	B	V/V	AVX	T{
+Multiply 16\-bit signed words, scale and round signed doublewords, pack high 16 bits to xmm1.
+T}
+T{
+VEX.256.66.0F38.WIG 0B /r VPMULHRSW ymm1, ymm2, ymm3/m256
+T}
+	B	V/V	AVX2	T{
+Multiply 16\-bit signed words, scale and round signed doublewords, pack high 16 bits to ymm1.
+T}
+T{
+EVEX.128.66.0F38.WIG 0B /r VPMULHRSW xmm1 {k1}{z}, xmm2, xmm3/m128
+T}
+	C	V/V	AVX512VL AVX512BW	T{
+Multiply 16\-bit signed words, scale and round signed doublewords, pack high 16 bits to xmm1 under writemask k1.
+T}
+T{
+EVEX.256.66.0F38.WIG 0B /r VPMULHRSW ymm1 {k1}{z}, ymm2, ymm3/m256
+T}
+	C	V/V	AVX512VL AVX512BW	T{
+Multiply 16\-bit signed words, scale and round signed doublewords, pack high 16 bits to ymm1 under writemask k1.
+T}
+T{
+EVEX.512.66.0F38.WIG 0B /r VPMULHRSW zmm1 {k1}{z}, zmm2, zmm3/m512
+T}
+	C	V/V	AVX512BW	T{
+Multiply 16\-bit signed words, scale and round signed doublewords, pack high 16 bits to zmm1 under writemask k1.
+T}
+.TE
+
+.PP
+.RS
+
+.PP
+1\&. See note in Section 2.4, “AVX and SSE Instruction Exception
+Specification” in the Intel® 64 and IA\-32 Architectures Software
+Developer’s Manual, Volume 3A.
+
+.RE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+Op/En	Tuple Type	Operand 1	Operand 2	Operand 3	Operand 4
+A	NA	ModRM:reg (r, w)	ModRM:r/m (r)	NA	NA
+B	NA	ModRM:reg (w)	VEX.vvvv (r)	ModRM:r/m (r)	NA
+C	Full Mem	ModRM:reg (w)	EVEX.vvvv (r)	ModRM:r/m (r)	NA
+.TE
+
+.SH DESCRIPTION
+.PP
+PMULHRSW multiplies vertically each signed 16\-bit integer from the
+destination operand (first operand) with the corresponding signed 16\-bit
+integer of the source operand (second operand), producing intermediate,
+signed 32\-bit integers. Each intermediate 32\-bit integer is truncated to
+the 18 most significant bits. Rounding is always performed by adding 1
+to the least significant bit of the 18\-bit intermediate result. The
+final result is obtained by selecting the 16 bits immediately to the
+right of the most significant bit of each 18\-bit intermediate result and
+packed to the destination operand.
+
+.PP
+When the source operand is a 128\-bit memory operand, the operand must be
+aligned on a 16\-byte boundary or a general\-protection exception (#GP)
+will be generated.
+
+.PP
+In 64\-bit mode and not encoded with VEX/EVEX, use the REX prefix to
+access XMM8\-XMM15 registers.
+
+.PP
+Legacy SSE version 64\-bit operand: Both operands can be MMX registers.
+The second source operand is an MMX register or a 64\-bit memory
+location.
+
+.PP
+128\-bit Legacy SSE version: The first source and destination operands
+are XMM registers. The second source operand is an XMM register or a
+128\-bit memory location. Bits (MAXVL\-1:128) of the corresponding YMM
+destination register remain unchanged.
+
+.PP
+VEX.128 encoded version: The first source and destination operands are
+XMM registers. The second source operand is an XMM register or a 128\-bit
+memory location. Bits (MAXVL\-1:128) of the destination YMM register are
+zeroed.
+
+.PP
+VEX.256 encoded version: The second source operand can be an YMM
+register or a 256\-bit memory location. The first source and destination
+operands are YMM registers.
+
+.PP
+EVEX encoded versions: The first source operand is a ZMM/YMM/XMM
+register. The second source operand can be a ZMM/YMM/XMM register, a
+512/256/128\-bit memory location. The destination operand is a
+ZMM/YMM/XMM register conditionally updated with writemask k1.
+
+.SH OPERATION
+.SS PMULHRSW (with 64\-bit operands)
+.PP
+.RS
+
+.nf
+temp0[31:0] = INT32 ((DEST[15:0] * SRC[15:0]) >>14) + 1;
+temp1[31:0] = INT32 ((DEST[31:16] * SRC[31:16]) >>14) + 1;
+temp2[31:0] = INT32 ((DEST[47:32] * SRC[47:32]) >> 14) + 1;
+temp3[31:0] = INT32 ((DEST[63:48] * SRc[63:48]) >> 14) + 1;
+DEST[15:0] = temp0[16:1];
+DEST[31:16] = temp1[16:1];
+DEST[47:32] = temp2[16:1];
+DEST[63:48] = temp3[16:1];
+
+.fi
+.RE
+
+.SS PMULHRSW (with 128\-bit operand)
+.PP
+.RS
+
+.nf
+temp0[31:0] = INT32 ((DEST[15:0] * SRC[15:0]) >>14) + 1;
+temp1[31:0] = INT32 ((DEST[31:16] * SRC[31:16]) >>14) + 1;
+temp2[31:0] = INT32 ((DEST[47:32] * SRC[47:32]) >>14) + 1;
+temp3[31:0] = INT32 ((DEST[63:48] * SRC[63:48]) >>14) + 1;
+temp4[31:0] = INT32 ((DEST[79:64] * SRC[79:64]) >>14) + 1;
+temp5[31:0] = INT32 ((DEST[95:80] * SRC[95:80]) >>14) + 1;
+temp6[31:0] = INT32 ((DEST[111:96] * SRC[111:96]) >>14) + 1;
+temp7[31:0] = INT32 ((DEST[127:112] * SRC[127:112) >>14) + 1;
+DEST[15:0] = temp0[16:1];
+DEST[31:16] = temp1[16:1];
+DEST[47:32] = temp2[16:1];
+DEST[63:48] = temp3[16:1];
+DEST[79:64] = temp4[16:1];
+DEST[95:80] = temp5[16:1];
+DEST[111:96] = temp6[16:1];
+DEST[127:112] = temp7[16:1];
+
+.fi
+.RE
+
+.SS VPMULHRSW (VEX.128 encoded version)
+.PP
+.RS
+
+.nf
+temp0[31:0]←INT32 ((SRC1[15:0] * SRC2[15:0]) >>14) + 1
+temp1[31:0]←INT32 ((SRC1[31:16] * SRC2[31:16]) >>14) + 1
+temp2[31:0]←INT32 ((SRC1[47:32] * SRC2[47:32]) >>14) + 1
+temp3[31:0]←INT32 ((SRC1[63:48] * SRC2[63:48]) >>14) + 1
+temp4[31:0]←INT32 ((SRC1[79:64] * SRC2[79:64]) >>14) + 1
+temp5[31:0]←INT32 ((SRC1[95:80] * SRC2[95:80]) >>14) + 1
+temp6[31:0]←INT32 ((SRC1[111:96] * SRC2[111:96]) >>14) + 1
+temp7[31:0]←INT32 ((SRC1[127:112] * SRC2[127:112) >>14) + 1
+DEST[15:0] ← temp0[16:1]
+DEST[31:16] ← temp1[16:1]
+DEST[47:32] ← temp2[16:1]
+DEST[63:48] ← temp3[16:1]
+DEST[79:64] ← temp4[16:1]
+DEST[95:80] ← temp5[16:1]
+DEST[111:96] ← temp6[16:1]
+DEST[127:112] ← temp7[16:1]
+DEST[MAXVL\-1:128] ← 0
+
+.fi
+.RE
+
+.SS VPMULHRSW (VEX.256 encoded version)
+.PP
+.RS
+
+.nf
+temp0[31:0]←INT32 ((SRC1[15:0] * SRC2[15:0]) >>14) + 1
+temp1[31:0]←INT32 ((SRC1[31:16] * SRC2[31:16]) >>14) + 1
+temp2[31:0]←INT32 ((SRC1[47:32] * SRC2[47:32]) >>14) + 1
+temp3[31:0]←INT32 ((SRC1[63:48] * SRC2[63:48]) >>14) + 1
+temp4[31:0]←INT32 ((SRC1[79:64] * SRC2[79:64]) >>14) + 1
+temp5[31:0]←INT32 ((SRC1[95:80] * SRC2[95:80]) >>14) + 1
+temp6[31:0]←INT32 ((SRC1[111:96] * SRC2[111:96]) >>14) + 1
+temp7[31:0]←INT32 ((SRC1[127:112] * SRC2[127:112) >>14) + 1
+temp8[31:0]←INT32 ((SRC1[143:128] * SRC2[143:128]) >>14) + 1
+temp9[31:0]←INT32 ((SRC1[159:144] * SRC2[159:144]) >>14) + 1
+temp10[31:0]←INT32 ((SRC1[75:160] * SRC2[175:160]) >>14) + 1
+temp11[31:0]←INT32 ((SRC1[191:176] * SRC2[191:176]) >>14) + 1
+temp12[31:0]←INT32 ((SRC1[207:192] * SRC2[207:192]) >>14) + 1
+temp13[31:0]←INT32 ((SRC1[223:208] * SRC2[223:208]) >>14) + 1
+temp14[31:0]←INT32 ((SRC1[239:224] * SRC2[239:224]) >>14) + 1
+temp15[31:0]←INT32 ((SRC1[255:240] * SRC2[255:240) >>14) + 1
+DEST[15:0] ← temp0[16:1]
+DEST[31:16] ← temp1[16:1]
+DEST[47:32] ← temp2[16:1]
+DEST[63:48] ← temp3[16:1]
+DEST[79:64] ← temp4[16:1]
+DEST[95:80] ← temp5[16:1]
+DEST[111:96] ← temp6[16:1]
+DEST[127:112] ← temp7[16:1]
+DEST[143:128] ← temp8[16:1]
+DEST[159:144] ← temp9[16:1]
+DEST[175:160] ← temp10[16:1]
+DEST[191:176] ← temp11[16:1]
+DEST[207:192] ← temp12[16:1]
+DEST[223:208] ← temp13[16:1]
+DEST[239:224] ← temp14[16:1]
+DEST[255:240] ← temp15[16:1]
+DEST[MAXVL\-1:256] ← 0
+
+.fi
+.RE
+
+.SS VPMULHRSW (EVEX encoded version)
+.PP
+.RS
+
+.nf
+(KL, VL) = (8, 128), (16, 256), (32, 512)
+FOR j←0 TO KL\-1
+    i←j * 16
+    IF k1[j] OR *no writemask*
+        THEN
+            temp[31:0]←((SRC1[i+15:i] * SRC2[i+15:i]) >>14) + 1
+            DEST[i+15:i] ← tmp[16:1]
+        ELSE
+            IF *merging\-masking* ; merging\-masking
+                THEN *DEST[i+15:i] remains unchanged*
+                ELSE *zeroing\-masking*
+                        ; zeroing\-masking
+                    DEST[i+15:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SH INTEL C/C++ COMPILER INTRINSIC EQUIVALENTS
+.PP
+.RS
+
+.nf
+VPMULHRSW \_\_m512i \_mm512\_mulhrs\_epi16(\_\_m512i a, \_\_m512i b);
+
+VPMULHRSW \_\_m512i \_mm512\_mask\_mulhrs\_epi16(\_\_m512i s, \_\_mmask32 k, \_\_m512i a, \_\_m512i b);
+
+VPMULHRSW \_\_m512i \_mm512\_maskz\_mulhrs\_epi16( \_\_mmask32 k, \_\_m512i a, \_\_m512i b);
+
+VPMULHRSW \_\_m256i \_mm256\_mask\_mulhrs\_epi16(\_\_m256i s, \_\_mmask16 k, \_\_m256i a, \_\_m256i b);
+
+VPMULHRSW \_\_m256i \_mm256\_maskz\_mulhrs\_epi16( \_\_mmask16 k, \_\_m256i a, \_\_m256i b);
+
+VPMULHRSW \_\_m128i \_mm\_mask\_mulhrs\_epi16(\_\_m128i s, \_\_mmask8 k, \_\_m128i a, \_\_m128i b);
+
+VPMULHRSW \_\_m128i \_mm\_maskz\_mulhrs\_epi16( \_\_mmask8 k, \_\_m128i a, \_\_m128i b);
+
+PMULHRSW: \_\_m64\_mm\_mulhrs\_pi16(\_\_m64a,\_\_m64b)
+
+(V)PMULHRSW: \_\_m128i \_mm\_mulhrs\_epi16 (\_\_m128i a, \_\_m128i b)
+
+VPMULHRSW:\_\_m256i \_mm256\_mulhrs\_epi16 (\_\_m256i a, \_\_m256i b)
+
+.fi
+.RE
+
+.SH SIMD FLOATING\-POINT EXCEPTIONS
+.PP
+None.
+
+.SH OTHER EXCEPTIONS
+.PP
+Non\-EVEX\-encoded instruction, see Exceptions Type 4.
+
+.PP
+EVEX\-encoded instruction, see Exceptions Type E4.nb.
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+MIT licensed by TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

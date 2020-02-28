@@ -1,0 +1,228 @@
+.nh
+.TH "X86-VTESTPD-VTESTPS" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+VTESTPD-VTESTPS - PACKED BIT TEST
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp/En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+T{
+VEX.128.66.0F38.W0 0E /r VTESTPS xmm1, xmm2/m128
+T}
+	RM	V/V	AVX	T{
+Set ZF and CF depending on sign bit AND and ANDN of packed single\-precision floating\-point sources.
+T}
+T{
+VEX.256.66.0F38.W0 0E /r VTESTPS ymm1, ymm2/m256
+T}
+	RM	V/V	AVX	T{
+Set ZF and CF depending on sign bit AND and ANDN of packed single\-precision floating\-point sources.
+T}
+T{
+VEX.128.66.0F38.W0 0F /r VTESTPD xmm1, xmm2/m128
+T}
+	RM	V/V	AVX	T{
+Set ZF and CF depending on sign bit AND and ANDN of packed double\-precision floating\-point sources.
+T}
+T{
+VEX.256.66.0F38.W0 0F /r VTESTPD ymm1, ymm2/m256
+T}
+	RM	V/V	AVX	T{
+Set ZF and CF depending on sign bit AND and ANDN of packed double\-precision floating\-point sources.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l 
+l l l l l .
+Op/En	Operand 1	Operand 2	Operand 3	Operand 4
+RM	ModRM:reg (r)	ModRM:r/m (r)	NA	NA
+.TE
+
+.SH DESCRIPTION
+.PP
+VTESTPS performs a bitwise comparison of all the sign bits of the packed
+single\-precision elements in the first source operation and
+corresponding sign bits in the second source operand. If the AND of the
+source sign bits with the dest sign bits produces all zeros, the ZF is
+set else the ZF is clear. If the AND of the source sign bits with the
+inverted dest sign bits produces all zeros the CF is set else the CF is
+clear. An attempt to execute VTESTPS with VEX.W=1 will cause #UD.
+
+.PP
+VTESTPD performs a bitwise comparison of all the sign bits of the
+double\-precision elements in the first source operation and
+corresponding sign bits in the second source operand. If the AND of the
+source sign bits with the dest sign bits produces all zeros, the ZF is
+set else the ZF is clear. If the AND the source sign bits with the
+inverted dest sign bits produces all zeros the CF is set else the CF is
+clear. An attempt to execute VTESTPS with VEX.W=1 will cause #UD.
+
+.PP
+The first source register is specified by the ModR/M reg field.
+
+.PP
+128\-bit version: The first source register is an XMM register. The
+second source register can be an XMM register or a 128\-bit memory
+location. The destination register is not modified.
+
+.PP
+VEX.256 encoded version: The first source register is a YMM register.
+The second source register can be a YMM register or a 256\-bit memory
+location. The destination register is not modified.
+
+.PP
+Note: In VEX\-encoded versions, VEX.vvvv is reserved and must be 1111b,
+otherwise instructions will #UD.
+
+.SH OPERATION
+.SS VTESTPS (128\-bit version)
+.PP
+.RS
+
+.nf
+TEMP[127:0]←SRC[127:0] AND DEST[127:0]
+IF (TEMP[31] = TEMP[63] = TEMP[95] = TEMP[127] = 0)
+    THEN ZF←1;
+    ELSE ZF←0;
+TEMP[127:0]←SRC[127:0] AND NOT DEST[127:0]
+IF (TEMP[31] = TEMP[63] = TEMP[95] = TEMP[127] = 0)
+    THEN CF←1;
+    ELSE CF←0;
+DEST (unmodified)
+AF←OF←PF←SF←0;
+
+.fi
+.RE
+
+.SS VTESTPS (VEX.256 encoded version)
+.PP
+.RS
+
+.nf
+TEMP[255:0]←SRC[255:0] AND DEST[255:0]
+IF (TEMP[31] = TEMP[63] = TEMP[95] = TEMP[127]= TEMP[160] =TEMP[191] = TEMP[224] = TEMP[255] = 0)
+    THEN ZF←1;
+    ELSE ZF←0;
+TEMP[255:0]←SRC[255:0] AND NOT DEST[255:0]
+IF (TEMP[31] = TEMP[63] = TEMP[95] = TEMP[127]= TEMP[160] =TEMP[191] = TEMP[224] = TEMP[255] = 0)
+    THEN CF←1;
+    ELSE CF←0;
+DEST (unmodified)
+AF←OF←PF←SF←0;
+
+.fi
+.RE
+
+.SS VTESTPD (128\-bit version)
+.PP
+.RS
+
+.nf
+TEMP[127:0]←SRC[127:0] AND DEST[127:0]
+IF ( TEMP[63] = TEMP[127] = 0)
+    THEN ZF←1;
+    ELSE ZF←0;
+TEMP[127:0]←SRC[127:0] AND NOT DEST[127:0]
+IF ( TEMP[63] = TEMP[127] = 0)
+    THEN CF←1;
+    ELSE CF←0;
+DEST (unmodified)
+AF←OF←PF←SF←0;
+
+.fi
+.RE
+
+.SS VTESTPD (VEX.256 encoded version)
+.PP
+.RS
+
+.nf
+TEMP[255:0]←SRC[255:0] AND DEST[255:0]
+IF (TEMP[63] = TEMP[127] = TEMP[191] = TEMP[255] = 0)
+    THEN ZF←1;
+    ELSE ZF←0;
+TEMP[255:0]←SRC[255:0] AND NOT DEST[255:0]
+IF (TEMP[63] = TEMP[127] = TEMP[191] = TEMP[255] = 0)
+    THEN CF←1;
+    ELSE CF←0;
+DEST (unmodified)
+AF←OF←PF←SF←0;
+
+.fi
+.RE
+
+.SH INTEL C/C++ COMPILER INTRINSIC EQUIVALENT
+.PP
+.RS
+
+.nf
+VTESTPS int \_mm256\_testz\_ps (\_\_m256 s1, \_\_m256 s2);
+
+int \_mm256\_testc\_ps (\_\_m256 s1, \_\_m256 s2);
+
+int \_mm256\_testnzc\_ps (\_\_m256 s1, \_\_m128 s2);
+
+int \_mm\_testz\_ps (\_\_m128 s1, \_\_m128 s2);
+
+int \_mm\_testc\_ps (\_\_m128 s1, \_\_m128 s2);
+
+int \_mm\_testnzc\_ps (\_\_m128 s1, \_\_m128 s2);
+
+VTESTPD int \_mm256\_testz\_pd (\_\_m256d s1, \_\_m256d s2);
+
+int \_mm256\_testc\_pd (\_\_m256d s1, \_\_m256d s2);
+
+int \_mm256\_testnzc\_pd (\_\_m256d s1, \_\_m256d s2);
+
+int \_mm\_testz\_pd (\_\_m128d s1, \_\_m128d s2);
+
+int \_mm\_testc\_pd (\_\_m128d s1, \_\_m128d s2);
+
+int \_mm\_testnzc\_pd (\_\_m128d s1, \_\_m128d s2);
+
+.fi
+.RE
+
+.SH FLAGS AFFECTED
+.PP
+The 0F, AF, PF, SF flags are cleared and the ZF, CF flags are set
+according to the operation.
+
+.SH SIMD FLOATING\-POINT EXCEPTIONS
+.PP
+None.
+
+.SH OTHER EXCEPTIONS
+.PP
+See Exceptions Type 4; additionally
+
+.TS
+allbox;
+l l 
+l l .
+#UD	If VEX.vvvv ≠ 1111B.
+	T{
+If VEX.W = 1 for VTESTPS or VTESTPD.
+T}
+.TE
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+MIT licensed by TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

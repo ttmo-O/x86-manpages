@@ -1,0 +1,209 @@
+.nh
+.TH "X86-RDPMC" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+RDPMC - READ PERFORMANCE-MONITORING COUNTERS
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+\fB\fCOpcode*\fR	\fB\fCInstruction\fR	\fB\fCOp/En\fR	\fB\fC64\-Bit Mode\fR	\fB\fCCompat/Leg Mode\fR	\fB\fCDescription\fR
+0F 33	RDPMC	ZO	Valid	Valid	T{
+Read performance\-monitoring counter specified by ECX into EDX:EAX.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l 
+l l l l l .
+Op/En	Operand 1	Operand 2	Operand 3	Operand 4
+ZO	NA	NA	NA	NA
+.TE
+
+.SH DESCRIPTION
+.PP
+The EAX register is loaded with the low\-order 32 bits. The EDX register
+is loaded with the supported high\-order bits of the counter. The number
+of high\-order bits loaded into EDX is implementation specific on
+processors that do no support architectural performance monitoring. The
+width of fixed\-function and general\-purpose performance counters on
+processors supporting architectural performance monitoring are reported
+by CPUID 0AH leaf. See below for the treatment of the EDX register for
+“fast” reads.
+
+.PP
+The ECX register specifies the counter type (if the processor supports
+architectural performance monitoring) and counter index. Counter type is
+specified in ECX[30] to select one of two type of performance
+counters. If the processor does not support architectural performance
+monitoring, ECX[30:0] specifies the counter index; otherwise
+ECX[29:0] specifies the index relative to the base of each counter
+type. ECX[31] selects “fast” read mode if supported. The two counter
+types are:
+
+.RS
+.IP \(bu 2
+General\-purpose or special\-purpose performance counters are
+specified with ECX[30] = 0: The number of general\-purpose
+performance counters on processor supporting architectural
+performance monitoring are reported by CPUID 0AH leaf. The
+availability of special\-purpose counters, as well as the number of
+general\-purpose counters if the processor does not support
+architectural performance monitoring, is model specific; see Chapter
+18, “Performance Monitoring” of Volume 3B.
+.IP \(bu 2
+Fixed\-function performance counters are specified with ECX[30]
+= 1. The number fixed\-function performance counters is enumerated by
+CPUID 0AH leaf. See Chapter 18, “Performance Monitoring” of
+Architectures Software Developer’s Manual, Volume 3B. This counter
+type is selected if ECX[30] is set.
+
+.RE
+
+.PP
+The width of fixed\-function performance counters and general\-purpose
+performance counters on processors supporting architectural performance
+monitoring are reported by CPUID 0AH leaf. The width of general\-purpose
+performance counters are 40\-bits for processors that do not support
+architectural performance monitoring counters. The width of
+special\-purpose performance counters are implementation specific.
+
+.PP
+When in protected or virtual 8086 mode, the performance\-monitoring
+counters enabled (PCE) flag in register CR4 restricts the use of the
+RDPMC instruction as follows. When the PCE flag is set, the RDPMC
+instruction can be executed at any privilege level; when the flag is
+clear, the instruction can only be executed at privilege level 0. (When
+in real\-address mode, the RDPMC instruction is always enabled.)
+
+.PP
+The performance\-monitoring counters can also be read with the RDMSR
+instruction, when executing at privilege level 0.
+
+.PP
+The performance\-monitoring counters are event counters that can be
+programmed to count events such as the number of instructions decoded,
+number of interrupts received, or number of cache loads. Chapter 19,
+“Performance Monitoring Events,” in the Intel® 64 and IA\-32
+Architectures Software Developer’s Manual, Volume 3B, lists the events
+that can be counted for various processors in the Intel 64 and IA\-32
+architecture families.
+
+.PP
+The RDPMC instruction is not a serializing instruction; that is, it does
+not imply that all the events caused by the preceding instructions have
+been completed or that events caused by subsequent instructions have not
+begun. If an exact event count is desired, software must insert a
+serializing instruction (such as the CPUID instruction) before and/or
+after the RDPMC instruction.
+
+.PP
+Performing back\-to\-back fast reads are not guaranteed to be monotonic.
+To guarantee monotonicity on back\-to\-back reads, a serializing
+instruction must be placed between the two RDPMC instructions.
+
+.PP
+The RDPMC instruction can execute in 16\-bit addressing mode or
+virtual\-8086 mode; however, the full contents of the ECX register are
+used to select the counter, and the event count is stored in the full
+EAX and EDX registers. The RDPMC instruction was introduced into the
+IA\-32 Architecture in the Pentium Pro processor and the Pentium
+processor with MMX technology. The earlier Pentium processors have
+performance\-monitoring counters, but they must be read with the RDMSR
+instruction.
+
+.SH OPERATION
+.PP
+.RS
+
+.nf
+MSCB = Most Significant Counter Bit (* Model\-specific *)
+IF (((CR4.PCE = 1) or (CPL = 0) or (CR0.PE = 0)) and (ECX indicates a supported counter))
+    THEN
+        EAX ← counter[31:0];
+        EDX ← ZeroExtend(counter[MSCB:32]);
+    ELSE (* ECX is not valid or CR4.PCE is 0 and CPL is 1, 2, or 3 and CR0.PE is 1 *)
+        #GP(0);
+FI;
+
+.fi
+.RE
+
+.SH FLAGS AFFECTED
+.PP
+None.
+
+.SH PROTECTED MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP(0)	T{
+If the current privilege level is not 0 and the PCE flag in the CR4 register is clear.
+T}
+	T{
+If an invalid performance counter index is specified.
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH REAL\-ADDRESS MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP	T{
+If an invalid performance counter index is specified.
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH VIRTUAL\-8086 MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP(0)	T{
+If the PCE flag in the CR4 register is clear.
+T}
+	T{
+If an invalid performance counter index is specified.
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH COMPATIBILITY MODE EXCEPTIONS
+.PP
+Same exceptions as in protected mode.
+
+.SH 64\-BIT MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP(0)	T{
+If the current privilege level is not 0 and the PCE flag in the CR4 register is clear.
+T}
+	T{
+If an invalid performance counter index is specified.
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+MIT licensed by TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

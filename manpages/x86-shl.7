@@ -1,0 +1,393 @@
+.nh
+.TH "X86-SAL-SAR-SHL-SHR" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+SAL-SAR-SHL-SHR - SHIFT
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+\fB\fCOpcode***\fR	\fB\fCInstruction\fR	\fB\fCOp/En\fR	\fB\fC64\-Bit Mode\fR	\fB\fCCompat/Leg Mode\fR	\fB\fCDescription\fR
+D0 /4	SAL r/m8, 1	M1	Valid	Valid	Multiply r/m8 by 2, once.
+REX + D0 /4	SAL r/m8**, 1	M1	Valid	N.E.	Multiply r/m8 by 2, once.
+D2 /4	SAL r/m8, CL	MC	Valid	Valid	Multiply r/m8 by 2, CL times.
+REX + D2 /4	SAL r/m8**, CL	MC	Valid	N.E.	Multiply r/m8 by 2, CL times.
+C0 /4 ib	SAL r/m8, imm8	MI	Valid	Valid	Multiply imm8 times.
+REX + C0 /4 ib	SAL r/m8**, imm8	MI	Valid	N.E.	Multiply imm8 times.
+D1 /4	SAL r/m16, 1	M1	Valid	Valid	Multiply r/m16 by 2, once.
+D3 /4	SAL r/m16, CL	MC	Valid	Valid	Multiply r/m16 by 2, CL times.
+C1 /4 ib	SAL r/m16, imm8	MI	Valid	Valid	Multiply imm8 times.
+D1 /4	SAL r/m32, 1	M1	Valid	Valid	Multiply r/m32 by 2, once.
+REX.W + D1 /4	SAL r/m64, 1	M1	Valid	N.E.	Multiply r/m64 by 2, once.
+D3 /4	SAL r/m32, CL	MC	Valid	Valid	Multiply r/m32 by 2, CL times.
+REX.W + D3 /4	SAL r/m64, CL	MC	Valid	N.E.	Multiply r/m64 by 2, CL times.
+C1 /4 ib	SAL r/m32, imm8	MI	Valid	Valid	Multiply imm8 times.
+REX.W + C1 /4 ib	SAL r/m64, imm8	MI	Valid	N.E.	Multiply imm8 times.
+D0 /7	SAR r/m8, 1	M1	Valid	Valid	Signed divide
+*
+ r/m8 by 2, once.
+REX + D0 /7	SAR r/m8**, 1	M1	Valid	N.E.	Signed divide
+*
+ r/m8 by 2, once.
+D2 /7	SAR r/m8, CL	MC	Valid	Valid	Signed divide
+*
+ r/m8 by 2, CL times.
+REX + D2 /7	SAR r/m8**, CL	MC	Valid	N.E.	Signed divide
+*
+ r/m8 by 2, CL times.
+C0 /7 ib	SAR r/m8, imm8	MI	Valid	Valid	Signed divide
+*
+ imm8 time.
+REX + C0 /7 ib	SAR r/m8**, imm8	MI	Valid	N.E.	Signed divide
+*
+ imm8 times.
+D1 /7	SAR r/m16,1	M1	Valid	Valid	Signed divide
+*
+ r/m16 by 2, once.
+D3 /7	SAR r/m16, CL	MC	Valid	Valid	Signed divide
+*
+ r/m16 by 2, CL times.
+C1 /7 ib	SAR r/m16, imm8	MI	Valid	Valid	Signed divide
+*
+ imm8 times.
+D1 /7	SAR r/m32, 1	M1	Valid	Valid	Signed divide
+*
+ r/m32 by 2, once.
+REX.W + D1 /7	SAR r/m64, 1	M1	Valid	N.E.	Signed divide
+*
+ r/m64 by 2, once.
+D3 /7	SAR r/m32, CL	MC	Valid	Valid	Signed divide
+*
+ r/m32 by 2, CL times.
+REX.W + D3 /7	SAR r/m64, CL	MC	Valid	N.E.	Signed divide
+*
+ r/m64 by 2, CL times.
+C1 /7 ib	SAR r/m32, imm8	MI	Valid	Valid	Signed divide
+*
+ imm8 times.
+REX.W + C1 /7 ib	SAR r/m64, imm8	MI	Valid	N.E.	Signed divide
+*
+ imm8 times
+D0 /4	SHL r/m8, 1	M1	Valid	Valid	Multiply r/m8 by 2, once.
+REX + D0 /4	SHL r/m8**, 1	M1	Valid	N.E.	Multiply r/m8 by 2, once.
+D2 /4	SHL r/m8, CL	MC	Valid	Valid	Multiply r/m8 by 2, CL times.
+REX + D2 /4	SHL r/m8**, CL	MC	Valid	N.E.	Multiply r/m8 by 2, CL times.
+C0 /4 ib	SHL r/m8, imm8	MI	Valid	Valid	Multiply imm8 times.
+REX + C0 /4 ib	SHL r/m8**, imm8	MI	Valid	N.E.	Multiply imm8 times.
+D1 /4	SHL r/m16,1	M1	Valid	Valid	Multiply r/m16 by 2, once.
+D3 /4	SHL r/m16, CL	MC	Valid	Valid	Multiply r/m16 by 2, CL times.
+C1 /4 ib	SHL r/m16, imm8	MI	Valid	Valid	Multiply imm8 times.
+D1 /4	SHL r/m32,1	M1	Valid	Valid	Multiply r/m32 by 2, once.
+.TE
+
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+\fB\fCOpcode\fR	\fB\fCInstruction\fR	\fB\fCOp/En\fR	\fB\fC64\-Bit Mode\fR	\fB\fCCompat/Leg Mode\fR	\fB\fCDescription\fR
+REX.W + D1 /4	SHL r/m64,1	M1	Valid	N.E.	Multiply r/m64 by 2, once.
+D3 /4	SHL r/m32, CL	MC	Valid	Valid	Multiply r/m32 by 2, CL times.
+REX.W + D3 /4	SHL r/m64, CL	MC	Valid	N.E.	Multiply r/m64 by 2, CL times.
+C1 /4 ib	SHL r/m32, imm8	MI	Valid	Valid	Multiply imm8 times.
+REX.W + C1 /4 ib	SHL r/m64, imm8	MI	Valid	N.E.	Multiply imm8 times.
+D0 /5	SHR r/m8,1	M1	Valid	Valid	T{
+Unsigned divide r/m8 by 2, once.
+T}
+REX + D0 /5	SHR r/m8**, 1	M1	Valid	N.E.	T{
+Unsigned divide r/m8 by 2, once.
+T}
+D2 /5	SHR r/m8, CL	MC	Valid	Valid	T{
+Unsigned divide r/m8 by 2, CL times.
+T}
+REX + D2 /5	SHR r/m8**, CL	MC	Valid	N.E.	T{
+Unsigned divide r/m8 by 2, CL times.
+T}
+C0 /5 ib	SHR r/m8, imm8	MI	Valid	Valid	Unsigned divide imm8 times.
+REX + C0 /5 ib	SHR r/m8**, imm8	MI	Valid	N.E.	Unsigned divide imm8 times.
+D1 /5	SHR r/m16, 1	M1	Valid	Valid	T{
+Unsigned divide r/m16 by 2, once.
+T}
+D3 /5	SHR r/m16, CL	MC	Valid	Valid	T{
+Unsigned divide r/m16 by 2, CL times
+T}
+C1 /5 ib	SHR r/m16, imm8	MI	Valid	Valid	Unsigned divide imm8 times.
+D1 /5	SHR r/m32, 1	M1	Valid	Valid	T{
+Unsigned divide r/m32 by 2, once.
+T}
+REX.W + D1 /5	SHR r/m64, 1	M1	Valid	N.E.	T{
+Unsigned divide r/m64 by 2, once.
+T}
+D3 /5	SHR r/m32, CL	MC	Valid	Valid	T{
+Unsigned divide r/m32 by 2, CL times.
+T}
+REX.W + D3 /5	SHR r/m64, CL	MC	Valid	N.E.	T{
+Unsigned divide r/m64 by 2, CL times.
+T}
+C1 /5 ib	SHR r/m32, imm8	MI	Valid	Valid	Unsigned divide imm8 times.
+REX.W + C1 /5 ib	SHR r/m64, imm8	MI	Valid	N.E.	Unsigned divide imm8 times.
+.TE
+
+.PP
+.RS
+
+.PP
+* NotthesameformofdivisionasIDIV;roundingistowardnegativeinfinity.
+
+.PP
+** In 64\-bit mode, r/m8 can not be encoded to access the following
+byte registers if a REX prefix is used: AH, BH, CH, DH.
+
+.PP
+***See IA\-32 Architecture Compatibility section below.
+
+.RE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l 
+l l l l l .
+Op/En	Operand 1	Operand 2	Operand 3	Operand 4
+M1	ModRM:r/m (r, w)	1	NA	NA
+MC	ModRM:r/m (r, w)	CL	NA	NA
+MI	ModRM:r/m (r, w)	imm8	NA	NA
+.TE
+
+.SH DESCRIPTION
+.PP
+Shifts the bits in the first operand (destination operand) to the left
+or right by the number of bits specified in the second operand (count
+operand). Bits shifted beyond the destination operand boundary are first
+shifted into the CF flag, then discarded. At the end of the shift
+operation, the CF flag contains the last bit shifted out of the
+destination operand.
+
+.PP
+The destination operand can be a register or a memory location. The
+count operand can be an immediate value or the CL register. The count is
+masked to 5 bits (or 6 bits if in 64\-bit mode and REX.W is used). The
+count range is limited to 0 to 31 (or 63 if 64\-bit mode and REX.W is
+used). A special opcode encoding is provided for a count of 1.
+
+.PP
+The shift arithmetic left (SAL) and shift logical left (SHL)
+instructions perform the same operation; they shift the bits in the
+destination operand to the left (toward more significant bit locations).
+For each shift count, the most significant bit of the destination
+operand is shifted into the CF flag, and the least significant bit is
+cleared (see Figure 7\-7 in the Intel®
+64 and IA\-32 Architectures Software Developer’s Manual, Volume 1).
+
+.PP
+The shift arithmetic right (SAR) and shift logical right (SHR)
+instructions shift the bits of the destination operand to the right
+(toward less significant bit locations). For each shift count, the least
+significant bit of the destination operand is shifted into the CF flag,
+and the most significant bit is either set or cleared depending on the
+instruction type. The SHR instruction clears the most significant bit
+(see Figure 7\-8 in the Intel® 64 and
+IA\-32 Architectures Software Developer’s Manual, Volume 1).
+
+.PP
+The SAR and SHR instructions can be used to perform signed or unsigned
+division, respectively, of the destination operand by powers of 2. For
+example, using the SAR instruction to shift a signed integer 1 bit to
+the right divides the value by 2.
+
+.PP
+Using the SAR instruction to perform a division operation does not
+produce the same result as the IDIV instruction. The quotient from the
+IDIV instruction is rounded toward zero, whereas the “quotient” of the
+SAR instruction is rounded toward negative infinity. This difference is
+apparent only for negative numbers. For example, when the IDIV
+instruction is used to divide \-9 by 4, the result is \-2 with a remainder
+of \-1. If the SAR instruction is used to shift \-9 right by two bits, the
+result is \-3 and the “remainder” is +3; however, the SAR instruction
+stores only the most significant bit of the remainder (in the CF flag).
+
+.PP
+The OF flag is affected only on 1\-bit shifts. For left shifts, the OF
+flag is set to 0 if the most\-significant bit of the result is the same
+as the CF flag (that is, the top two bits of the original operand were
+the same); otherwise, it is set to 1. For the SAR instruction, the OF
+flag is cleared for all 1\-bit shifts. For the SHR instruction, the OF
+flag is set to the most\-significant bit of the original operand.
+
+.PP
+In 64\-bit mode, the instruction’s default operation size is 32 bits and
+the mask width for CL is 5 bits. Using a REX prefix in the form of REX.R
+permits access to additional registers (R8\-R15). Using a REX prefix in
+the form of REX.W promotes operation to 64\-bits and sets the mask width
+for CL to 6 bits. See the summary chart at the beginning of this section
+for encoding data and limits.
+
+.SH IA\-32 ARCHITECTURE COMPATIBILITY
+.PP
+The 8086 does not mask the shift count. However, all other IA\-32
+processors (starting with the Intel 286 processor) do mask the shift
+count to 5 bits, resulting in a maximum count of 31. This masking is
+done in all operating modes (including the virtual\-8086 mode) to reduce
+the maximum execution time of the instructions.
+
+.SH OPERATION
+.PP
+.RS
+
+.nf
+IF 64\-Bit Mode and using REX.W
+    THEN
+        countMASK ← 3FH;
+    ELSE
+        countMASK ← 1FH;
+FI
+tempCOUNT ← (COUNT AND countMASK);
+tempDEST ← DEST;
+WHILE (tempCOUNT ≠ 0)
+DO
+    IF instruction is SAL or SHL
+        THEN
+            CF ← MSB(DEST);
+        ELSE (* Instruction is SAR or SHR *)
+            CF ← LSB(DEST);
+    FI;
+    IF instruction is SAL or SHL
+        THEN
+            DEST ← DEST ∗ 2;
+        ELSE
+            IF instruction is SAR
+                THEN
+                    DEST ← DEST / 2; (* Signed divide, rounding toward negative infinity *)
+                ELSE (* Instruction is SHR *)
+                    DEST ← DEST / 2 ; (* Unsigned divide *)
+            FI;
+    FI;
+    tempCOUNT ← tempCOUNT – 1;
+OD;
+(* Determine overflow for the various instructions *)
+IF (COUNT and countMASK) = 1
+    THEN
+        IF instruction is SAL or SHL
+            THEN
+                OF ← MSB(DEST) XOR CF;
+            ELSE
+                IF instruction is SAR
+                    THEN
+                        OF ← 0;
+                    ELSE (* Instruction is SHR *)
+                        OF ← MSB(tempDEST);
+                FI;
+        FI;
+    ELSE IF (COUNT AND countMASK) = 0
+        THEN
+            All flags unchanged;
+        ELSE (* COUNT not 1 or 0 *)
+            OF ← undefined;
+    FI;
+FI;
+
+.fi
+.RE
+
+.SH FLAGS AFFECTED
+.PP
+The CF flag contains the value of the last bit shifted out of the
+destination operand; it is undefined for SHL and SHR instructions where
+the count is greater than or equal to the size (in bits) of the
+destination operand. The OF flag is affected only for 1\-bit shifts (see
+“Description” above); otherwise, it is undefined. The SF, ZF, and PF
+flags are set according to the result. If the count is 0, the flags are
+not affected. For a non\-zero count, the AF flag is undefined.
+
+.SH PROTECTED MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP(0)	T{
+If the destination is located in a non\-writable segment.
+T}
+	T{
+If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit.
+T}
+	T{
+If the DS, ES, FS, or GS register contains a NULL segment selector.
+T}
+#SS(0)	T{
+If a memory operand effective address is outside the SS segment limit.
+T}
+#PF(fault\-code)	If a page fault occurs.
+#AC(0)	T{
+If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3.
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH REAL\-ADDRESS MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP	T{
+If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit.
+T}
+#SS	T{
+If a memory operand effective address is outside the SS segment limit.
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH VIRTUAL\-8086 MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP(0)	T{
+If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit.
+T}
+#SS(0)	T{
+If a memory operand effective address is outside the SS segment limit.
+T}
+#PF(fault\-code)	If a page fault occurs.
+#AC(0)	T{
+If alignment checking is enabled and an unaligned memory reference is made.
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH COMPATIBILITY MODE EXCEPTIONS
+.PP
+Same exceptions as in protected mode.
+
+.SH 64\-BIT MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#SS(0)	T{
+If a memory address referencing the SS segment is in a non\-canonical form.
+T}
+#GP(0)	T{
+If the memory address is in a non\-canonical form.
+T}
+#PF(fault\-code)	If a page fault occurs.
+#AC(0)	T{
+If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3.
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+MIT licensed by TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

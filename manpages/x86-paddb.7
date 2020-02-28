@@ -1,0 +1,958 @@
+.nh
+.TH "X86-PADDB-PADDW-PADDD-PADDQ" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+PADDB-PADDW-PADDD-PADDQ - ADD PACKED INTEGERS
+.PP
+Opcode/Instruction
+
+.PP
+Op/En
+
+.PP
+64/32 bit Mode Support
+
+.PP
+CPUID Feature Flag
+
+.PP
+Description
+
+.PP
+NP 0F FC /mm, mm/m64
+
+.PP
+A
+
+.PP
+V/V
+
+.PP
+MMX
+
+.PP
+Add packed byte integers from mm.
+
+.PP
+NP 0F FD /mm, mm/m64
+
+.PP
+A
+
+.PP
+V/V
+
+.PP
+MMX
+
+.PP
+Add packed word integers from mm.
+
+.PP
+NP 0F FE /mm, mm/m64
+
+.PP
+A
+
+.PP
+V/V
+
+.PP
+MMX
+
+.PP
+Add packed doubleword integers from mm.
+
+.PP
+NP 0F D4 /mm, mm/m64
+
+.PP
+A
+
+.PP
+V/V
+
+.PP
+MMX
+
+.PP
+Add packed quadword integers from mm.
+
+.PP
+66 0F FC /xmm1, xmm2/m128
+
+.PP
+A
+
+.PP
+V/V
+
+.PP
+SSE2
+
+.PP
+Add packed byte integers from xmm1.
+
+.PP
+66 0F FD /xmm1, xmm2/m128
+
+.PP
+A
+
+.PP
+V/V
+
+.PP
+SSE2
+
+.PP
+Add packed word integers from xmm1.
+
+.PP
+66 0F FE /xmm1, xmm2/m128
+
+.PP
+A
+
+.PP
+V/V
+
+.PP
+SSE2
+
+.PP
+Add packed doubleword integers from xmm1.
+
+.PP
+66 0F D4 /xmm1, xmm2/m128
+
+.PP
+A
+
+.PP
+V/V
+
+.PP
+SSE2
+
+.PP
+Add packed quadword integers from xmm1.
+
+.PP
+VEX.128.66.0F.WIG FC /xmm1, xmm2, xmm3/m128
+
+.PP
+B
+
+.PP
+V/V
+
+.PP
+AVX
+
+.PP
+Add packed byte integers from xmm1.
+
+.PP
+VEX.128.66.0F.WIG FD /xmm1, xmm2, xmm3/m128
+
+.PP
+B
+
+.PP
+V/V
+
+.PP
+AVX
+
+.PP
+Add packed word integers from store in xmm1.
+
+.PP
+VEX.128.66.0F.WIG FE /xmm1, xmm2, xmm3/m128
+
+.PP
+B
+
+.PP
+V/V
+
+.PP
+AVX
+
+.PP
+Add packed doubleword integers from xmm1.
+
+.PP
+VEX.128.66.0F.WIG D4 /xmm1, xmm2, xmm3/m128
+
+.PP
+B
+
+.PP
+V/V
+
+.PP
+AVX
+
+.PP
+Add packed quadword integers from xmm1.
+
+.PP
+VEX.256.66.0F.WIG FC /ymm1, ymm2, ymm3/m256
+
+.PP
+B
+
+.PP
+V/V
+
+.PP
+AVX2
+
+.PP
+Add packed byte integers from ymm1.
+
+.PP
+VEX.256.66.0F.WIG FD /ymm1, ymm2, ymm3/m256
+
+.PP
+B
+
+.PP
+V/V
+
+.PP
+AVX2
+
+.PP
+Add packed word integers from store in ymm1.
+
+.PP
+VEX.256.66.0F.WIG FE /ymm1, ymm2, ymm3/m256
+
+.PP
+B
+
+.PP
+V/V
+
+.PP
+AVX2
+
+.PP
+Add packed doubleword integers from store in ymm1.
+
+.PP
+VEX.256.66.0F.WIG D4 /ymm1, ymm2, ymm3/m256
+
+.PP
+B
+
+.PP
+V/V
+
+.PP
+AVX2
+
+.PP
+Add packed quadword integers from ymm1.
+
+.PP
+EVEX.128.66.0F.WIG FC /r VPADDB xmm1 {k1}{z}, xmm2, xmm3/m128
+
+.PP
+C
+
+.PP
+V/V
+
+.PP
+AVX512VL AVX512BW
+
+.PP
+Add packed byte integers from xmm1 using writemask k1.
+
+.PP
+EVEX.128.66.0F.WIG FD /r VPADDW xmm1 {k1}{z}, xmm2, xmm3/m128
+
+.PP
+C
+
+.PP
+V/V
+
+.PP
+AVX512VL AVX512BW
+
+.PP
+Add packed word integers from xmm1 using writemask k1.
+
+.PP
+EVEX.128.66.0F.W0 FE /r VPADDD xmm1 {k1}{z}, xmm2, xmm3/m128/m32bcst
+
+.PP
+D
+
+.PP
+V/V
+
+.PP
+AVX512VL AVX512F
+
+.PP
+Add packed doubleword integers from xmm1 using writemask k1.
+
+.PP
+EVEX.128.66.0F.W1 D4 /r VPADDQ xmm1 {k1}{z}, xmm2, xmm3/m128/m64bcst
+
+.PP
+D
+
+.PP
+V/V
+
+.PP
+AVX512VL AVX512F
+
+.PP
+Add packed quadword integers from xmm1 using writemask k1.
+
+.PP
+EVEX.256.66.0F.WIG FC /r VPADDB ymm1 {k1}{z}, ymm2, ymm3/m256
+
+.PP
+C
+
+.PP
+V/V
+
+.PP
+AVX512VL AVX512BW
+
+.PP
+Add packed byte integers from ymm1 using writemask k1.
+
+.PP
+EVEX.256.66.0F.WIG FD /r VPADDW ymm1 {k1}{z}, ymm2, ymm3/m256
+
+.PP
+C
+
+.PP
+V/V
+
+.PP
+AVX512VL AVX512BW
+
+.PP
+Add packed word integers from ymm1 using writemask k1.
+
+.PP
+EVEX.256.66.0F.W0 FE /r VPADDD ymm1 {k1}{z}, ymm2, ymm3/m256/m32bcst
+
+.PP
+D
+
+.PP
+V/V
+
+.PP
+AVX512VL AVX512F
+
+.PP
+Add packed doubleword integers from ymm1 using writemask k1.
+
+.PP
+EVEX.256.66.0F.W1 D4 /r VPADDQ ymm1 {k1}{z}, ymm2, ymm3/m256/m64bcst
+
+.PP
+D
+
+.PP
+V/V
+
+.PP
+AVX512VL AVX512F
+
+.PP
+Add packed quadword integers from ymm1 using writemask k1.
+
+.PP
+EVEX.512.66.0F.WIG FC /r VPADDB zmm1 {k1}{z}, zmm2, zmm3/m512
+
+.PP
+C
+
+.PP
+V/V
+
+.PP
+AVX512BW
+
+.PP
+Add packed byte integers from zmm1 using writemask k1.
+
+.PP
+EVEX.512.66.0F.WIG FD /r VPADDW zmm1 {k1}{z}, zmm2, zmm3/m512
+
+.PP
+C
+
+.PP
+V/V
+
+.PP
+AVX512BW
+
+.PP
+Add packed word integers from zmm1 using writemask k1.
+
+.PP
+EVEX.512.66.0F.W0 FE /zmm1 {k1}{z}, zmm2, zmm3/m512/m32bcst
+
+.PP
+D
+
+.PP
+V/V
+
+.PP
+AVX512F
+
+.PP
+Add packed doubleword integers from zmm1 using writemask k1.
+
+.PP
+EVEX.512.66.0F.W1 D4 /zmm1 {k1}{z}, zmm2, zmm3/m512/m64bcst
+
+.PP
+D
+
+.PP
+V/V
+
+.PP
+AVX512F
+
+.PP
+Add packed quadword integers from zmm1 using writemask k1.
+
+.PP
+NOTES: 1. See note in Section 2.4, “AVX and SSE Instruction Exception
+Specification” in the Intel® 64 and IA\-32 Architectures Software
+Developer’s Manual, Volume 3A.
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+Op/En	Tuple Type	Operand 1	Operand 2	Operand 3	Operand 4
+A	NA	ModRM:reg (r, w)	ModRM:r/m (r)	NA	NA
+B	NA	ModRM:reg (w)	VEX.vvvv (r)	ModRM:r/m (r)	NA
+C	Full Mem	ModRM:reg (w)	EVEX.vvvv (r)	ModRM:r/m (r)	NA
+D	Full	ModRM:reg (w)	EVEX.vvvv (r)	ModRM:r/m (r)	NA
+.TE
+
+.SS Description
+.PP
+Performs a SIMD add of the packed integers from the source operand
+(second operand) and the destination operand (first operand), and stores
+the packed integer results in the destination operand. See Figure 9\-4 in the Intel® 64 and IA\-32
+Architectures Software Developer’s Manual, Volume 1, for an illustration
+of a SIMD operation. Overflow is handled with wraparound, as described
+in the following paragraphs.
+
+.PP
+The PADDB and VPADDB instructions add packed byte integers from the
+first source operand and second source operand and store the packed
+integer results in the destination operand. When an individual result is
+too large to be represented in 8 bits (overflow), the result is wrapped
+around and the low 8 bits are written to the destination operand (that
+is, the carry is ignored).
+
+.PP
+The PADDW and VPADDW instructions add packed word integers from the
+first source operand and second source operand and store the packed
+integer results in the destination operand. When an individual result is
+too large to be represented in 16 bits (overflow), the result is wrapped
+around and the low 16 bits are written to the destination operand (that
+is, the carry is ignored).
+
+.PP
+The PADDD and VPADDD instructions add packed doubleword integers from
+the first source operand and second source operand and store the packed
+integer results in the destination operand. When an individual result is
+too large to be represented in 32 bits (overflow), the result is wrapped
+around and the low 32 bits are written to the destination operand (that
+is, the carry is ignored).
+
+.PP
+The PADDQ and VPADDQ instructions add packed quadword integers from the
+first source operand and second source operand and store the packed
+integer results in the destination operand. When a quadword result is
+too
+
+.PP
+large to be represented in 64 bits (overflow), the result is wrapped
+around and the low 64 bits are written to the destination operand (that
+is, the carry is ignored).
+
+.PP
+Note that the (V)PADDB, (V)PADDW, (V)PADDD and (V)PADDQ instructions can
+operate on either unsigned or signed (two's complement notation) packed
+integers; however, it does not set bits in the EFLAGS register to
+indicate overflow and/or a carry. To prevent undetected overflow
+conditions, software must control the ranges of values operated on.
+
+.PP
+EVEX encoded VPADDD/Q: The first source operand is a ZMM/YMM/XMM
+register. The second source operand is a ZMM/YMM/XMM register, a
+512/256/128\-bit memory location or a 512/256/128\-bit vector broadcasted
+from a 32/64\-bit memory location. The destination operand is a
+ZMM/YMM/XMM register updated according to the writemask.
+
+.PP
+EVEX encoded VPADDB/W: The first source operand is a ZMM/YMM/XMM
+register. The second source operand is a ZMM/YMM/XMM register, a
+512/256/128\-bit memory location. The destination operand is a
+ZMM/YMM/XMM register updated according to the writemask.
+
+.PP
+VEX.256 encoded version: The first source operand is a YMM register. The
+second source operand is a YMM register or a 256\-bit memory location.
+The destination operand is a YMM register. the upper bits (MAXVL\-1:256)
+of the destination are cleared.
+
+.PP
+VEX.128 encoded version: The first source operand is an XMM register.
+The second source operand is an XMM register or 128\-bit memory location.
+The destination operand is an XMM register. The upper bits (MAXVL\-1:128)
+of the corresponding ZMM register destination are zeroed.
+
+.PP
+128\-bit Legacy SSE version: The first source operand is an XMM register.
+The second operand can be an XMM register or an 128\-bit memory location.
+The destination is not distinct from the first source XMM register and
+the upper bits (MAXVL\-1:128) of the corresponding ZMM register
+destination are unmodified.
+
+.SS Operation
+.SS PADDB (with 64\-bit operands)
+.PP
+.RS
+
+.nf
+DEST[7:0] ← DEST[7:0] + SRC[7:0];
+(* Repeat add operation for 2nd through 7th byte *)
+DEST[63:56] ← DEST[63:56] + SRC[63:56];
+
+.fi
+.RE
+
+.SS PADDW (with 64\-bit operands)
+.PP
+.RS
+
+.nf
+DEST[15:0] ← DEST[15:0] + SRC[15:0];
+(* Repeat add operation for 2nd and 3th word *)
+DEST[63:48] ← DEST[63:48] + SRC[63:48];
+
+.fi
+.RE
+
+.SS PADDD (with 64\-bit operands)
+.PP
+.RS
+
+.nf
+DEST[31:0] ← DEST[31:0] + SRC[31:0];
+DEST[63:32] ← DEST[63:32] + SRC[63:32];
+
+.fi
+.RE
+
+.SS PADDQ (with 64\-Bit operands)
+.PP
+.RS
+
+.nf
+DEST[63:0] ← DEST[63:0] + SRC[63:0];
+
+.fi
+.RE
+
+.SS PADDB (Legacy SSE instruction)
+.PP
+.RS
+
+.nf
+DEST[7:0]← DEST[7:0] + SRC[7:0];
+(* Repeat add operation for 2nd through 15th byte *)
+DEST[127:120]← DEST[127:120] + SRC[127:120];
+DEST[MAXVL\-1:128] (Unmodified)
+
+.fi
+.RE
+
+.SS PADDW (Legacy SSE instruction)
+.PP
+.RS
+
+.nf
+DEST[15:0] ← DEST[15:0] + SRC[15:0];
+(* Repeat add operation for 2nd through 7th word *)
+DEST[127:112]← DEST[127:112] + SRC[127:112];
+DEST[MAXVL\-1:128] (Unmodified)
+
+.fi
+.RE
+
+.SS PADDD (Legacy SSE instruction)
+.PP
+.RS
+
+.nf
+DEST[31:0]← DEST[31:0] + SRC[31:0];
+(* Repeat add operation for 2nd and 3th doubleword *)
+DEST[127:96]← DEST[127:96] + SRC[127:96];
+DEST[MAXVL\-1:128] (Unmodified)
+
+.fi
+.RE
+
+.SS PADDQ (Legacy SSE instruction)
+.PP
+.RS
+
+.nf
+DEST[63:0]← DEST[63:0] + SRC[63:0];
+DEST[127:64]← DEST[127:64] + SRC[127:64];
+DEST[MAXVL\-1:128] (Unmodified)
+
+.fi
+.RE
+
+.SS VPADDB (VEX.128 encoded instruction)
+.PP
+.RS
+
+.nf
+DEST[7:0]← SRC1[7:0] + SRC2[7:0];
+(* Repeat add operation for 2nd through 15th byte *)
+DEST[127:120]← SRC1[127:120] + SRC2[127:120];
+DEST[MAXVL\-1:128] ← 0;
+
+.fi
+.RE
+
+.SS VPADDW (VEX.128 encoded instruction)
+.PP
+.RS
+
+.nf
+DEST[15:0] ← SRC1[15:0] + SRC2[15:0];
+(* Repeat add operation for 2nd through 7th word *)
+DEST[127:112]← SRC1[127:112] + SRC2[127:112];
+DEST[MAXVL\-1:128] ← 0;
+
+.fi
+.RE
+
+.SS VPADDD (VEX.128 encoded instruction)
+.PP
+.RS
+
+.nf
+DEST[31:0]← SRC1[31:0] + SRC2[31:0];
+(* Repeat add operation for 2nd and 3th doubleword *)
+DEST[127:96] ← SRC1[127:96] + SRC2[127:96];
+DEST[MAXVL\-1:128] ← 0;
+
+.fi
+.RE
+
+.SS VPADDQ (VEX.128 encoded instruction)
+.PP
+.RS
+
+.nf
+DEST[63:0]← SRC1[63:0] + SRC2[63:0];
+DEST[127:64] ← SRC1[127:64] + SRC2[127:64];
+DEST[MAXVL\-1:128] ← 0;
+
+.fi
+.RE
+
+.SS VPADDB (VEX.256 encoded instruction)
+.PP
+.RS
+
+.nf
+DEST[7:0]← SRC1[7:0] + SRC2[7:0];
+(* Repeat add operation for 2nd through 31th byte *)
+DEST[255:248]← SRC1[255:248] + SRC2[255:248];
+
+.fi
+.RE
+
+.SS VPADDW (VEX.256 encoded instruction)
+.PP
+.RS
+
+.nf
+DEST[15:0] ← SRC1[15:0] + SRC2[15:0];
+(* Repeat add operation for 2nd through 15th word *)
+DEST[255:240]← SRC1[255:240] + SRC2[255:240];
+
+.fi
+.RE
+
+.SS VPADDD (VEX.256 encoded instruction)
+.PP
+.RS
+
+.nf
+DEST[31:0]← SRC1[31:0] + SRC2[31:0];
+(* Repeat add operation for 2nd and 7th doubleword *)
+DEST[255:224] ← SRC1[255:224] + SRC2[255:224];
+
+.fi
+.RE
+
+.SS VPADDQ (VEX.256 encoded instruction)
+.PP
+.RS
+
+.nf
+DEST[63:0]← SRC1[63:0] + SRC2[63:0];
+DEST[127:64] ← SRC1[127:64] + SRC2[127:64];
+DEST[191:128]← SRC1[191:128] + SRC2[191:128];
+DEST[255:192] ← SRC1[255:192] + SRC2[255:192];
+
+.fi
+.RE
+
+.SS VPADDB (EVEX encoded versions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (16, 128), (32, 256), (64, 512)
+FOR j←0 TO KL\-1
+    i←j * 8
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+7:i]←SRC1[i+7:i] + SRC2[i+7:i]
+        ELSE
+            IF *merging\-masking* ; merging\-masking
+                THEN *DEST[i+7:i] remains unchanged*
+                ELSE *zeroing\-masking*
+                        ; zeroing\-masking
+                    DEST[i+7:i] = 0
+            FI
+    FI;
+ENDFOR;
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS VPADDW (EVEX encoded versions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (8, 128), (16, 256), (32, 512)
+FOR j←0 TO KL\-1
+    i←j * 16
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+15:i]←SRC1[i+15:i] + SRC2[i+15:i]
+        ELSE
+            IF *merging\-masking* ; merging\-masking
+                THEN *DEST[i+15:i] remains unchanged*
+                ELSE *zeroing\-masking*
+                        ; zeroing\-masking
+                    DEST[i+15:i] = 0
+            FI
+    FI;
+ENDFOR;
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS VPADDD (EVEX encoded versions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (4, 128), (8, 256), (16, 512)
+FOR j←0 TO KL\-1
+    i←j * 32
+    IF k1[j] OR *no writemask*
+        THEN
+            IF (EVEX.b = 1) AND (SRC2 *is memory*)
+                THEN DEST[i+31:i]←SRC1[i+31:i] + SRC2[31:0]
+                ELSE DEST[i+31:i]←SRC1[i+31:i] + SRC2[i+31:i]
+            FI;
+        ELSE
+            IF *merging\-masking* ; merging\-masking
+                THEN *DEST[i+31:i] remains unchanged*
+                ELSE *zeroing\-masking*
+                        ; zeroing\-masking
+                    DEST[i+31:i] ← 0
+            FI
+    FI;
+ENDFOR;
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS VPADDQ (EVEX encoded versions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (2, 128), (4, 256), (8, 512)
+FOR j←0 TO KL\-1
+    i←j * 64
+    IF k1[j] OR *no writemask*
+        THEN
+            IF (EVEX.b = 1) AND (SRC2 *is memory*)
+                THEN DEST[i+63:i]←SRC1[i+63:i] + SRC2[63:0]
+                ELSE DEST[i+63:i]←SRC1[i+63:i] + SRC2[i+63:i]
+            FI;
+        ELSE
+            IF *merging\-masking* ; merging\-masking
+                THEN *DEST[i+63:i] remains unchanged*
+                ELSE *zeroing\-masking*
+                        ; zeroing\-masking
+                    DEST[i+63:i] ← 0
+            FI
+    FI;
+ENDFOR;
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS Intel C/C++ Compiler Intrinsic Equivalents
+.PP
+.RS
+
+.nf
+VPADDB\_\_m512i \_mm512\_add\_epi8 ( \_\_m512i a, \_\_m512i b)
+
+VPADDW\_\_m512i \_mm512\_add\_epi16 ( \_\_m512i a, \_\_m512i b)
+
+VPADDB\_\_m512i \_mm512\_mask\_add\_epi8 ( \_\_m512i s, \_\_mmask64 m, \_\_m512i a, \_\_m512i b)
+
+VPADDW\_\_m512i \_mm512\_mask\_add\_epi16 ( \_\_m512i s, \_\_mmask32 m, \_\_m512i a, \_\_m512i b)
+
+VPADDB\_\_m512i \_mm512\_maskz\_add\_epi8 (\_\_mmask64 m, \_\_m512i a, \_\_m512i b)
+
+VPADDW\_\_m512i \_mm512\_maskz\_add\_epi16 (\_\_mmask32 m, \_\_m512i a, \_\_m512i b)
+
+VPADDB\_\_m256i \_mm256\_mask\_add\_epi8 (\_\_m256i s, \_\_mmask32 m, \_\_m256i a, \_\_m256i b)
+
+VPADDW\_\_m256i \_mm256\_mask\_add\_epi16 (\_\_m256i s, \_\_mmask16 m, \_\_m256i a, \_\_m256i b)
+
+VPADDB\_\_m256i \_mm256\_maskz\_add\_epi8 (\_\_mmask32 m, \_\_m256i a, \_\_m256i b)
+
+VPADDW\_\_m256i \_mm256\_maskz\_add\_epi16 (\_\_mmask16 m, \_\_m256i a, \_\_m256i b)
+
+VPADDB\_\_m128i \_mm\_mask\_add\_epi8 (\_\_m128i s, \_\_mmask16 m, \_\_m128i a, \_\_m128i b)
+
+VPADDW\_\_m128i \_mm\_mask\_add\_epi16 (\_\_m128i s, \_\_mmask8 m, \_\_m128i a, \_\_m128i b)
+
+VPADDB\_\_m128i \_mm\_maskz\_add\_epi8 (\_\_mmask16 m, \_\_m128i a, \_\_m128i b)
+
+VPADDW\_\_m128i \_mm\_maskz\_add\_epi16 (\_\_mmask8 m, \_\_m128i a, \_\_m128i b)
+
+VPADDD \_\_m512i \_mm512\_add\_epi32( \_\_m512i a, \_\_m512i b);
+
+VPADDD \_\_m512i \_mm512\_mask\_add\_epi32(\_\_m512i s, \_\_mmask16 k, \_\_m512i a, \_\_m512i b);
+
+VPADDD \_\_m512i \_mm512\_maskz\_add\_epi32( \_\_mmask16 k, \_\_m512i a, \_\_m512i b);
+
+VPADDD \_\_m256i \_mm256\_mask\_add\_epi32(\_\_m256i s, \_\_mmask8 k, \_\_m256i a, \_\_m256i b);
+
+VPADDD \_\_m256i \_mm256\_maskz\_add\_epi32( \_\_mmask8 k, \_\_m256i a, \_\_m256i b);
+
+VPADDD \_\_m128i \_mm\_mask\_add\_epi32(\_\_m128i s, \_\_mmask8 k, \_\_m128i a, \_\_m128i b);
+
+VPADDD \_\_m128i \_mm\_maskz\_add\_epi32( \_\_mmask8 k, \_\_m128i a, \_\_m128i b);
+
+VPADDQ \_\_m512i \_mm512\_add\_epi64( \_\_m512i a, \_\_m512i b);
+
+VPADDQ \_\_m512i \_mm512\_mask\_add\_epi64(\_\_m512i s, \_\_mmask8 k, \_\_m512i a, \_\_m512i b);
+
+VPADDQ \_\_m512i \_mm512\_maskz\_add\_epi64( \_\_mmask8 k, \_\_m512i a, \_\_m512i b);
+
+VPADDQ \_\_m256i \_mm256\_mask\_add\_epi64(\_\_m256i s, \_\_mmask8 k, \_\_m256i a, \_\_m256i b);
+
+VPADDQ \_\_m256i \_mm256\_maskz\_add\_epi64( \_\_mmask8 k, \_\_m256i a, \_\_m256i b);
+
+VPADDQ \_\_m128i \_mm\_mask\_add\_epi64(\_\_m128i s, \_\_mmask8 k, \_\_m128i a, \_\_m128i b);
+
+VPADDQ \_\_m128i \_mm\_maskz\_add\_epi64( \_\_mmask8 k, \_\_m128i a, \_\_m128i b);
+
+PADDB \_\_m128i \_mm\_add\_epi8 (\_\_m128i a,\_\_m128i b );
+
+PADDW \_\_m128i \_mm\_add\_epi16 ( \_\_m128i a, \_\_m128i b);
+
+PADDD \_\_m128i \_mm\_add\_epi32 ( \_\_m128i a, \_\_m128i b);
+
+PADDQ \_\_m128i \_mm\_add\_epi64 ( \_\_m128i a, \_\_m128i b);
+
+VPADDB \_\_m256i \_mm256\_add\_epi8 (\_\_m256ia,\_\_m256i b );
+
+VPADDW \_\_m256i \_mm256\_add\_epi16 ( \_\_m256i a, \_\_m256i b);
+
+VPADDD \_\_m256i \_mm256\_add\_epi32 ( \_\_m256i a, \_\_m256i b);
+
+VPADDQ \_\_m256i \_mm256\_add\_epi64 ( \_\_m256i a, \_\_m256i b);
+
+PADDB \_\_m64 \_mm\_add\_pi8(\_\_m64 m1, \_\_m64 m2)
+
+PADDW \_\_m64 \_mm\_add\_pi16(\_\_m64 m1, \_\_m64 m2)
+
+PADDD \_\_m64 \_mm\_add\_pi32(\_\_m64 m1, \_\_m64 m2)
+
+PADDQ \_\_m64 \_mm\_add\_si64(\_\_m64 m1, \_\_m64 m2)
+
+.fi
+.RE
+
+.SS SIMD Floating\-Point Exceptions
+.PP
+None
+
+.SS Other Exceptions
+.PP
+Non\-EVEX\-encoded instruction, see Exceptions Type 4.
+
+.PP
+EVEX\-encoded VPADDD/Q, see Exceptions Type E4.
+
+.PP
+EVEX\-encoded VPADDB/W, see Exceptions Type E4.nb.
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+MIT licensed by TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

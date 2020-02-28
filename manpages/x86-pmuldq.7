@@ -1,0 +1,225 @@
+.nh
+.TH "X86-PMULDQ" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+PMULDQ - MULTIPLY PACKED DOUBLEWORD INTEGERS
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp / En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+T{
+66 0F 38 28 /r PMULDQ xmm1, xmm2/m128
+T}
+	A	V/V	SSE4\_1	T{
+Multiply packed signed doubleword integers in xmm1 by packed signed doubleword integers in xmm2/m128, and store the quadword results in xmm1.
+T}
+T{
+VEX.128.66.0F38.WIG 28 /r VPMULDQ xmm1, xmm2, xmm3/m128
+T}
+	B	V/V	AVX	T{
+Multiply packed signed doubleword integers in xmm2 by packed signed doubleword integers in xmm3/m128, and store the quadword results in xmm1.
+T}
+T{
+VEX.256.66.0F38.WIG 28 /r VPMULDQ ymm1, ymm2, ymm3/m256
+T}
+	B	V/V	AVX2	T{
+Multiply packed signed doubleword integers in ymm2 by packed signed doubleword integers in ymm3/m256, and store the quadword results in ymm1.
+T}
+T{
+EVEX.128.66.0F38.W1 28 /r VPMULDQ xmm1 {k1}{z}, xmm2, xmm3/m128/m64bcst
+T}
+	C	V/V	AVX512VL AVX512F	T{
+Multiply packed signed doubleword integers in xmm2 by packed signed doubleword integers in xmm3/m128/m64bcst, and store the quadword results in xmm1 using writemask k1.
+T}
+T{
+EVEX.256.66.0F38.W1 28 /r VPMULDQ ymm1 {k1}{z}, ymm2, ymm3/m256/m64bcst
+T}
+	C	V/V	AVX512VL AVX512F	T{
+Multiply packed signed doubleword integers in ymm2 by packed signed doubleword integers in ymm3/m256/m64bcst, and store the quadword results in ymm1 using writemask k1.
+T}
+T{
+EVEX.512.66.0F38.W1 28 /r VPMULDQ zmm1 {k1}{z}, zmm2, zmm3/m512/m64bcst
+T}
+	C	V/V	AVX512F	T{
+Multiply packed signed doubleword integers in zmm2 by packed signed doubleword integers in zmm3/m512/m64bcst, and store the quadword results in zmm1 using writemask k1.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+Op/En	Tuple Type	Operand 1	Operand 2	Operand 3	Operand 4
+A	NA	ModRM:reg (r, w)	ModRM:r/m (r)	NA	NA
+B	NA	ModRM:reg (w)	VEX.vvvv (r)	ModRM:r/m (r)	NA
+C	Full	ModRM:reg (w)	EVEX.vvvv (r)	ModRM:r/m (r)	NA
+.TE
+
+.SS Description
+.PP
+Multiplies packed signed doubleword integers in the even\-numbered
+(zero\-based reference) elements of the first source operand with the
+packed signed doubleword integers in the corresponding elements of the
+second source operand and stores packed signed quadword results in the
+destination operand.
+
+.PP
+128\-bit Legacy SSE version: The input signed doubleword integers are
+taken from the even\-numbered elements of the source operands, i.e. the
+first (low) and third doubleword element. For 128\-bit memory operands,
+128 bits are fetched from memory, but only the first and third
+doublewords are used in the computation. The first source operand and
+the destination XMM operand is the same. The second source operand can
+be an XMM register or 128\-bit memory location. Bits (MAXVL\-1:128) of the
+corresponding destination register remain unchanged.
+
+.PP
+VEX.128 encoded version: The input signed doubleword integers are taken
+from the even\-numbered elements of the source operands, i.e., the first
+(low) and third doubleword element. For 128\-bit memory operands, 128
+bits are fetched from memory, but only the first and third doublewords
+are used in the computation.The first source operand and the destination
+operand are XMM registers. The second source operand can be an XMM
+register or 128\-bit memory location. Bits (MAXVL\-1:128) of the
+corresponding destination register are zeroed.
+
+.PP
+VEX.256 encoded version: The input signed doubleword integers are taken
+from the even\-numbered elements of the source operands, i.e. the first,
+3rd, 5th, 7th doubleword element. For 256\-bit memory operands, 256 bits
+are fetched from memory, but only the four even\-numbered doublewords are
+used in the computation. The first source operand and the destination
+operand are YMM registers. The second source operand can be a YMM
+register or 256\-bit memory location. Bits (MAXVL\-1:256) of the
+corresponding destination ZMM register are zeroed.
+
+.PP
+EVEX encoded version: The input signed doubleword integers are taken
+from the even\-numbered elements of the source operands. The first source
+operand is a ZMM/YMM/XMM registers. The second source operand can be an
+ZMM/YMM/XMM register, a 512/256/128\-bit memory location or a
+512/256/128\-bit vector broadcasted from a 64\-bit memory location. The
+destination is a ZMM/YMM/XMM register, and updated according to the
+writemask at 64\-bit granularity.
+
+.SS Operation
+.SS VPMULDQ (EVEX encoded versions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (2, 128), (4, 256), (8, 512)
+FOR j←0 TO KL\-1
+    i←j * 64
+    IF k1[j] OR *no writemask*
+        THEN
+            IF (EVEX.b = 1) AND (SRC2 *is memory*)
+                THEN DEST[i+63:i]←SignExtend64( SRC1[i+31:i]) * SignExtend64( SRC2[31:0])
+                ELSE DEST[i+63:i]←SignExtend64( SRC1[i+31:i]) * SignExtend64( SRC2[i+31:i])
+            FI;
+        ELSE
+            IF *merging\-masking* ; merging\-masking
+                THEN *DEST[i+63:i] remains unchanged*
+                ELSE *zeroing\-masking*
+                        ; zeroing\-masking
+                    DEST[i+63:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS VPMULDQ (VEX.256 encoded version)
+.PP
+.RS
+
+.nf
+DEST[63:0]←SignExtend64( SRC1[31:0]) * SignExtend64( SRC2[31:0])
+DEST[127:64]←SignExtend64( SRC1[95:64]) * SignExtend64( SRC2[95:64])
+DEST[191:128]←SignExtend64( SRC1[159:128]) * SignExtend64( SRC2[159:128])
+DEST[255:192]←SignExtend64( SRC1[223:192]) * SignExtend64( SRC2[223:192])
+DEST[MAXVL\-1:256] ←0
+
+.fi
+.RE
+
+.SS VPMULDQ (VEX.128 encoded version)
+.PP
+.RS
+
+.nf
+DEST[63:0]←SignExtend64( SRC1[31:0]) * SignExtend64( SRC2[31:0])
+DEST[127:64]←SignExtend64( SRC1[95:64]) * SignExtend64( SRC2[95:64])
+DEST[MAXVL\-1:128] ←0
+
+.fi
+.RE
+
+.SS PMULDQ (128\-bit Legacy SSE version)
+.PP
+.RS
+
+.nf
+DEST[63:0]←SignExtend64( DEST[31:0]) * SignExtend64( SRC[31:0])
+DEST[127:64]←SignExtend64( DEST[95:64]) * SignExtend64( SRC[95:64])
+DEST[MAXVL\-1:128] (Unmodified)
+
+.fi
+.RE
+
+.SS Intel C/C++ Compiler Intrinsic Equivalent
+.PP
+.RS
+
+.nf
+VPMULDQ \_\_m512i \_mm512\_mul\_epi32(\_\_m512i a, \_\_m512i b);
+
+VPMULDQ \_\_m512i \_mm512\_mask\_mul\_epi32(\_\_m512i s, \_\_mmask8 k, \_\_m512i a, \_\_m512i b);
+
+VPMULDQ \_\_m512i \_mm512\_maskz\_mul\_epi32( \_\_mmask8 k, \_\_m512i a, \_\_m512i b);
+
+VPMULDQ \_\_m256i \_mm256\_mask\_mul\_epi32(\_\_m256i s, \_\_mmask8 k, \_\_m256i a, \_\_m256i b);
+
+VPMULDQ \_\_m256i \_mm256\_mask\_mul\_epi32( \_\_mmask8 k, \_\_m256i a, \_\_m256i b);
+
+VPMULDQ \_\_m128i \_mm\_mask\_mul\_epi32(\_\_m128i s, \_\_mmask8 k, \_\_m128i a, \_\_m128i b);
+
+VPMULDQ \_\_m128i \_mm\_mask\_mul\_epi32( \_\_mmask8 k, \_\_m128i a, \_\_m128i b);
+
+(V)PMULDQ \_\_m128i \_mm\_mul\_epi32( \_\_m128i a, \_\_m128i b);
+
+VPMULDQ \_\_m256i \_mm256\_mul\_epi32( \_\_m256i a, \_\_m256i b);
+
+.fi
+.RE
+
+.SS SIMD Floating\-Point Exceptions
+.PP
+None
+
+.SS Other Exceptions
+.PP
+Non\-EVEX\-encoded instruction, see Exceptions Type 4.
+
+.PP
+EVEX\-encoded instruction, see Exceptions Type E4.
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+MIT licensed by TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

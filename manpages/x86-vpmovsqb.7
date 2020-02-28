@@ -1,0 +1,338 @@
+.nh
+.TH "X86-VPMOVQB-VPMOVSQB-VPMOVUSQB" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+VPMOVQB-VPMOVSQB-VPMOVUSQB - DOWN CONVERT QWORD TO BYTE
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp / En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+T{
+EVEX.128.F3.0F38.W0 32 /xmm1/m16 {k1}{z}, xmm2
+T}
+	A	V/V	AVX512VL AVX512F	T{
+Converts 2 packed quad\-word integers from xmm1/m16 with truncation under writemask k1.
+T}
+T{
+EVEX.128.F3.0F38.W0 22 /xmm1/m16 {k1}{z}, xmm2
+T}
+	A	V/V	AVX512VL AVX512F	T{
+Converts 2 packed signed quad\-word integers from xmm1/m16 using signed saturation under writemask k1.
+T}
+T{
+EVEX.128.F3.0F38.W0 12 /xmm1/m16 {k1}{z}, xmm2
+T}
+	A	V/V	AVX512VL AVX512F	T{
+Converts 2 packed unsigned quad\-word integers from xmm1/m16 using unsigned saturation under writemask k1.
+T}
+T{
+EVEX.256.F3.0F38.W0 32 /xmm1/m32 {k1}{z}, ymm2
+T}
+	A	V/V	AVX512VL AVX512F	T{
+Converts 4 packed quad\-word integers from xmm1/m32 with truncation under writemask k1.
+T}
+T{
+EVEX.256.F3.0F38.W0 22 /xmm1/m32 {k1}{z}, ymm2
+T}
+	A	V/V	AVX512VL AVX512F	T{
+Converts 4 packed signed quad\-word integers from xmm1/m32 using signed saturation under writemask k1.
+T}
+T{
+EVEX.256.F3.0F38.W0 12 /xmm1/m32 {k1}{z}, ymm2
+T}
+	A	V/V	AVX512VL AVX512F	T{
+Converts 4 packed unsigned quad\-word integers from xmm1/m32 using unsigned saturation under writemask k1.
+T}
+T{
+EVEX.512.F3.0F38.W0 32 /xmm1/m64 {k1}{z}, zmm2
+T}
+	A	V/V	AVX512F	T{
+Converts 8 packed quad\-word integers from xmm1/m64 with truncation under writemask k1.
+T}
+T{
+EVEX.512.F3.0F38.W0 22 /xmm1/m64 {k1}{z}, zmm2
+T}
+	A	V/V	AVX512F	T{
+Converts 8 packed signed quad\-word integers from xmm1/m64 using signed saturation under writemask k1.
+T}
+T{
+EVEX.512.F3.0F38.W0 12 /xmm1/m64 {k1}{z}, zmm2
+T}
+	A	V/V	AVX512F	T{
+Converts 8 packed unsigned quad\-word integers from xmm1/m64 using unsigned saturation under writemask k1.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+Op/En	Tuple Type	Operand 1	Operand 2	Operand 3	Operand 4
+A	Eighth Mem	ModRM:r/m (w)	ModRM:reg (r)	NA	NA
+.TE
+
+.SS Description
+.PP
+VPMOVQB down converts 64\-bit integer elements in the source operand (the
+second operand) into packed byte elements using truncation. VPMOVSQB
+converts signed 64\-bit integers into packed signed bytes using signed
+saturation. VPMOVUSQB convert unsigned quad\-word values into unsigned
+byte values using unsigned saturation. The source operand is a vector
+register. The destination operand is an XMM register or a memory
+location.
+
+.PP
+Down\-converted byte elements are written to the destination operand (the
+first operand) from the least\-significant byte. Byte elements of the
+destination operand are updated according to the writemask. Bits
+(MAXVL\-1:64) of the destination are zeroed.
+
+.PP
+EVEX.vvvv is reserved and must be 1111b otherwise instructions will
+#UD.
+
+.SS Operation
+.SS VPMOVQB instruction (EVEX encoded versions) when dest is a register
+.PP
+.RS
+
+.nf
+(KL, VL) = (2, 128), (4, 256), (8, 512)
+FOR j←0 TO KL\-1
+    i←j * 8
+    m←j * 64
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+7:i]←TruncateQuadWordToByte (SRC[m+63:m])
+        ELSE
+            IF *merging\-masking* ; merging\-masking
+                THEN *DEST[i+7:i] remains unchanged*
+                ELSE *zeroing\-masking*
+                        ; zeroing\-masking
+                    DEST[i+7:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL/8] ← 0;
+
+.fi
+.RE
+
+.SS VPMOVQB instruction (EVEX encoded versions) when dest is memory
+.PP
+.RS
+
+.nf
+(KL, VL) = (2, 128), (4, 256), (8, 512)
+FOR j←0 TO KL\-1
+    i←j * 8
+    m←j * 64
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+7:i]←TruncateQuadWordToByte (SRC[m+63:m])
+        ELSE
+            *DEST[i+7:i] remains unchanged* ; merging\-masking
+    FI;
+ENDFOR
+
+.fi
+.RE
+
+.SS VPMOVSQB instruction (EVEX encoded versions) when dest is a register
+.PP
+.RS
+
+.nf
+(KL, VL) = (2, 128), (4, 256), (8, 512)
+FOR j←0 TO KL\-1
+    i←j * 8
+    m←j * 64
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+7:i]←SaturateSignedQuadWordToByte (SRC[m+63:m])
+        ELSE
+            IF *merging\-masking* ; merging\-masking
+                THEN *DEST[i+7:i] remains unchanged*
+                ELSE *zeroing\-masking*
+                        ; zeroing\-masking
+                    DEST[i+7:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL/8] ← 0;
+
+.fi
+.RE
+
+.SS VPMOVSQB instruction (EVEX encoded versions) when dest is memory
+.PP
+.RS
+
+.nf
+(KL, VL) = (2, 128), (4, 256), (8, 512)
+FOR j←0 TO KL\-1
+    i←j * 8
+    m←j * 64
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+7:i]←SaturateSignedQuadWordToByte (SRC[m+63:m])
+        ELSE
+            *DEST[i+7:i] remains unchanged* ; merging\-masking
+    FI;
+ENDFOR
+
+.fi
+.RE
+
+.SS VPMOVUSQB instruction (EVEX encoded versions) when dest is a register
+.PP
+.RS
+
+.nf
+(KL, VL) = (2, 128), (4, 256), (8, 512)
+FOR j←0 TO KL\-1
+    i←j * 8
+    m←j * 64
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+7:i]←SaturateUnsignedQuadWordToByte (SRC[m+63:m])
+        ELSE
+            IF *merging\-masking* ; merging\-masking
+                THEN *DEST[i+7:i] remains unchanged*
+                ELSE *zeroing\-masking*
+                        ; zeroing\-masking
+                    DEST[i+7:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL/8] ← 0;
+
+.fi
+.RE
+
+.SS VPMOVUSQB instruction (EVEX encoded versions) when dest is memory
+.PP
+.RS
+
+.nf
+(KL, VL) = (2, 128), (4, 256), (8, 512)
+FOR j←0 TO KL\-1
+    i←j * 8
+    m←j * 64
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+7:i]←SaturateUnsignedQuadWordToByte (SRC[m+63:m])
+        ELSE
+            *DEST[i+7:i] remains unchanged* ; merging\-masking
+    FI;
+ENDFOR
+
+.fi
+.RE
+
+.SS Intel C/C++ Compiler Intrinsic Equivalents
+.PP
+.RS
+
+.nf
+VPMOVQB \_\_m128i \_mm512\_cvtepi64\_epi8( \_\_m512i a);
+
+VPMOVQB \_\_m128i \_mm512\_mask\_cvtepi64\_epi8(\_\_m128i s, \_\_mmask8 k, \_\_m512i a);
+
+VPMOVQB \_\_m128i \_mm512\_maskz\_cvtepi64\_epi8( \_\_mmask8 k, \_\_m512i a);
+
+VPMOVQB void \_mm512\_mask\_cvtepi64\_storeu\_epi8(void * d, \_\_mmask8 k, \_\_m512i a);
+
+VPMOVSQB \_\_m128i \_mm512\_cvtsepi64\_epi8( \_\_m512i a);
+
+VPMOVSQB \_\_m128i \_mm512\_mask\_cvtsepi64\_epi8(\_\_m128i s, \_\_mmask8 k, \_\_m512i a);
+
+VPMOVSQB \_\_m128i \_mm512\_maskz\_cvtsepi64\_epi8( \_\_mmask8 k, \_\_m512i a);
+
+VPMOVSQB void \_mm512\_mask\_cvtsepi64\_storeu\_epi8(void * d, \_\_mmask8 k, \_\_m512i a);
+
+VPMOVUSQB \_\_m128i \_mm512\_cvtusepi64\_epi8( \_\_m512i a);
+
+VPMOVUSQB \_\_m128i \_mm512\_mask\_cvtusepi64\_epi8(\_\_m128i s, \_\_mmask8 k, \_\_m512i a);
+
+VPMOVUSQB \_\_m128i \_mm512\_maskz\_cvtusepi64\_epi8( \_\_mmask8 k, \_\_m512i a);
+
+VPMOVUSQB void \_mm512\_mask\_cvtusepi64\_storeu\_epi8(void * d, \_\_mmask8 k, \_\_m512i a);
+
+VPMOVUSQB \_\_m128i \_mm256\_cvtusepi64\_epi8(\_\_m256i a);
+
+VPMOVUSQB \_\_m128i \_mm256\_mask\_cvtusepi64\_epi8(\_\_m128i a, \_\_mmask8 k, \_\_m256i b);
+
+VPMOVUSQB \_\_m128i \_mm256\_maskz\_cvtusepi64\_epi8( \_\_mmask8 k, \_\_m256i b);
+
+VPMOVUSQB void \_mm256\_mask\_cvtusepi64\_storeu\_epi8(void * , \_\_mmask8 k, \_\_m256i b);
+
+VPMOVUSQB \_\_m128i \_mm\_cvtusepi64\_epi8(\_\_m128i a);
+
+VPMOVUSQB \_\_m128i \_mm\_mask\_cvtusepi64\_epi8(\_\_m128i a, \_\_mmask8 k, \_\_m128i b);
+
+VPMOVUSQB \_\_m128i \_mm\_maskz\_cvtusepi64\_epi8( \_\_mmask8 k, \_\_m128i b);
+
+VPMOVUSQB void \_mm\_mask\_cvtusepi64\_storeu\_epi8(void * , \_\_mmask8 k, \_\_m128i b);
+
+VPMOVSQB \_\_m128i \_mm256\_cvtsepi64\_epi8(\_\_m256i a);
+
+VPMOVSQB \_\_m128i \_mm256\_mask\_cvtsepi64\_epi8(\_\_m128i a, \_\_mmask8 k, \_\_m256i b);
+
+VPMOVSQB \_\_m128i \_mm256\_maskz\_cvtsepi64\_epi8( \_\_mmask8 k, \_\_m256i b);
+
+VPMOVSQB void \_mm256\_mask\_cvtsepi64\_storeu\_epi8(void * , \_\_mmask8 k, \_\_m256i b);
+
+VPMOVSQB \_\_m128i \_mm\_cvtsepi64\_epi8(\_\_m128i a);
+
+VPMOVSQB \_\_m128i \_mm\_mask\_cvtsepi64\_epi8(\_\_m128i a, \_\_mmask8 k, \_\_m128i b);
+
+VPMOVSQB \_\_m128i \_mm\_maskz\_cvtsepi64\_epi8( \_\_mmask8 k, \_\_m128i b);
+
+VPMOVSQB void \_mm\_mask\_cvtsepi64\_storeu\_epi8(void * , \_\_mmask8 k, \_\_m128i b);
+
+VPMOVQB \_\_m128i \_mm256\_cvtepi64\_epi8(\_\_m256i a);
+
+VPMOVQB \_\_m128i \_mm256\_mask\_cvtepi64\_epi8(\_\_m128i a, \_\_mmask8 k, \_\_m256i b);
+
+VPMOVQB \_\_m128i \_mm256\_maskz\_cvtepi64\_epi8( \_\_mmask8 k, \_\_m256i b);
+
+VPMOVQB void \_mm256\_mask\_cvtepi64\_storeu\_epi8(void * , \_\_mmask8 k, \_\_m256i b);
+
+VPMOVQB \_\_m128i \_mm\_cvtepi64\_epi8(\_\_m128i a);
+
+VPMOVQB \_\_m128i \_mm\_mask\_cvtepi64\_epi8(\_\_m128i a, \_\_mmask8 k, \_\_m128i b);
+
+VPMOVQB \_\_m128i \_mm\_maskz\_cvtepi64\_epi8( \_\_mmask8 k, \_\_m128i b);
+
+VPMOVQB void \_mm\_mask\_cvtepi64\_storeu\_epi8(void * , \_\_mmask8 k, \_\_m128i b);
+
+.fi
+.RE
+
+.SS SIMD Floating\-Point Exceptions
+.PP
+None
+
+.SS Other Exceptions
+.PP
+EVEX\-encoded instruction, see Exceptions Type E6.
+
+.TS
+allbox;
+l l 
+l l .
+#UD	If EVEX.vvvv != 1111B.
+.TE
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+MIT licensed by TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

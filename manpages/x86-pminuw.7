@@ -1,0 +1,534 @@
+.nh
+.TH "X86-PMINUB-PMINUW" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+PMINUB-PMINUW - MINIMUM OF PACKED UNSIGNED INTEGERS
+.PP
+Opcode/Instruction
+
+.PP
+Op / En
+
+.PP
+64/32 bit Mode Support
+
+.PP
+CPUID Feature Flag
+
+.PP
+Description
+
+.PP
+NP 0F DA /mm1, mm2/m64
+
+.PP
+A
+
+.PP
+V/V
+
+.PP
+SSE
+
+.PP
+Compare unsigned byte integers in mm1 and returns minimum values.
+
+.PP
+66 0F DA /r PMINUB xmm1, xmm2/m128
+
+.PP
+A
+
+.PP
+V/V
+
+.PP
+SSE2
+
+.PP
+Compare packed unsigned byte integers in xmm1 and xmm2/m128 and store
+packed minimum values in xmm1.
+
+.PP
+66 0F 38 3A/r PMINUW xmm1, xmm2/m128
+
+.PP
+A
+
+.PP
+V/V
+
+.PP
+SSE4\_1
+
+.PP
+Compare packed unsigned word integers in xmm2/m128 and xmm1 and store
+packed minimum values in xmm1.
+
+.PP
+VEX.128.66.0F DA /r VPMINUB xmm1, xmm2, xmm3/m128
+
+.PP
+B
+
+.PP
+V/V
+
+.PP
+AVX
+
+.PP
+Compare packed unsigned byte integers in xmm2 and xmm3/m128 and store
+packed minimum values in xmm1.
+
+.PP
+VEX.128.66.0F38 3A/r VPMINUW xmm1, xmm2, xmm3/m128
+
+.PP
+B
+
+.PP
+V/V
+
+.PP
+AVX
+
+.PP
+Compare packed unsigned word integers in xmm3/m128 and xmm2 and return
+packed minimum values in xmm1.
+
+.PP
+VEX.256.66.0F DA /r VPMINUB ymm1, ymm2, ymm3/m256
+
+.PP
+B
+
+.PP
+V/V
+
+.PP
+AVX2
+
+.PP
+Compare packed unsigned byte integers in ymm2 and ymm3/m256 and store
+packed minimum values in ymm1.
+
+.PP
+VEX.256.66.0F38 3A/r VPMINUW ymm1, ymm2, ymm3/m256
+
+.PP
+B
+
+.PP
+V/V
+
+.PP
+AVX2
+
+.PP
+Compare packed unsigned word integers in ymm3/m256 and ymm2 and return
+packed minimum values in ymm1.
+
+.PP
+EVEX.128.66.0F DA /r VPMINUB xmm1 {k1}{z}, xmm2, xmm3/m128
+
+.PP
+C
+
+.PP
+V/V
+
+.PP
+AVX512VL AVX512BW
+
+.PP
+Compare packed unsigned byte integers in xmm2 and xmm3/m128 and store
+packed minimum values in xmm1 under writemask k1.
+
+.PP
+EVEX.256.66.0F DA /r VPMINUB ymm1 {k1}{z}, ymm2, ymm3/m256
+
+.PP
+C
+
+.PP
+V/V
+
+.PP
+AVX512VL AVX512BW
+
+.PP
+Compare packed unsigned byte integers in ymm2 and ymm3/m256 and store
+packed minimum values in ymm1 under writemask k1.
+
+.PP
+EVEX.512.66.0F DA /r VPMINUB zmm1 {k1}{z}, zmm2, zmm3/m512
+
+.PP
+C
+
+.PP
+V/V
+
+.PP
+AVX512BW
+
+.PP
+Compare packed unsigned byte integers in zmm2 and zmm3/m512 and store
+packed minimum values in zmm1 under writemask k1.
+
+.PP
+EVEX.128.66.0F38 3A/r VPMINUW xmm1{k1}{z}, xmm2, xmm3/m128
+
+.PP
+C
+
+.PP
+V/V
+
+.PP
+AVX512VL AVX512BW
+
+.PP
+Compare packed unsigned word integers in xmm3/m128 and xmm2 and return
+packed minimum values in xmm1 under writemask k1.
+
+.PP
+EVEX.256.66.0F38 3A/r VPMINUW ymm1{k1}{z}, ymm2, ymm3/m256
+
+.PP
+C
+
+.PP
+V/V
+
+.PP
+AVX512VL AVX512BW
+
+.PP
+Compare packed unsigned word integers in ymm3/m256 and ymm2 and return
+packed minimum values in ymm1 under writemask k1.
+
+.PP
+EVEX.512.66.0F38 3A/r VPMINUW zmm1{k1}{z}, zmm2, zmm3/m512
+
+.PP
+C
+
+.PP
+V/V
+
+.PP
+AVX512BW
+
+.PP
+Compare packed unsigned word integers in zmm3/m512 and zmm2 and return
+packed minimum values in zmm1 under writemask k1.
+
+.PP
+NOTES: 1. See note in Section 2.4, “AVX and SSE Instruction Exception
+Specification” in the Intel® 64 and IA\-32 Architectures Software
+Developer’s Manual, Volume 3A.
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+Op/En	Tuple Type	Operand 1	Operand 2	Operand 3	Operand 4
+A	NA	ModRM:reg (r, w)	ModRM:r/m (r)	NA	NA
+B	NA	ModRM:reg (w)	VEX.vvvv (r)	ModRM:r/m (r)	NA
+C	Full Mem	ModRM:reg (w)	EVEX.vvvv (r)	ModRM:r/m (r)	NA
+.TE
+
+.SS Description
+.PP
+Performs a SIMD compare of the packed unsigned byte or word integers in
+the second source operand and the first source operand and returns the
+minimum value for each pair of integers to the destination operand.
+
+.PP
+Legacy SSE version PMINUB: The source operand can be an MMX technology
+register or a 64\-bit memory location. The destination operand can be an
+MMX technology register.
+
+.PP
+128\-bit Legacy SSE version: The first source and destination operands
+are XMM registers. The second source operand is an XMM register or a
+128\-bit memory location. Bits (MAXVL\-1:128) of the corresponding
+destination register remain unchanged.
+
+.PP
+VEX.128 encoded version: The first source and destination operands are
+XMM registers. The second source operand is an XMM register or a 128\-bit
+memory location. Bits (MAXVL\-1:128) of the corresponding destination
+register are zeroed.
+
+.PP
+VEX.256 encoded version: The second source operand can be an YMM
+register or a 256\-bit memory location. The first source and destination
+operands are YMM registers.
+
+.PP
+EVEX encoded versions: The first source operand is a ZMM/YMM/XMM
+register; The second source operand is a ZMM/YMM/XMM register or a
+512/256/128\-bit memory location. The destination operand is
+conditionally updated based on writemask k1.
+
+.SS Operation
+.SS PMINUB (for 64\-bit operands)
+.PP
+.RS
+
+.nf
+IF DEST[7:0] < SRC[17:0] THEN
+    DEST[7:0] ← DEST[7:0];
+ELSE
+    DEST[7:0] ← SRC[7:0]; FI;
+(* Repeat operation for 2nd through 7th bytes in source and destination operands *)
+IF DEST[63:56] < SRC[63:56] THEN
+    DEST[63:56] ← DEST[63:56];
+ELSE
+    DEST[63:56] ← SRC[63:56]; FI;
+
+.fi
+.RE
+
+.SS PMINUB instruction for 128\-bit operands:
+.PP
+.RS
+
+.nf
+    IF DEST[7:0] < SRC[7:0] THEN
+        DEST[7:0] ← DEST[7:0];
+    ELSE
+        DEST[15:0]←SRC[7:0]; FI;
+    (* Repeat operation for 2nd through 15th bytes in source and destination operands *)
+    IF DEST[127:120] < SRC[127:120] THEN
+        DEST[127:120] ← DEST[127:120];
+    ELSE
+        DEST[127:120]←SRC[127:120]; FI;
+DEST[MAXVL\-1:128] (Unmodified)
+
+.fi
+.RE
+
+.SS VPMINUB (VEX.128 encoded version)
+.PP
+.RS
+
+.nf
+    IF SRC1[7:0] < SRC2[7:0] THEN
+        DEST[7:0] ← SRC1[7:0];
+    ELSE
+        DEST[7:0]←SRC2[7:0]; FI;
+    (* Repeat operation for 2nd through 15th bytes in source and destination operands *)
+    IF SRC1[127:120] < SRC2[127:120] THEN
+        DEST[127:120] ← SRC1[127:120];
+    ELSE
+        DEST[127:120]←SRC2[127:120]; FI;
+DEST[MAXVL\-1:128] ← 0
+
+.fi
+.RE
+
+.SS VPMINUB (VEX.256 encoded version)
+.PP
+.RS
+
+.nf
+    IF SRC1[7:0] < SRC2[7:0] THEN
+        DEST[7:0] ← SRC1[7:0];
+    ELSE
+        DEST[15:0]←SRC2[7:0]; FI;
+    (* Repeat operation for 2nd through 31st bytes in source and destination operands *)
+    IF SRC1[255:248] < SRC2[255:248] THEN
+        DEST[255:248] ← SRC1[255:248];
+    ELSE
+        DEST[255:248]←SRC2[255:248]; FI;
+DEST[MAXVL\-1:256] ← 0
+
+.fi
+.RE
+
+.SS VPMINUB (EVEX encoded versions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (16, 128), (32, 256), (64, 512)
+FOR j←0 TO KL\-1
+    i←j * 8
+    IF k1[j] OR *no writemask* THEN
+        IF SRC1[i+7:i] < SRC2[i+7:i]
+            THEN DEST[i+7:i]←SRC1[i+7:i];
+            ELSE DEST[i+7:i]←SRC2[i+7:i];
+        FI;
+        ELSE
+            IF *merging\-masking*
+                THEN *DEST[i+7:i] remains unchanged*
+                ELSE ; zeroing\-masking
+                    DEST[i+7:i] ← 0
+            FI
+    FI;
+ENDFOR;
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS PMINUW instruction for 128\-bit operands:
+.PP
+.RS
+
+.nf
+    IF DEST[15:0] < SRC[15:0] THEN
+        DEST[15:0] ← DEST[15:0];
+    ELSE
+        DEST[15:0]←SRC[15:0]; FI;
+    (* Repeat operation for 2nd through 7th words in source and destination operands *)
+    IF DEST[127:112] < SRC[127:112] THEN
+        DEST[127:112] ← DEST[127:112];
+    ELSE
+        DEST[127:112]←SRC[127:112]; FI;
+DEST[MAXVL\-1:128] (Unmodified)
+
+.fi
+.RE
+
+.SS VPMINUW (VEX.128 encoded version)
+.PP
+.RS
+
+.nf
+    IF SRC1[15:0] < SRC2[15:0] THEN
+        DEST[15:0] ← SRC1[15:0];
+    ELSE
+        DEST[15:0]←SRC2[15:0]; FI;
+    (* Repeat operation for 2nd through 7th words in source and destination operands *)
+    IF SRC1[127:112] < SRC2[127:112] THEN
+        DEST[127:112] ← SRC1[127:112];
+    ELSE
+        DEST[127:112]←SRC2[127:112]; FI;
+DEST[MAXVL\-1:128] ← 0
+
+.fi
+.RE
+
+.SS VPMINUW (VEX.256 encoded version)
+.PP
+.RS
+
+.nf
+    IF SRC1[15:0] < SRC2[15:0] THEN
+        DEST[15:0] ← SRC1[15:0];
+    ELSE
+        DEST[15:0]←SRC2[15:0]; FI;
+    (* Repeat operation for 2nd through 15th words in source and destination operands *)
+    IF SRC1[255:240] < SRC2[255:240] THEN
+        DEST[255:240] ← SRC1[255:240];
+    ELSE
+        DEST[255:240]←SRC2[255:240]; FI;
+DEST[MAXVL\-1:256] ← 0
+
+.fi
+.RE
+
+.SS VPMINUW (EVEX encoded versions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (8, 128), (16, 256), (32, 512)
+FOR j←0 TO KL\-1
+    i←j * 16
+    IF k1[j] OR *no writemask* THEN
+        IF SRC1[i+15:i] < SRC2[i+15:i]
+            THEN DEST[i+15:i]←SRC1[i+15:i];
+            ELSE DEST[i+15:i]←SRC2[i+15:i];
+        FI;
+        ELSE
+            IF *merging\-masking*
+                THEN *DEST[i+15:i] remains unchanged*
+                ELSE ; zeroing\-masking
+                    DEST[i+15:i] ← 0
+            FI
+    FI;
+ENDFOR;
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS Intel C/C++ Compiler Intrinsic Equivalent
+.PP
+.RS
+
+.nf
+VPMINUB \_\_m512i \_mm512\_min\_epu8( \_\_m512i a, \_\_m512i b);
+
+VPMINUB \_\_m512i \_mm512\_mask\_min\_epu8(\_\_m512i s, \_\_mmask64 k, \_\_m512i a, \_\_m512i b);
+
+VPMINUB \_\_m512i \_mm512\_maskz\_min\_epu8( \_\_mmask64 k, \_\_m512i a, \_\_m512i b);
+
+VPMINUW \_\_m512i \_mm512\_min\_epu16( \_\_m512i a, \_\_m512i b);
+
+VPMINUW \_\_m512i \_mm512\_mask\_min\_epu16(\_\_m512i s, \_\_mmask32 k, \_\_m512i a, \_\_m512i b);
+
+VPMINUW \_\_m512i \_mm512\_maskz\_min\_epu16( \_\_mmask32 k, \_\_m512i a, \_\_m512i b);
+
+VPMINUB \_\_m256i \_mm256\_mask\_min\_epu8(\_\_m256i s, \_\_mmask32 k, \_\_m256i a, \_\_m256i b);
+
+VPMINUB \_\_m256i \_mm256\_maskz\_min\_epu8( \_\_mmask32 k, \_\_m256i a, \_\_m256i b);
+
+VPMINUW \_\_m256i \_mm256\_mask\_min\_epu16(\_\_m256i s, \_\_mmask16 k, \_\_m256i a, \_\_m256i b);
+
+VPMINUW \_\_m256i \_mm256\_maskz\_min\_epu16( \_\_mmask16 k, \_\_m256i a, \_\_m256i b);
+
+VPMINUB \_\_m128i \_mm\_mask\_min\_epu8(\_\_m128i s, \_\_mmask16 k, \_\_m128i a, \_\_m128i b);
+
+VPMINUB \_\_m128i \_mm\_maskz\_min\_epu8( \_\_mmask16 k, \_\_m128i a, \_\_m128i b);
+
+VPMINUW \_\_m128i \_mm\_mask\_min\_epu16(\_\_m128i s, \_\_mmask8 k, \_\_m128i a, \_\_m128i b);
+
+VPMINUW \_\_m128i \_mm\_maskz\_min\_epu16( \_\_mmask8 k, \_\_m128i a, \_\_m128i b);
+
+(V)PMINUB \_\_m128i \_mm\_min\_epu8 ( \_\_m128i a, \_\_m128i b)
+
+(V)PMINUW \_\_m128i \_mm\_min\_epu16 ( \_\_m128i a, \_\_m128i b);
+
+VPMINUB \_\_m256i \_mm256\_min\_epu8 ( \_\_m256i a, \_\_m256i b)
+
+VPMINUW \_\_m256i \_mm256\_min\_epu16 ( \_\_m256i a, \_\_m256i b);
+
+PMINUB: \_\_m64 \_m\_min\_pu8 (\_\_m64 a, \_\_m64 b)
+
+.fi
+.RE
+
+.SS SIMD Floating\-Point Exceptions
+.PP
+None
+
+.SS Other Exceptions
+.PP
+Non\-EVEX\-encoded instruction, see Exceptions Type 4.
+
+.PP
+EVEX\-encoded instruction, see Exceptions Type E4.nb.
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+MIT licensed by TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

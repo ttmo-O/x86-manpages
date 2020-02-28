@@ -1,0 +1,263 @@
+.nh
+.TH "X86-STOS-STOSB-STOSW-STOSD-STOSQ" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+STOS-STOSB-STOSW-STOSD-STOSQ - STORE STRING
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+\fB\fCOpcode\fR	\fB\fCInstruction\fR	\fB\fCOp/En\fR	\fB\fC64\-Bit Mode\fR	\fB\fCCompat/Leg Mode\fR	\fB\fCDescription\fR
+AA	STOS m8	NA	Valid	Valid	T{
+For legacy mode, store AL at address ES:(E)DI; For 64\-bit mode store AL at address RDI or EDI.
+T}
+AB	STOS m16	NA	Valid	Valid	T{
+For legacy mode, store AX at address ES:(E)DI; For 64\-bit mode store AX at address RDI or EDI.
+T}
+AB	STOS m32	NA	Valid	Valid	T{
+For legacy mode, store EAX at address ES:(E)DI; For 64\-bit mode store EAX at address RDI or EDI.
+T}
+REX.W + AB	STOS m64	NA	Valid	N.E.	T{
+Store RAX at address RDI or EDI.
+T}
+AA	STOSB	NA	Valid	Valid	T{
+For legacy mode, store AL at address ES:(E)DI; For 64\-bit mode store AL at address RDI or EDI.
+T}
+AB	STOSW	NA	Valid	Valid	T{
+For legacy mode, store AX at address ES:(E)DI; For 64\-bit mode store AX at address RDI or EDI.
+T}
+AB	STOSD	NA	Valid	Valid	T{
+For legacy mode, store EAX at address ES:(E)DI; For 64\-bit mode store EAX at address RDI or EDI.
+T}
+REX.W + AB	STOSQ	NA	Valid	N.E.	T{
+Store RAX at address RDI or EDI.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l 
+l l l l l .
+Op/En	Operand 1	Operand 2	Operand 3	Operand 4
+NA	NA	NA	NA	NA
+.TE
+
+.SH DESCRIPTION
+.PP
+In non\-64\-bit and default 64\-bit mode; stores a byte, word, or
+doubleword from the AL, AX, or EAX register (respectively) into the
+destination operand. The destination operand is a memory location, the
+address of which is read from either the ES:EDI or ES:DI register
+(depending on the address\-size attribute of the instruction and the mode
+of operation). The ES segment cannot be overridden with a segment
+override prefix.
+
+.PP
+At the assembly\-code level, two forms of the instruction are allowed:
+the “explicit\-operands” form and the “no\-operands” form. The
+explicit\-operands form (specified with the STOS mnemonic) allows the
+destination operand to be specified explicitly. Here, the destination
+operand should be a symbol that indicates the size and location of the
+destination value. The source operand is then automatically selected to
+match the size of the destination operand (the AL register for byte
+operands, AX for word operands, EAX for doubleword operands). The
+explicit\-operands form is provided to allow documentation; however, note
+that the documentation provided by this form can be misleading. That is,
+the destination operand symbol must specify the correct location. The
+location is always specified by the ES:(E)DI register. These must be
+loaded correctly before the store string instruction is executed.
+
+.PP
+The no\-operands form provides “short forms” of the byte, word,
+doubleword, and quadword versions of the STOS instructions. Here also
+ES:(E)DI is assumed to be the destination operand and AL, AX, or EAX is
+assumed to be the source operand. The size of the destination and source
+operands is selected by the mnemonic: STOSB (byte read from register
+AL), STOSW (word from AX), STOSD (doubleword from EAX).
+
+.PP
+After the byte, word, or doubleword is transferred from the register to
+the memory location, the (E)DI register is incremented or decremented
+according to the setting of the DF flag in the EFLAGS register. If the
+DF flag is 0, the register is incremented; if the DF flag is 1, the
+register is decremented (the register is incremented or decremented by 1
+for byte operations, by 2 for word operations, by 4 for doubleword
+operations).
+
+.PP
+NOTE: To improve performance, more recent processors support
+modifications to the processor’s operation during the string store
+operations initiated with STOS and STOSB. See Section 7.3.9.3 in the
+Intel® 64 and IA\-32 Architectures Software Developer’s Manual, Volume 1
+for additional information on fast\-string operation.
+
+.PP
+In 64\-bit mode, the default address size is 64 bits, 32\-bit address size
+is supported using the prefix 67H. Using a REX prefix in the form of
+REX.W promotes operation on doubleword operand to 64 bits. The promoted
+no\-operand mnemonic is STOSQ. STOSQ (and its explicit operands variant)
+store a quadword from the RAX register into the destination addressed by
+RDI or EDI. See the summary chart at the beginning of this section for
+encoding data and limits.
+
+.PP
+The STOS, STOSB, STOSW, STOSD, STOSQ instructions can be preceded by the
+REP prefix for block loads of ECX bytes, words, or doublewords. More
+often, however, these instructions are used within a LOOP construct
+because data needs to be moved into the AL, AX, or EAX register before
+it can be stored. See “REP/REPE/REPZ /REPNE/REPNZ—Repeat String
+Operation Prefix” in this chapter for a description of the REP prefix.
+
+.SH OPERATION
+.PP
+.RS
+
+.nf
+Non\-64\-bit Mode:
+IF (Byte store)
+    THEN
+        DEST ← AL;
+            THEN IF DF = 0
+                THEN (E)DI ← (E)DI + 1;
+                ELSE (E)DI ← (E)DI – 1;
+            FI;
+    ELSE IF (Word store)
+        THEN
+            DEST ← AX;
+                THEN IF DF = 0
+                    THEN (E)DI ← (E)DI + 2;
+                    ELSE (E)DI ← (E)DI – 2;
+                FI;
+        FI;
+    ELSE IF (Doubleword store)
+        THEN
+            DEST ← EAX;
+                THEN IF DF = 0
+                    THEN (E)DI ← (E)DI + 4;
+                    ELSE (E)DI ← (E)DI – 4;
+                FI;
+        FI;
+FI;
+64\-bit Mode:
+IF (Byte store)
+    THEN
+        DEST ← AL;
+            THEN IF DF = 0
+                THEN (R|E)DI ← (R|E)DI + 1;
+                ELSE (R|E)DI ← (R|E)DI – 1;
+            FI;
+    ELSE IF (Word store)
+        THEN
+            DEST ← AX;
+                THEN IF DF = 0
+                    THEN (R|E)DI ← (R|E)DI + 2;
+                    ELSE (R|E)DI ← (R|E)DI – 2;
+                FI;
+        FI;
+    ELSE IF (Doubleword store)
+        THEN
+            DEST ← EAX;
+                THEN IF DF = 0
+                    THEN (R|E)DI ← (R|E)DI + 4;
+                    ELSE (R|E)DI ← (R|E)DI – 4;
+                FI;
+        FI;
+    ELSE IF (Quadword store using REX.W )
+        THEN
+            DEST ← RAX;
+                THEN IF DF = 0
+                    THEN (R|E)DI ← (R|E)DI + 8;
+                    ELSE (R|E)DI ← (R|E)DI – 8;
+                FI;
+        FI;
+FI;
+
+.fi
+.RE
+
+.SH FLAGS AFFECTED
+.PP
+None.
+
+.SH PROTECTED MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP(0)	T{
+If the destination is located in a non\-writable segment.
+T}
+	T{
+If a memory operand effective address is outside the limit of the ES segment.
+T}
+	T{
+If the ES register contains a NULL segment selector.
+T}
+#PF(fault\-code)	If a page fault occurs.
+#AC(0)	T{
+If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3.
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH REAL\-ADDRESS MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP	T{
+If a memory operand effective address is outside the ES segment limit.
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH VIRTUAL\-8086 MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP(0)	T{
+If a memory operand effective address is outside the ES segment limit.
+T}
+#PF(fault\-code)	If a page fault occurs.
+#AC(0)	T{
+If alignment checking is enabled and an unaligned memory reference is made.
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH COMPATIBILITY MODE EXCEPTIONS
+.PP
+Same exceptions as in protected mode.
+
+.SH 64\-BIT MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP(0)	T{
+If the memory address is in a non\-canonical form.
+T}
+#PF(fault\-code)	If a page fault occurs.
+#AC(0)	T{
+If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3.
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+MIT licensed by TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

@@ -1,0 +1,182 @@
+.nh
+.TH "X86-VPBLENDMD-VPBLENDMQ" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+VPBLENDMD-VPBLENDMQ - BLEND INT32-INT64 VECTORS USING AN OPMASK CONTROL
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp/En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+T{
+EVEX.128.66.0F38.W0 64 /r VPBLENDMD xmm1 {k1}{z}, xmm2, xmm3/m128/m32bcst
+T}
+	A	V/V	AVX512VL AVX512F	T{
+Blend doubleword integer vector xmm2 and doubleword vector xmm3/m128/m32bcst and store the result in xmm1, under control mask.
+T}
+T{
+EVEX.256.66.0F38.W0 64 /r VPBLENDMD ymm1 {k1}{z}, ymm2, ymm3/m256/m32bcst
+T}
+	A	V/V	AVX512VL AVX512F	T{
+Blend doubleword integer vector ymm2 and doubleword vector ymm3/m256/m32bcst and store the result in ymm1, under control mask.
+T}
+T{
+EVEX.512.66.0F38.W0 64 /r VPBLENDMD zmm1 {k1}{z}, zmm2, zmm3/m512/m32bcst
+T}
+	A	V/V	AVX512F	T{
+Blend doubleword integer vector zmm2 and doubleword vector zmm3/m512/m32bcst and store the result in zmm1, under control mask.
+T}
+T{
+EVEX.128.66.0F38.W1 64 /r VPBLENDMQ xmm1 {k1}{z}, xmm2, xmm3/m128/m64bcst
+T}
+	A	V/V	AVX512VL AVX512F	T{
+Blend quadword integer vector xmm2 and quadword vector xmm3/m128/m64bcst and store the result in xmm1, under control mask.
+T}
+T{
+EVEX.256.66.0F38.W1 64 /r VPBLENDMQ ymm1 {k1}{z}, ymm2, ymm3/m256/m64bcst
+T}
+	A	V/V	AVX512VL AVX512F	T{
+Blend quadword integer vector ymm2 and quadword vector ymm3/m256/m64bcst and store the result in ymm1, under control mask.
+T}
+T{
+EVEX.512.66.0F38.W1 64 /r VPBLENDMQ zmm1 {k1}{z}, zmm2, zmm3/m512/m64bcst
+T}
+	A	V/V	AVX512F	T{
+Blend quadword integer vector zmm2 and quadword vector zmm3/m512/m64bcst and store the result in zmm1, under control mask.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+Op/En	Tuple Type	Operand 1	Operand 2	Operand 3	Operand 4
+A	Full	ModRM:reg (w)	EVEX.vvvv	ModRM:r/m (r)	NA
+.TE
+
+.SS Description
+.PP
+Performs an element\-by\-element blending of dword/qword elements between
+the first source operand (the second operand) and the elements of the
+second source operand (the third operand) using an opmask register as
+select control. The blended result is written into the destination.
+
+.PP
+The destination and first source operands are ZMM registers. The second
+source operand can be a ZMM register, a 512\-bit memory location or a
+512\-bit vector broadcasted from a 32\-bit memory location.
+
+.PP
+The opmask register is not used as a writemask for this instruction.
+Instead, the mask is used as an element selector: every element of the
+destination is conditionally selected between first source or second
+source using the value of the related mask bit (0 for the first source
+operand, 1 for the second source operand).
+
+.PP
+If EVEX.z is set, the elements with corresponding mask bit value of 0 in
+the destination operand are zeroed.
+
+.SS Operation
+.SS VPBLENDMD (EVEX encoded versions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (4, 128), (8, 256), (16, 512)
+FOR j←0 TO KL\-1
+    i←j * 32
+    IF k1[j] OR *no controlmask*
+        THEN
+            IF (EVEX.b = 1) AND (SRC2 *is memory*)
+                THEN
+                    DEST[i+31:i] ← SRC2[31:0]
+                ELSE
+                    DEST[i+31:i] ← SRC2[i+31:i]
+            FI;
+        ELSE
+            IF *merging\-masking*
+                THEN DEST[i+31:i]←SRC1[i+31:i]
+                ELSE ; zeroing\-masking
+                    DEST[i+31:i] ← 0
+            FI;
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0;
+
+.fi
+.RE
+
+.SS VPBLENDMD (EVEX encoded versions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (4, 128), (8, 256), (16, 512)
+FOR j←0 TO KL\-1
+    i←j * 32
+    IF k1[j] OR *no controlmask*
+        THEN
+            IF (EVEX.b = 1) AND (SRC2 *is memory*)
+                THEN
+                    DEST[i+31:i] ← SRC2[31:0]
+                ELSE
+                    DEST[i+31:i] ← SRC2[i+31:i]
+            FI;
+        ELSE
+            IF *merging\-masking*
+                THEN DEST[i+31:i]←SRC1[i+31:i]
+                ELSE ; zeroing\-masking
+                    DEST[i+31:i] ← 0
+            FI;
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS Intel C/C++ Compiler Intrinsic Equivalent
+.PP
+.RS
+
+.nf
+VPBLENDMD \_\_m512i \_mm512\_mask\_blend\_epi32(\_\_mmask16 k, \_\_m512i a, \_\_m512i b);
+
+VPBLENDMD \_\_m256i \_mm256\_mask\_blend\_epi32(\_\_mmask8 m, \_\_m256i a, \_\_m256i b);
+
+VPBLENDMD \_\_m128i \_mm\_mask\_blend\_epi32(\_\_mmask8 m, \_\_m128i a, \_\_m128i b);
+
+VPBLENDMQ \_\_m512i \_mm512\_mask\_blend\_epi64(\_\_mmask8 k, \_\_m512i a, \_\_m512i b);
+
+VPBLENDMQ \_\_m256i \_mm256\_mask\_blend\_epi64(\_\_mmask8 m, \_\_m256i a, \_\_m256i b);
+
+VPBLENDMQ \_\_m128i \_mm\_mask\_blend\_epi64(\_\_mmask8 m, \_\_m128i a, \_\_m128i b);
+
+.fi
+.RE
+
+.SS SIMD Floating\-Point Exceptions
+.PP
+None
+
+.SS Other Exceptions
+.PP
+See Exceptions Type E4.
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+MIT licensed by TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

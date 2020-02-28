@@ -1,0 +1,534 @@
+.nh
+.TH "X86-FDIV-FDIVP-FIDIV" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+FDIV-FDIVP-FIDIV - DIVIDE
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode\fR	\fB\fCInstruction\fR	\fB\fC64\-Bit Mode\fR	\fB\fCCompat/Leg Mode\fR	\fB\fCDescription\fR
+D8 /6	FDIV m32fp	Valid	Valid	T{
+Divide ST(0) by m32fp and store result in ST(0).
+T}
+DC /6	FDIV m64fp	Valid	Valid	T{
+Divide ST(0) by m64fp and store result in ST(0).
+T}
+D8 F0+i	FDIV ST(0), ST(i)	Valid	Valid	T{
+Divide ST(0) by ST(i) and store result in ST(0).
+T}
+DC F8+i	FDIV ST(i), ST(0)	Valid	Valid	T{
+Divide ST(i) by ST(0) and store result in ST(i).
+T}
+DE F8+i	FDIVP ST(i), ST(0)	Valid	Valid	T{
+Divide ST(i) by ST(0), store result in ST(i), and pop the register stack.
+T}
+DE F9	FDIVP	Valid	Valid	T{
+Divide ST(1) by ST(0), store result in ST(1), and pop the register stack.
+T}
+DA /6	FIDIV m32int	Valid	Valid	T{
+Divide ST(0) by m32int and store result in ST(0).
+T}
+DE /6	FIDIV m16int	Valid	Valid	T{
+Divide ST(0) by m16int and store result in ST(0).
+T}
+.TE
+
+.SH DESCRIPTION
+.PP
+Divides the destination operand by the source operand and stores the
+result in the destination location. The destination operand (dividend)
+is always in an FPU register; the source operand (divisor) can be a
+register or a memory location. Source operands in memory can be in
+single\-precision or double\-precision floating\-point format, word or
+doubleword integer format.
+
+.PP
+The no\-operand version of the instruction divides the contents of the
+ST(1) register by the contents of the ST(0) register. The one\-operand
+version divides the contents of the ST(0) register by the contents of a
+memory location (either a floating\-point or an integer value). The
+two\-operand version, divides the contents of the ST(0) register by the
+contents of the ST(i) register or vice versa.
+
+.PP
+The FDIVP instructions perform the additional operation of popping the
+FPU register stack after storing the result. To pop the register stack,
+the processor marks the ST(0) register as empty and increments the stack
+pointer (TOP) by 1. The no\-operand version of the floating\-point divide
+instructions always results in the register stack being popped. In some
+assemblers, the mnemonic for this instruction is FDIV rather than FDIVP.
+
+.PP
+The FIDIV instructions convert an integer source operand to double
+extended\-precision floating\-point format before performing the division.
+When the source operand is an integer 0, it is treated as a +0.
+
+.PP
+If an unmasked divide\-by\-zero exception (#Z) is generated, no result is
+stored; if the exception is masked, an ∞ of the appropriate sign is
+stored in the destination operand.
+
+.PP
+The following table shows the results obtained when dividing various
+classes of numbers, assuming that neither overflow nor underflow occurs.
+
+.PP
+DEST
+
+.PP
+SRC
+
+.PP
+−∞
+
+.PP
+−F
+
+.PP
+−0
+
+.PP
++0
+
+.PP
++F
+
+.PP
++∞
+
+.PP
+NaN
+
+.PP
+−∞
+
+.PP
+*
+
+.PP
++0
+
+.PP
++0
+
+.PP
+−0
+
+.PP
+−0
+
+.PP
+*
+
+.PP
+NaN
+
+.PP
+−F
+
+.PP
++∞
+
+.PP
++F
+
+.PP
++0
+
+.PP
+−0
+
+.PP
+−F
+
+.PP
+−∞
+
+.PP
+NaN
+
+.PP
+−I
+
+.PP
++∞
+
+.PP
++F
+
+.PP
++0
+
+.PP
+−0
+
+.PP
+−F
+
+.PP
+−∞
+
+.PP
+NaN
+
+.PP
+−0
+
+.PP
++∞
+
+.PP
+**
+
+.PP
+*
+
+.PP
+*
+
+.PP
+**
+
+.PP
+−∞
+
+.PP
+NaN
+
+.PP
++0
+
+.PP
+−∞
+
+.PP
+**
+
+.PP
+*
+
+.PP
+*
+
+.PP
+**
+
+.PP
++∞
+
+.PP
+NaN
+
+.PP
++I
+
+.PP
+−∞
+
+.PP
+−F
+
+.PP
+−0
+
+.PP
++0
+
+.PP
++F
+
+.PP
++∞
+
+.PP
+NaN
+
+.PP
++F
+
+.PP
+−∞
+
+.PP
+−F
+
+.PP
+−0
+
+.PP
++0
+
+.PP
++F
+
+.PP
++∞
+
+.PP
+NaN
+
+.PP
++∞
+
+.PP
+*
+
+.PP
+−0
+
+.PP
+−0
+
+.PP
++0
+
+.PP
++0
+
+.PP
+*
+
+.PP
+NaN
+
+.PP
+NaN
+
+.PP
+NaN
+
+.PP
+NaN
+
+.PP
+NaN
+
+.PP
+NaN
+
+.PP
+NaN
+
+.PP
+NaN
+
+.PP
+NaN
+
+.PP
+Table 3\-24. FDIV/FDIVP/FIDIV Results
+
+.PP
+.RS
+
+.PP
+F Meansfinitefloating\-pointvalue.
+
+.PP
+I Means integer.
+
+.PP
+* Indicatesfloating\-pointinvalid\-arithmetic\-operand(#IA)exception.
+
+.PP
+** Indicates floating\-point zero\-divide (#Z) exception.
+
+.RE
+
+.PP
+This instruction’s operation is the same in non\-64\-bit modes and 64\-bit
+mode.
+
+.SH OPERATION
+.PP
+.RS
+
+.nf
+IF SRC = 0
+    THEN
+        #Z;
+    ELSE
+        IF Instruction is FIDIV
+            THEN
+                DEST ← DEST / ConvertToDoubleExtendedPrecisionFP(SRC);
+            ELSE (* Source operand is floating\-point value *)
+                DEST ← DEST / SRC;
+        FI;
+FI;
+IF Instruction = FDIVP
+    THEN
+        PopRegisterStack;
+FI;
+
+.fi
+.RE
+
+.SH FPU FLAGS AFFECTED
+.TS
+allbox;
+l l 
+l l .
+C1	T{
+Set to 0 if stack underflow occurred.
+T}
+	T{
+Set if result was rounded up; cleared otherwise.
+T}
+C0, C2, C3	Undefined.
+.TE
+
+.SH FLOATING\-POINT EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#IS	Stack underflow occurred.
+#IA	T{
+Operand is an SNaN value or unsupported format.
+T}
+	±∞ / ±∞; ±0 / ±0
+#D	Source is a denormal value.
+#Z	T{
+DEST / ±0, where DEST is not equal to ±0.
+T}
+#U	T{
+Result is too small for destination format.
+T}
+#O	T{
+Result is too large for destination format.
+T}
+#P	T{
+Value cannot be represented exactly in destination format.
+T}
+.TE
+
+.SH PROTECTED MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP(0)	T{
+If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit.
+T}
+	T{
+If the DS, ES, FS, or GS register contains a NULL segment selector.
+T}
+#SS(0)	T{
+If a memory operand effective address is outside the SS segment limit.
+T}
+#NM	CR0.EM
+[
+bit 2
+]
+ or CR0.TS
+[
+bit 3
+]
+ = 1.
+#PF(fault\-code)	If a page fault occurs.
+#AC(0)	T{
+If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3.
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH REAL\-ADDRESS MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP	T{
+If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit.
+T}
+#SS	T{
+If a memory operand effective address is outside the SS segment limit.
+T}
+#NM	CR0.EM
+[
+bit 2
+]
+ or CR0.TS
+[
+bit 3
+]
+ = 1.
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH VIRTUAL\-8086 MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP(0)	T{
+If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit.
+T}
+#SS(0)	T{
+If a memory operand effective address is outside the SS segment limit.
+T}
+#NM	CR0.EM
+[
+bit 2
+]
+ or CR0.TS
+[
+bit 3
+]
+ = 1.
+#PF(fault\-code)	If a page fault occurs.
+#AC(0)	T{
+If alignment checking is enabled and an unaligned memory reference is made.
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH COMPATIBILITY MODE EXCEPTIONS
+.PP
+Same exceptions as in protected mode.
+
+.SH 64\-BIT MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#SS(0)	T{
+If a memory address referencing the SS segment is in a non\-canonical form.
+T}
+#GP(0)	T{
+If the memory address is in a non\-canonical form.
+T}
+#NM	CR0.EM
+[
+bit 2
+]
+ or CR0.TS
+[
+bit 3
+]
+ = 1.
+#MF	T{
+If there is a pending x87 FPU exception.
+T}
+#PF(fault\-code)	If a page fault occurs.
+#AC(0)	T{
+If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3.
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+MIT licensed by TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

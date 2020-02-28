@@ -1,0 +1,235 @@
+.nh
+.TH "X86-VPCMPQ-VPCMPUQ" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+VPCMPQ-VPCMPUQ - COMPARE PACKED INTEGER VALUES INTO MASK
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp/En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+T{
+EVEX.128.66.0F3A.W1 1F /r ib VPCMPQ k1 {k2}, xmm2, xmm3/m128/m64bcst, imm8
+T}
+	A	V/V	AVX512VL AVX512F	T{
+Compare packed signed quadword integer values in xmm3/m128/m64bcst and xmm2 using bits 2:0 of imm8 as a comparison predicate with writemask k2 and leave the result in mask register k1.
+T}
+T{
+EVEX.256.66.0F3A.W1 1F /r ib VPCMPQ k1 {k2}, ymm2, ymm3/m256/m64bcst, imm8
+T}
+	A	V/V	AVX512VL AVX512F	T{
+Compare packed signed quadword integer values in ymm3/m256/m64bcst and ymm2 using bits 2:0 of imm8 as a comparison predicate with writemask k2 and leave the result in mask register k1.
+T}
+T{
+EVEX.512.66.0F3A.W1 1F /r ib VPCMPQ k1 {k2}, zmm2, zmm3/m512/m64bcst, imm8
+T}
+	A	V/V	AVX512F	T{
+Compare packed signed quadword integer values in zmm3/m512/m64bcst and zmm2 using bits 2:0 of imm8 as a comparison predicate with writemask k2 and leave the result in mask register k1.
+T}
+T{
+EVEX.128.66.0F3A.W1 1E /r ib VPCMPUQ k1 {k2}, xmm2, xmm3/m128/m64bcst, imm8
+T}
+	A	V/V	AVX512VL AVX512F	T{
+Compare packed unsigned quadword integer values in xmm3/m128/m64bcst and xmm2 using bits 2:0 of imm8 as a comparison predicate with writemask k2 and leave the result in mask register k1.
+T}
+T{
+EVEX.256.66.0F3A.W1 1E /r ib VPCMPUQ k1 {k2}, ymm2, ymm3/m256/m64bcst, imm8
+T}
+	A	V/V	AVX512VL AVX512F	T{
+Compare packed unsigned quadword integer values in ymm3/m256/m64bcst and ymm2 using bits 2:0 of imm8 as a comparison predicate with writemask k2 and leave the result in mask register k1.
+T}
+T{
+EVEX.512.66.0F3A.W1 1E /r ib VPCMPUQ k1 {k2}, zmm2, zmm3/m512/m64bcst, imm8
+T}
+	A	V/V	AVX512F	T{
+Compare packed unsigned quadword integer values in zmm3/m512/m64bcst and zmm2 using bits 2:0 of imm8 as a comparison predicate with writemask k2 and leave the result in mask register k1.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+Op/En	Tuple Type	Operand 1	Operand 2	Operand 3	Operand 4
+A	Full	ModRM:reg (w)	EVEX.vvvv (r)	ModRM:r/m (r)	Imm8
+.TE
+
+.SS Description
+.PP
+Performs a SIMD compare of the packed integer values in the second
+source operand and the first source operand and returns the results of
+the comparison to the mask destination operand. The comparison predicate
+operand (immediate byte) specifies the type of comparison performed on
+each pair of packed values in the two source operands. The result of
+each comparison is a single mask bit result of 1 (comparison true) or 0
+(comparison false).
+
+.PP
+VPCMPQ/VPCMPUQ performs a comparison between pairs of signed/unsigned
+quadword integer values.
+
+.PP
+The first source operand (second operand) is a ZMM/YMM/XMM register. The
+second source operand can be a ZMM/YMM/XMM register or a 512/256/128\-bit
+memory location or a 512\-bit vector broadcasted from a 64\-bit memory
+location. The destination operand (first operand) is a mask register k1.
+Up to 8/4/2 comparisons are performed with results written to the
+destination operand under the writemask k2.
+
+.PP
+The comparison predicate operand is an 8\-bit immediate: bits 2:0 define
+the type of comparison to be performed. Bits 3 through 7 of the
+immediate are reserved. Compiler can implement the pseudo\-op mnemonic
+listed in Table 5\-17.
+
+.SS Operation
+.PP
+.RS
+
+.nf
+CASE (COMPARISON PREDICATE) OF
+    0: OP←EQ;
+    1: OP←LT;
+    2: OP←LE;
+    3: OP←FALSE;
+    4: OP←NEQ;
+    5: OP←NLT;
+    6: OP←NLE;
+    7: OP←TRUE;
+ESAC;
+
+.fi
+.RE
+
+.SS VPCMPQ (EVEX encoded versions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (2, 128), (4, 256), (8, 512)
+FOR j←0 TO KL\-1
+    i←j * 64
+    IF k2[j] OR *no writemask*
+        THEN
+            IF (EVEX.b = 1) AND (SRC2 *is memory*)
+                THEN CMP←SRC1[i+63:i] OP SRC2[63:0];
+                ELSE CMP←SRC1[i+63:i] OP SRC2[i+63:i];
+            FI;
+            IF CMP = TRUE
+                THEN DEST[j]←1;
+                ELSE DEST[j]←0; FI;
+        ELSE DEST[j]←0
+                    ; zeroing\-masking only
+    FI;
+ENDFOR
+DEST[MAX\_KL\-1:KL] ← 0
+
+.fi
+.RE
+
+.SS VPCMPUQ (EVEX encoded versions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (2, 128), (4, 256), (8, 512)
+FOR j←0 TO KL\-1
+    i←j * 64
+    IF k2[j] OR *no writemask*
+        THEN
+            IF (EVEX.b = 1) AND (SRC2 *is memory*)
+                THEN CMP←SRC1[i+63:i] OP SRC2[63:0];
+                ELSE CMP←SRC1[i+63:i] OP SRC2[i+63:i];
+            FI;
+            IF CMP = TRUE
+                THEN DEST[j]←1;
+                ELSE DEST[j]←0; FI;
+        ELSE DEST[j]←0
+                    ; zeroing\-masking only
+    FI;
+ENDFOR
+DEST[MAX\_KL\-1:KL] ← 0
+
+.fi
+.RE
+
+.SS Intel C/C++ Compiler Intrinsic Equivalent
+.PP
+.RS
+
+.nf
+VPCMPQ \_\_mmask8 \_mm512\_cmp\_epi64\_mask( \_\_m512i a, \_\_m512i b, int imm);
+
+VPCMPQ \_\_mmask8 \_mm512\_mask\_cmp\_epi64\_mask(\_\_mmask8 k, \_\_m512i a, \_\_m512i b, int imm);
+
+VPCMPQ \_\_mmask8 \_mm512\_cmp[eq|ge|gt|le|lt|neq]\_epi64\_mask( \_\_m512i a, \_\_m512i b);
+
+VPCMPQ \_\_mmask8 \_mm512\_mask\_cmp[eq|ge|gt|le|lt|neq]\_epi64\_mask(\_\_mmask8 k, \_\_m512i a, \_\_m512i b);
+
+VPCMPUQ \_\_mmask8 \_mm512\_cmp\_epu64\_mask( \_\_m512i a, \_\_m512i b, int imm);
+
+VPCMPUQ \_\_mmask8 \_mm512\_mask\_cmp\_epu64\_mask(\_\_mmask8 k, \_\_m512i a, \_\_m512i b, int imm);
+
+VPCMPUQ \_\_mmask8 \_mm512\_cmp[eq|ge|gt|le|lt|neq]\_epu64\_mask( \_\_m512i a, \_\_m512i b);
+
+VPCMPUQ \_\_mmask8 \_mm512\_mask\_cmp[eq|ge|gt|le|lt|neq]\_epu64\_mask(\_\_mmask8 k, \_\_m512i a, \_\_m512i b);
+
+VPCMPQ \_\_mmask8 \_mm256\_cmp\_epi64\_mask( \_\_m256i a, \_\_m256i b, int imm);
+
+VPCMPQ \_\_mmask8 \_mm256\_mask\_cmp\_epi64\_mask(\_\_mmask8 k, \_\_m256i a, \_\_m256i b, int imm);
+
+VPCMPQ \_\_mmask8 \_mm256\_cmp[eq|ge|gt|le|lt|neq]\_epi64\_mask( \_\_m256i a, \_\_m256i b);
+
+VPCMPQ \_\_mmask8 \_mm256\_mask\_cmp[eq|ge|gt|le|lt|neq]\_epi64\_mask(\_\_mmask8 k, \_\_m256i a, \_\_m256i b);
+
+VPCMPUQ \_\_mmask8 \_mm256\_cmp\_epu64\_mask( \_\_m256i a, \_\_m256i b, int imm);
+
+VPCMPUQ \_\_mmask8 \_mm256\_mask\_cmp\_epu64\_mask(\_\_mmask8 k, \_\_m256i a, \_\_m256i b, int imm);
+
+VPCMPUQ \_\_mmask8 \_mm256\_cmp[eq|ge|gt|le|lt|neq]\_epu64\_mask( \_\_m256i a, \_\_m256i b);
+
+VPCMPUQ \_\_mmask8 \_mm256\_mask\_cmp[eq|ge|gt|le|lt|neq]\_epu64\_mask(\_\_mmask8 k, \_\_m256i a, \_\_m256i b);
+
+VPCMPQ \_\_mmask8 \_mm\_cmp\_epi64\_mask( \_\_m128i a, \_\_m128i b, int imm);
+
+VPCMPQ \_\_mmask8 \_mm\_mask\_cmp\_epi64\_mask(\_\_mmask8 k, \_\_m128i a, \_\_m128i b, int imm);
+
+VPCMPQ \_\_mmask8 \_mm\_cmp[eq|ge|gt|le|lt|neq]\_epi64\_mask( \_\_m128i a, \_\_m128i b);
+
+VPCMPQ \_\_mmask8 \_mm\_mask\_cmp[eq|ge|gt|le|lt|neq]\_epi64\_mask(\_\_mmask8 k, \_\_m128i a, \_\_m128i b);
+
+VPCMPUQ \_\_mmask8 \_mm\_cmp\_epu64\_mask( \_\_m128i a, \_\_m128i b, int imm);
+
+VPCMPUQ \_\_mmask8 \_mm\_mask\_cmp\_epu64\_mask(\_\_mmask8 k, \_\_m128i a, \_\_m128i b, int imm);
+
+VPCMPUQ \_\_mmask8 \_mm\_cmp[eq|ge|gt|le|lt|neq]\_epu64\_mask( \_\_m128i a, \_\_m128i b);
+
+VPCMPUQ \_\_mmask8 \_mm\_mask\_cmp[eq|ge|gt|le|lt|neq]\_epu64\_mask(\_\_mmask8 k, \_\_m128i a, \_\_m128i b);
+
+.fi
+.RE
+
+.SS SIMD Floating\-Point Exceptions
+.PP
+None
+
+.SS Other Exceptions
+.PP
+EVEX\-encoded instruction, see Exceptions Type E4.
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+MIT licensed by TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

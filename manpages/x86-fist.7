@@ -1,0 +1,310 @@
+.nh
+.TH "X86-FIST-FISTP" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+FIST-FISTP - STORE INTEGER
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode\fR	\fB\fCInstruction\fR	\fB\fC64\-Bit Mode\fR	\fB\fCCompat/Leg Mode\fR	\fB\fCDescription\fR
+DF /2	FIST m16int	Valid	Valid	Store ST(0) in m16int.
+DB /2	FIST m32int	Valid	Valid	Store ST(0) in m32int.
+DF /3	FISTP m16int	Valid	Valid	T{
+Store ST(0) in m16int and pop register stack.
+T}
+DB /3	FISTP m32int	Valid	Valid	T{
+Store ST(0) in m32int and pop register stack.
+T}
+DF /7	FISTP m64int	Valid	Valid	T{
+Store ST(0) in m64int and pop register stack.
+T}
+.TE
+
+.SH DESCRIPTION
+.PP
+The FIST instruction converts the value in the ST(0) register to a
+signed integer and stores the result in the destination operand. Values
+can be stored in word or doubleword integer format. The destination
+operand specifies the address where the first byte of the destination
+value is to be stored.
+
+.PP
+The FISTP instruction performs the same operation as the FIST
+instruction and then pops the register stack. To pop the register stack,
+the processor marks the ST(0) register as empty and increments the stack
+pointer (TOP) by 1. The FISTP instruction also stores values in quadword
+integer format.
+
+.PP
+The following table shows the results obtained when storing various
+classes of numbers in integer format.
+
+.PP
+ST(0)
+
+.PP
+DEST
+
+.PP
+− ∞ or Value Too Large for DEST Format
+
+.PP
+*
+
+.PP
+F ≤ −1
+
+.PP
+−I
+
+.PP
+−1 \&lt; F \&lt; −0
+
+.PP
+**
+
+.PP
+−0
+
+.PP
+0
+
+.PP
++0
+
+.PP
+0
+
+.PP
++0\&lt;F\&lt;+1
+
+.PP
+**
+
+.PP
+F≥+1
+
+.PP
++I
+
+.PP
++ ∞ or Value Too Large for DEST Format
+
+.PP
+*
+
+.PP
+NaN
+
+.PP
+*
+
+.PP
+NOTES: F Meansfinitefloating\-pointvalue. I Means integer. *
+Indicatesfloating\-pointinvalid\-operation(#IA)exception. ** 0 or ±1,
+depending on the rounding mode.
+
+.PP
+Table 3\-27. FIST/FISTP Results
+
+.PP
+If the source value is a non\-integral value, it is rounded to an integer
+value, according to the rounding mode specified by the RC field of the
+FPU control word.
+
+.PP
+If the converted value is too large for the destination format, or if
+the source operand is an ∞, SNaN, QNAN, or is in an unsupported format,
+an invalid\-arithmetic\-operand condition is signaled. If the
+invalid\-operation exception is not masked, an invalid\-arithmetic\-operand
+exception (#IA) is generated and no value is stored in the destination
+operand. If the invalid\-operation exception is masked, the integer
+indefinite value is stored in memory.
+
+.PP
+This instruction’s operation is the same in non\-64\-bit modes and 64\-bit
+mode.
+
+.SH OPERATION
+.PP
+.RS
+
+.nf
+DEST ← Integer(ST(0));
+IF Instruction = FISTP
+    THEN
+        PopRegisterStack;
+FI;
+
+.fi
+.RE
+
+.SH FPU FLAGS AFFECTED
+.TS
+allbox;
+l l 
+l l .
+C1	T{
+Set to 0 if stack underflow occurred.
+T}
+	T{
+Indicates rounding direction of if the inexact exception (
+T}
+#
+T{
+P) is generated: 0 ← not roundup; 1 ← roundup.
+T}
+	Set to 0 otherwise.
+C0, C2, C3	Undefined.
+.TE
+
+.SH FLOATING\-POINT EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#IS	Stack underflow occurred.
+#IA	T{
+Converted value is too large for the destination format.
+T}
+	T{
+Source operand is an SNaN, QNaN, ±∞, or unsupported format.
+T}
+#P	T{
+Value cannot be represented exactly in destination format.
+T}
+.TE
+
+.SH PROTECTED MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP(0)	T{
+If the destination is located in a non\-writable segment.
+T}
+	T{
+If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit.
+T}
+	T{
+If the DS, ES, FS, or GS register is used to access memory and it contains a NULL segment selector.
+T}
+#SS(0)	T{
+If a memory operand effective address is outside the SS segment limit.
+T}
+#NM	CR0.EM
+[
+bit 2
+]
+ or CR0.TS
+[
+bit 3
+]
+ = 1.
+#PF(fault\-code)	If a page fault occurs.
+#AC(0)	T{
+If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3.
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH REAL\-ADDRESS MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP	T{
+If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit.
+T}
+#SS	T{
+If a memory operand effective address is outside the SS segment limit.
+T}
+#NM	CR0.EM
+[
+bit 2
+]
+ or CR0.TS
+[
+bit 3
+]
+ = 1.
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH VIRTUAL\-8086 MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP(0)	T{
+If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit.
+T}
+#SS(0)	T{
+If a memory operand effective address is outside the SS segment limit.
+T}
+#NM	CR0.EM
+[
+bit 2
+]
+ or CR0.TS
+[
+bit 3
+]
+ = 1.
+#PF(fault\-code)	If a page fault occurs.
+#AC(0)	T{
+If alignment checking is enabled and an unaligned memory reference is made.
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH COMPATIBILITY MODE EXCEPTIONS
+.PP
+Same exceptions as in protected mode.
+
+.SH 64\-BIT MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#SS(0)	T{
+If a memory address referencing the SS segment is in a non\-canonical form.
+T}
+#GP(0)	T{
+If the memory address is in a non\-canonical form.
+T}
+#NM	CR0.EM
+[
+bit 2
+]
+ or CR0.TS
+[
+bit 3
+]
+ = 1.
+#MF	T{
+If there is a pending x87 FPU exception.
+T}
+#PF(fault\-code)	If a page fault occurs.
+#AC(0)	T{
+If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3.
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+MIT licensed by TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

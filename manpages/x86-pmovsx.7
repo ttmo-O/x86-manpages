@@ -1,0 +1,900 @@
+.nh
+.TH "X86-PMOVSX" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+PMOVSX - PACKED MOVE WITH SIGN EXTEND
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp / En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+T{
+66 0f 38 20 /r PMOVSXBW xmm1, xmm2/m64
+T}
+	A	V/V	SSE4\_1	T{
+Sign extend 8 packed 8\-bit integers in the low 8 bytes of xmm2/m64 to 8 packed 16\-bit integers in xmm1.
+T}
+T{
+66 0f 38 21 /r PMOVSXBD xmm1, xmm2/m32
+T}
+	A	V/V	SSE4\_1	T{
+Sign extend 4 packed 8\-bit integers in the low 4 bytes of xmm2/m32 to 4 packed 32\-bit integers in xmm1.
+T}
+T{
+66 0f 38 22 /r PMOVSXBQ xmm1, xmm2/m16
+T}
+	A	V/V	SSE4\_1	T{
+Sign extend 2 packed 8\-bit integers in the low 2 bytes of xmm2/m16 to 2 packed 64\-bit integers in xmm1.
+T}
+T{
+66 0f 38 23/r PMOVSXWD xmm1, xmm2/m64
+T}
+	A	V/V	SSE4\_1	T{
+Sign extend 4 packed 16\-bit integers in the low 8 bytes of xmm2/m64 to 4 packed 32\-bit integers in xmm1.
+T}
+T{
+66 0f 38 24 /r PMOVSXWQ xmm1, xmm2/m32
+T}
+	A	V/V	SSE4\_1	T{
+Sign extend 2 packed 16\-bit integers in the low 4 bytes of xmm2/m32 to 2 packed 64\-bit integers in xmm1.
+T}
+T{
+66 0f 38 25 /r PMOVSXDQ xmm1, xmm2/m64
+T}
+	A	V/V	SSE4\_1	T{
+Sign extend 2 packed 32\-bit integers in the low 8 bytes of xmm2/m64 to 2 packed 64\-bit integers in xmm1.
+T}
+T{
+VEX.128.66.0F38.WIG 20 /r VPMOVSXBW xmm1, xmm2/m64
+T}
+	A	V/V	AVX	T{
+Sign extend 8 packed 8\-bit integers in the low 8 bytes of xmm2/m64 to 8 packed 16\-bit integers in xmm1.
+T}
+T{
+VEX.128.66.0F38.WIG 21 /r VPMOVSXBD xmm1, xmm2/m32
+T}
+	A	V/V	AVX	T{
+Sign extend 4 packed 8\-bit integers in the low 4 bytes of xmm2/m32 to 4 packed 32\-bit integers in xmm1.
+T}
+T{
+VEX.128.66.0F38.WIG 22 /r VPMOVSXBQ xmm1, xmm2/m16
+T}
+	A	V/V	AVX	T{
+Sign extend 2 packed 8\-bit integers in the low 2 bytes of xmm2/m16 to 2 packed 64\-bit integers in xmm1.
+T}
+T{
+VEX.128.66.0F38.WIG 23 /r VPMOVSXWD xmm1, xmm2/m64
+T}
+	A	V/V	AVX	T{
+Sign extend 4 packed 16\-bit integers in the low 8 bytes of xmm2/m64 to 4 packed 32\-bit integers in xmm1.
+T}
+T{
+VEX.128.66.0F38.WIG 24 /r VPMOVSXWQ xmm1, xmm2/m32
+T}
+	A	V/V	AVX	T{
+Sign extend 2 packed 16\-bit integers in the low 4 bytes of xmm2/m32 to 2 packed 64\-bit integers in xmm1.
+T}
+T{
+VEX.128.66.0F38.WIG 25 /r VPMOVSXDQ xmm1, xmm2/m64
+T}
+	A	V/V	AVX	T{
+Sign extend 2 packed 32\-bit integers in the low 8 bytes of xmm2/m64 to 2 packed 64\-bit integers in xmm1.
+T}
+T{
+VEX.256.66.0F38.WIG 20 /r VPMOVSXBW ymm1, xmm2/m128
+T}
+	A	V/V	AVX2	T{
+Sign extend 16 packed 8\-bit integers in xmm2/m128 to 16 packed 16\-bit integers in ymm1.
+T}
+T{
+VEX.256.66.0F38.WIG 21 /r VPMOVSXBD ymm1, xmm2/m64
+T}
+	A	V/V	AVX2	T{
+Sign extend 8 packed 8\-bit integers in the low 8 bytes of xmm2/m64 to 8 packed 32\-bit integers in ymm1.
+T}
+T{
+VEX.256.66.0F38.WIG 22 /r VPMOVSXBQ ymm1, xmm2/m32
+T}
+	A	V/V	AVX2	T{
+Sign extend 4 packed 8\-bit integers in the low 4 bytes of xmm2/m32 to 4 packed 64\-bit integers in ymm1.
+T}
+T{
+VEX.256.66.0F38.WIG 23 /r VPMOVSXWD ymm1, xmm2/m128
+T}
+	A	V/V	AVX2	T{
+Sign extend 8 packed 16\-bit integers in the low 16 bytes of xmm2/m128 to 8 packed 32\-bit integers in ymm1.
+T}
+T{
+VEX.256.66.0F38.WIG 24 /r VPMOVSXWQ ymm1, xmm2/m64
+T}
+	A	V/V	AVX2	T{
+Sign extend 4 packed 16\-bit integers in the low 8 bytes of xmm2/m64 to 4 packed 64\-bit integers in ymm1.
+T}
+T{
+VEX.256.66.0F38.WIG 25 /r VPMOVSXDQ ymm1, xmm2/m128
+T}
+	A	V/V	AVX2	T{
+Sign extend 4 packed 32\-bit integers in the low 16 bytes of xmm2/m128 to 4 packed 64\-bit integers in ymm1.
+T}
+T{
+EVEX.128.66.0F38.WIG 20 /r VPMOVSXBW xmm1 {k1}{z}, xmm2/m64
+T}
+	B	V/V	AVX512VL AVX512BW	T{
+Sign extend 8 packed 8\-bit integers in xmm2/m64 to 8 packed 16\-bit integers in zmm1.
+T}
+T{
+EVEX.256.66.0F38.WIG 20 /r VPMOVSXBW ymm1 {k1}{z}, xmm2/m128
+T}
+	B	V/V	AVX512VL AVX512BW	T{
+Sign extend 16 packed 8\-bit integers in xmm2/m128 to 16 packed 16\-bit integers in ymm1.
+T}
+T{
+EVEX.512.66.0F38.WIG 20 /r VPMOVSXBW zmm1 {k1}{z}, ymm2/m256
+T}
+	B	V/V	AVX512BW	T{
+Sign extend 32 packed 8\-bit integers in ymm2/m256 to 32 packed 16\-bit integers in zmm1.
+T}
+T{
+EVEX.128.66.0F38.WIG 21 /r VPMOVSXBD xmm1 {k1}{z}, xmm2/m32
+T}
+	C	V/V	AVX512VL AVX512F	T{
+Sign extend 4 packed 8\-bit integers in the low 4 bytes of xmm2/m32 to 4 packed 32\-bit integers in xmm1 subject to writemask k1.
+T}
+T{
+EVEX.256.66.0F38.WIG 21 /r VPMOVSXBD ymm1 {k1}{z}, xmm2/m64
+T}
+	C	V/V	AVX512VL AVX512F	T{
+Sign extend 8 packed 8\-bit integers in the low 8 bytes of xmm2/m64 to 8 packed 32\-bit integers in ymm1 subject to writemask k1.
+T}
+T{
+EVEX.512.66.0F38.WIG 21 /r VPMOVSXBD zmm1 {k1}{z}, xmm2/m128
+T}
+	C	V/V	AVX512F	T{
+Sign extend 16 packed 8\-bit integers in the low 16 bytes of xmm2/m128 to 16 packed 32\-bit integers in zmm1 subject to writemask k1.
+T}
+T{
+EVEX.128.66.0F38.WIG 22 /r VPMOVSXBQ xmm1 {k1}{z}, xmm2/m16
+T}
+	D	V/V	AVX512VL AVX512F	T{
+Sign extend 2 packed 8\-bit integers in the low 2 bytes of xmm2/m16 to 2 packed 64\-bit integers in xmm1 subject to writemask k1.
+T}
+T{
+EVEX.256.66.0F38.WIG 22 /r VPMOVSXBQ ymm1 {k1}{z}, xmm2/m32
+T}
+	D	V/V	AVX512VL AVX512F	T{
+Sign extend 4 packed 8\-bit integers in the low 4 bytes of xmm2/m32 to 4 packed 64\-bit integers in ymm1 subject to writemask k1.
+T}
+T{
+EVEX.512.66.0F38.WIG 22 /r VPMOVSXBQ zmm1 {k1}{z}, xmm2/m64
+T}
+	D	V/V	AVX512F	T{
+Sign extend 8 packed 8\-bit integers in the low 8 bytes of xmm2/m64 to 8 packed 64\-bit integers in zmm1 subject to writemask k1.
+T}
+T{
+EVEX.128.66.0F38.WIG 23 /r VPMOVSXWD xmm1 {k1}{z}, xmm2/m64
+T}
+	B	V/V	AVX512VL AVX512F	T{
+Sign extend 4 packed 16\-bit integers in the low 8 bytes of ymm2/mem to 4 packed 32\-bit integers in xmm1 subject to writemask k1.
+T}
+T{
+EVEX.256.66.0F38.WIG 23 /r VPMOVSXWD ymm1 {k1}{z}, xmm2/m128
+T}
+	B	V/V	AVX512VL AVX512F	T{
+Sign extend 8 packed 16\-bit integers in the low 16 bytes of ymm2/m128 to 8 packed 32\-bit integers in ymm1 subject to writemask k1.
+T}
+T{
+EVEX.512.66.0F38.WIG 23 /r VPMOVSXWD zmm1 {k1}{z}, ymm2/m256
+T}
+	B	V/V	AVX512F	T{
+Sign extend 16 packed 16\-bit integers in the low 32 bytes of ymm2/m256 to 16 packed 32\-bit integers in zmm1 subject to writemask k1.
+T}
+T{
+EVEX.128.66.0F38.WIG 24 /r VPMOVSXWQ xmm1 {k1}{z}, xmm2/m32
+T}
+	C	V/V	AVX512VL AVX512F	T{
+Sign extend 2 packed 16\-bit integers in the low 4 bytes of xmm2/m32 to 2 packed 64\-bit integers in xmm1 subject to writemask k1.
+T}
+T{
+EVEX.256.66.0F38.WIG 24 /r VPMOVSXWQ ymm1 {k1}{z}, xmm2/m64
+T}
+	C	V/V	AVX512VL AVX512F	T{
+Sign extend 4 packed 16\-bit integers in the low 8 bytes of xmm2/m64 to 4 packed 64\-bit integers in ymm1 subject to writemask k1.
+T}
+T{
+EVEX.512.66.0F38.WIG 24 /r VPMOVSXWQ zmm1 {k1}{z}, xmm2/m128
+T}
+	C	V/V	AVX512F	T{
+Sign extend 8 packed 16\-bit integers in the low 16 bytes of xmm2/m128 to 8 packed 64\-bit integers in zmm1 subject to writemask k1.
+T}
+T{
+EVEX.128.66.0F38.W0 25 /r VPMOVSXDQ xmm1 {k1}{z}, xmm2/m64
+T}
+	B	V/V	AVX512VL AVX512F	T{
+Sign extend 2 packed 32\-bit integers in the low 8 bytes of xmm2/m64 to 2 packed 64\-bit integers in zmm1 using writemask k1.
+T}
+T{
+EVEX.256.66.0F38.W0 25 /r VPMOVSXDQ ymm1 {k1}{z}, xmm2/m128
+T}
+	B	V/V	AVX512VL AVX512F	T{
+Sign extend 4 packed 32\-bit integers in the low 16 bytes of xmm2/m128 to 4 packed 64\-bit integers in zmm1 using writemask k1.
+T}
+T{
+EVEX.512.66.0F38.W0 25 /r VPMOVSXDQ zmm1 {k1}{z}, ymm2/m256
+T}
+	B	V/V	AVX512F	T{
+Sign extend 8 packed 32\-bit integers in the low 32 bytes of ymm2/m256 to 8 packed 64\-bit integers in zmm1 using writemask k1.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+Op/En	Tuple Type	Operand 1	Operand 2	Operand 3	Operand 4
+A	NA	ModRM:reg (w)	ModRM:r/m (r)	NA	NA
+B	Half Mem	ModRM:reg (w)	ModRM:r/m (r)	NA	NA
+C	Quarter Mem	ModRM:reg (w)	ModRM:r/m (r)	NA	NA
+D	Eighth Mem	ModRM:reg (w)	ModRM:r/m (r)	NA	NA
+.TE
+
+.SS Description
+.PP
+Legacy and VEX encoded versions: Packed byte, word, or dword integers in
+the low bytes of the source operand (second operand) are sign extended
+to word, dword, or quadword integers and stored in packed signed bytes
+the destination operand.
+
+.PP
+128\-bit Legacy SSE version: Bits (MAXVL\-1:128) of the corresponding
+destination register remain unchanged.
+
+.PP
+VEX.128 and EVEX.128 encoded versions: Bits (MAXVL\-1:128) of the
+corresponding destination register are zeroed.
+
+.PP
+VEX.256 and EVEX.256 encoded versions: Bits (MAXVL\-1:256) of the
+corresponding destination register are zeroed.
+
+.PP
+EVEX encoded versions: Packed byte, word or dword integers starting from
+the low bytes of the source operand (second operand) are sign extended
+to word, dword or quadword integers and stored to the destination
+operand under the writemask. The destination register is XMM, YMM or ZMM
+Register.
+
+.PP
+Note: VEX.vvvv and EVEX.vvvv are reserved and must be 1111b otherwise
+instructions will #UD.
+
+.SS Operation
+.SS Packed\_Sign\_Extend\_BYTE\_to\_WORD(DEST, SRC)
+.PP
+.RS
+
+.nf
+DEST[15:0] ←SignExtend(SRC[7:0]);
+DEST[31:16] ←SignExtend(SRC[15:8]);
+DEST[47:32] ←SignExtend(SRC[23:16]);
+DEST[63:48] ←SignExtend(SRC[31:24]);
+DEST[79:64] ←SignExtend(SRC[39:32]);
+DEST[95:80] ←SignExtend(SRC[47:40]);
+DEST[111:96] ←SignExtend(SRC[55:48]);
+DEST[127:112] ←SignExtend(SRC[63:56]);
+
+.fi
+.RE
+
+.SS Packed\_Sign\_Extend\_BYTE\_to\_DWORD(DEST, SRC)
+.PP
+.RS
+
+.nf
+DEST[31:0] ←SignExtend(SRC[7:0]);
+DEST[63:32] ←SignExtend(SRC[15:8]);
+DEST[95:64] ←SignExtend(SRC[23:16]);
+DEST[127:96] ←SignExtend(SRC[31:24]);
+
+.fi
+.RE
+
+.SS Packed\_Sign\_Extend\_BYTE\_to\_QWORD(DEST, SRC)
+.PP
+.RS
+
+.nf
+DEST[63:0] ←SignExtend(SRC[7:0]);
+DEST[127:64] ←SignExtend(SRC[15:8]);
+
+.fi
+.RE
+
+.SS Packed\_Sign\_Extend\_WORD\_to\_DWORD(DEST, SRC)
+.PP
+.RS
+
+.nf
+DEST[31:0] ←SignExtend(SRC[15:0]);
+DEST[63:32] ←SignExtend(SRC[31:16]);
+DEST[95:64] ←SignExtend(SRC[47:32]);
+DEST[127:96] ←SignExtend(SRC[63:48]);
+
+.fi
+.RE
+
+.SS Packed\_Sign\_Extend\_WORD\_to\_QWORD(DEST, SRC)
+.PP
+.RS
+
+.nf
+DEST[63:0] ←SignExtend(SRC[15:0]);
+DEST[127:64] ←SignExtend(SRC[31:16]);
+
+.fi
+.RE
+
+.SS Packed\_Sign\_Extend\_DWORD\_to\_QWORD(DEST, SRC)
+.PP
+.RS
+
+.nf
+DEST[63:0] ←SignExtend(SRC[31:0]);
+DEST[127:64] ←SignExtend(SRC[63:32]);
+
+.fi
+.RE
+
+.SS VPMOVSXBW (EVEX encoded versions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (8, 128), (16, 256), (32, 512)
+Packed\_Sign\_Extend\_BYTE\_to\_WORD(TMP\_DEST[127:0], SRC[63:0])
+IF VL >= 256
+    Packed\_Sign\_Extend\_BYTE\_to\_WORD(TMP\_DEST[255:128], SRC[127:64])
+FI;
+IF VL >= 512
+    Packed\_Sign\_Extend\_BYTE\_to\_WORD(TMP\_DEST[383:256], SRC[191:128])
+    Packed\_Sign\_Extend\_BYTE\_to\_WORD(TMP\_DEST[511:384], SRC[255:192])
+FI;
+FOR j←0 TO KL\-1
+    i←j * 16
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+15:i]←TEMP\_DEST[i+15:i]
+        ELSE
+            IF *merging\-masking*
+                        ; merging\-masking
+                THEN *DEST[i+15:i] remains unchanged*
+                ELSE *zeroing\-masking*
+                            ; zeroing\-masking
+                    DEST[i+15:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS VPMOVSXBD (EVEX encoded versions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (4, 128), (8, 256), (16, 512)
+Packed\_Sign\_Extend\_BYTE\_to\_DWORD(TMP\_DEST[127:0], SRC[31:0])
+IF VL >= 256
+    Packed\_Sign\_Extend\_BYTE\_to\_DWORD(TMP\_DEST[255:128], SRC[63:32])
+FI;
+IF VL >= 512
+    Packed\_Sign\_Extend\_BYTE\_to\_DWORD(TMP\_DEST[383:256], SRC[95:64])
+    Packed\_Sign\_Extend\_BYTE\_to\_DWORD(TMP\_DEST[511:384], SRC[127:96])
+FI;
+FOR j←0 TO KL\-1
+    i←j * 32
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+31:i]←TEMP\_DEST[i+31:i]
+        ELSE
+            IF *merging\-masking*
+                        ; merging\-masking
+                THEN *DEST[i+31:i] remains unchanged*
+                ELSE *zeroing\-masking*
+                            ; zeroing\-masking
+                    DEST[i+31:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS VPMOVSXBQ (EVEX encoded versions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (2, 128), (4, 256), (8, 512)
+Packed\_Sign\_Extend\_BYTE\_to\_QWORD(TMP\_DEST[127:0], SRC[15:0])
+IF VL >= 256
+    Packed\_Sign\_Extend\_BYTE\_to\_QWORD(TMP\_DEST[255:128], SRC[31:16])
+FI;
+IF VL >= 512
+    Packed\_Sign\_Extend\_BYTE\_to\_QWORD(TMP\_DEST[383:256], SRC[47:32])
+    Packed\_Sign\_Extend\_BYTE\_to\_QWORD(TMP\_DEST[511:384], SRC[63:48])
+FI;
+FOR j←0 TO KL\-1
+    i←j * 64
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+63:i]←TEMP\_DEST[i+63:i]
+        ELSE
+            IF *merging\-masking*
+                        ; merging\-masking
+                THEN *DEST[i+63:i] remains unchanged*
+                ELSE *zeroing\-masking*
+                            ; zeroing\-masking
+                    DEST[i+63:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS VPMOVSXWD (EVEX encoded versions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (4, 128), (8, 256), (16, 512)
+Packed\_Sign\_Extend\_WORD\_to\_DWORD(TMP\_DEST[127:0], SRC[63:0])
+IF VL >= 256
+    Packed\_Sign\_Extend\_WORD\_to\_DWORD(TMP\_DEST[255:128], SRC[127:64])
+FI;
+IF VL >= 512
+    Packed\_Sign\_Extend\_WORD\_to\_DWORD(TMP\_DEST[383:256], SRC[191:128])
+    Packed\_Sign\_Extend\_WORD\_to\_DWORD(TMP\_DEST[511:384], SRC[256:192])
+FI;
+FOR j←0 TO KL\-1
+    i←j * 32
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+31:i]←TEMP\_DEST[i+31:i]
+        ELSE
+            IF *merging\-masking*
+                        ; merging\-masking
+                THEN *DEST[i+31:i] remains unchanged*
+                ELSE *zeroing\-masking*
+                            ; zeroing\-masking
+                    DEST[i+31:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS VPMOVSXWQ (EVEX encoded versions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (2, 128), (4, 256), (8, 512)
+Packed\_Sign\_Extend\_WORD\_to\_QWORD(TMP\_DEST[127:0], SRC[31:0])
+IF VL >= 256
+    Packed\_Sign\_Extend\_WORD\_to\_QWORD(TMP\_DEST[255:128], SRC[63:32])
+FI;
+IF VL >= 512
+    Packed\_Sign\_Extend\_WORD\_to\_QWORD(TMP\_DEST[383:256], SRC[95:64])
+    Packed\_Sign\_Extend\_WORD\_to\_QWORD(TMP\_DEST[511:384], SRC[127:96])
+FI;
+FOR j←0 TO KL\-1
+    i←j * 64
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+63:i]←TEMP\_DEST[i+63:i]
+        ELSE
+            IF *merging\-masking*
+                        ; merging\-masking
+                THEN *DEST[i+63:i] remains unchanged*
+                ELSE *zeroing\-masking*
+                            ; zeroing\-masking
+                    DEST[i+63:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS VPMOVSXDQ (EVEX encoded versions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (2, 128), (4, 256), (8, 512)
+Packed\_Sign\_Extend\_DWORD\_to\_QWORD(TEMP\_DEST[127:0], SRC[63:0])
+IF VL >= 256
+    Packed\_Sign\_Extend\_DWORD\_to\_QWORD(TEMP\_DEST[255:128], SRC[127:64])
+FI;
+IF VL >= 512
+    Packed\_Sign\_Extend\_DWORD\_to\_QWORD(TEMP\_DEST[383:256], SRC[191:128])
+    Packed\_Sign\_Extend\_DWORD\_to\_QWORD(TEMP\_DEST[511:384], SRC[255:192])
+FI;
+FOR j←0 TO KL\-1
+    i←j * 64
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+63:i]←TEMP\_DEST[i+63:i]
+        ELSE
+            IF *merging\-masking*
+                        ; merging\-masking
+                THEN *DEST[i+63:i] remains unchanged*
+                ELSE *zeroing\-masking*
+                            ; zeroing\-masking
+                    DEST[i+63:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS VPMOVSXBW (VEX.256 encoded version)
+.PP
+.RS
+
+.nf
+Packed\_Sign\_Extend\_BYTE\_to\_WORD(DEST[127:0], SRC[63:0])
+Packed\_Sign\_Extend\_BYTE\_to\_WORD(DEST[255:128], SRC[127:64])
+DEST[MAXVL\-1:256] ← 0
+
+.fi
+.RE
+
+.SS VPMOVSXBD (VEX.256 encoded version)
+.PP
+.RS
+
+.nf
+Packed\_Sign\_Extend\_BYTE\_to\_DWORD(DEST[127:0], SRC[31:0])
+Packed\_Sign\_Extend\_BYTE\_to\_DWORD(DEST[255:128], SRC[63:32])
+DEST[MAXVL\-1:256] ← 0
+
+.fi
+.RE
+
+.SS VPMOVSXBQ (VEX.256 encoded version)
+.PP
+.RS
+
+.nf
+Packed\_Sign\_Extend\_BYTE\_to\_QWORD(DEST[127:0], SRC[15:0])
+Packed\_Sign\_Extend\_BYTE\_to\_QWORD(DEST[255:128], SRC[31:16])
+DEST[MAXVL\-1:256] ← 0
+
+.fi
+.RE
+
+.SS VPMOVSXWD (VEX.256 encoded version)
+.PP
+.RS
+
+.nf
+Packed\_Sign\_Extend\_WORD\_to\_DWORD(DEST[127:0], SRC[63:0])
+Packed\_Sign\_Extend\_WORD\_to\_DWORD(DEST[255:128], SRC[127:64])
+DEST[MAXVL\-1:256] ← 0
+
+.fi
+.RE
+
+.SS VPMOVSXWQ (VEX.256 encoded version)
+.PP
+.RS
+
+.nf
+Packed\_Sign\_Extend\_WORD\_to\_QWORD(DEST[127:0], SRC[31:0])
+Packed\_Sign\_Extend\_WORD\_to\_QWORD(DEST[255:128], SRC[63:32])
+DEST[MAXVL\-1:256] ← 0
+
+.fi
+.RE
+
+.SS VPMOVSXDQ (VEX.256 encoded version)
+.PP
+.RS
+
+.nf
+Packed\_Sign\_Extend\_DWORD\_to\_QWORD(DEST[127:0], SRC[63:0])
+Packed\_Sign\_Extend\_DWORD\_to\_QWORD(DEST[255:128], SRC[127:64])
+DEST[MAXVL\-1:256] ← 0
+
+.fi
+.RE
+
+.SS VPMOVSXBW (VEX.128 encoded version)
+.PP
+.RS
+
+.nf
+Packed\_Sign\_Extend\_BYTE\_to\_WORDDEST[127:0], SRC[127:0]()
+DEST[MAXVL\-1:128] ←0
+
+.fi
+.RE
+
+.SS VPMOVSXBD (VEX.128 encoded version)
+.PP
+.RS
+
+.nf
+Packed\_Sign\_Extend\_BYTE\_to\_DWORD(DEST[127:0], SRC[127:0])
+DEST[MAXVL\-1:128] ←0
+
+.fi
+.RE
+
+.SS VPMOVSXBQ (VEX.128 encoded version)
+.PP
+.RS
+
+.nf
+Packed\_Sign\_Extend\_BYTE\_to\_QWORD(DEST[127:0], SRC[127:0])
+DEST[MAXVL\-1:128] ←0
+
+.fi
+.RE
+
+.SS VPMOVSXWD (VEX.128 encoded version)
+.PP
+.RS
+
+.nf
+Packed\_Sign\_Extend\_WORD\_to\_DWORD(DEST[127:0], SRC[127:0])
+DEST[MAXVL\-1:128] ←0
+
+.fi
+.RE
+
+.SS VPMOVSXWQ (VEX.128 encoded version)
+.PP
+.RS
+
+.nf
+Packed\_Sign\_Extend\_WORD\_to\_QWORD(DEST[127:0], SRC[127:0])
+DEST[MAXVL\-1:128] ←0
+
+.fi
+.RE
+
+.SS VPMOVSXDQ (VEX.128 encoded version)
+.PP
+.RS
+
+.nf
+Packed\_Sign\_Extend\_DWORD\_to\_QWORD(DEST[127:0], SRC[127:0])
+DEST[MAXVL\-1:128] ←0
+
+.fi
+.RE
+
+.SS PMOVSXBW
+.PP
+.RS
+
+.nf
+Packed\_Sign\_Extend\_BYTE\_to\_WORD(DEST[127:0], SRC[127:0])
+DEST[MAXVL\-1:128] (Unmodified)
+
+.fi
+.RE
+
+.SS PMOVSXBD
+.PP
+.RS
+
+.nf
+Packed\_Sign\_Extend\_BYTE\_to\_DWORD(DEST[127:0], SRC[127:0])
+DEST[MAXVL\-1:128] (Unmodified)
+
+.fi
+.RE
+
+.SS PMOVSXBQ
+.PP
+.RS
+
+.nf
+Packed\_Sign\_Extend\_BYTE\_to\_QWORD(DEST[127:0], SRC[127:0])
+DEST[MAXVL\-1:128] (Unmodified)
+
+.fi
+.RE
+
+.SS PMOVSXWD
+.PP
+.RS
+
+.nf
+Packed\_Sign\_Extend\_WORD\_to\_DWORD(DEST[127:0], SRC[127:0])
+DEST[MAXVL\-1:128] (Unmodified)
+
+.fi
+.RE
+
+.SS PMOVSXWQ
+.PP
+.RS
+
+.nf
+Packed\_Sign\_Extend\_WORD\_to\_QWORD(DEST[127:0], SRC[127:0])
+DEST[MAXVL\-1:128] (Unmodified)
+
+.fi
+.RE
+
+.SS PMOVSXDQ
+.PP
+.RS
+
+.nf
+Packed\_Sign\_Extend\_DWORD\_to\_QWORD(DEST[127:0], SRC[127:0])
+DEST[MAXVL\-1:128] (Unmodified)
+
+.fi
+.RE
+
+.SS Intel C/C++ Compiler Intrinsic Equivalent
+.PP
+.RS
+
+.nf
+VPMOVSXBW \_\_m512i \_mm512\_cvtepi8\_epi16(\_\_m512i a);
+
+VPMOVSXBW \_\_m512i \_mm512\_mask\_cvtepi8\_epi16(\_\_m512i a, \_\_mmask32 k, \_\_m512i b);
+
+VPMOVSXBW \_\_m512i \_mm512\_maskz\_cvtepi8\_epi16( \_\_mmask32 k, \_\_m512i b);
+
+VPMOVSXBD \_\_m512i \_mm512\_cvtepi8\_epi32(\_\_m512i a);
+
+VPMOVSXBD \_\_m512i \_mm512\_mask\_cvtepi8\_epi32(\_\_m512i a, \_\_mmask16 k, \_\_m512i b);
+
+VPMOVSXBD \_\_m512i \_mm512\_maskz\_cvtepi8\_epi32( \_\_mmask16 k, \_\_m512i b);
+
+VPMOVSXBQ \_\_m512i \_mm512\_cvtepi8\_epi64(\_\_m512i a);
+
+VPMOVSXBQ \_\_m512i \_mm512\_mask\_cvtepi8\_epi64(\_\_m512i a, \_\_mmask8 k, \_\_m512i b);
+
+VPMOVSXBQ \_\_m512i \_mm512\_maskz\_cvtepi8\_epi64( \_\_mmask8 k, \_\_m512i a);
+
+VPMOVSXDQ \_\_m512i \_mm512\_cvtepi32\_epi64(\_\_m512i a);
+
+VPMOVSXDQ \_\_m512i \_mm512\_mask\_cvtepi32\_epi64(\_\_m512i a, \_\_mmask8 k, \_\_m512i b);
+
+VPMOVSXDQ \_\_m512i \_mm512\_maskz\_cvtepi32\_epi64( \_\_mmask8 k, \_\_m512i a);
+
+VPMOVSXWD \_\_m512i \_mm512\_cvtepi16\_epi32(\_\_m512i a);
+
+VPMOVSXWD \_\_m512i \_mm512\_mask\_cvtepi16\_epi32(\_\_m512i a, \_\_mmask16 k, \_\_m512i b);
+
+VPMOVSXWD \_\_m512i \_mm512\_maskz\_cvtepi16\_epi32(\_\_mmask16 k, \_\_m512i a);
+
+VPMOVSXWQ \_\_m512i \_mm512\_cvtepi16\_epi64(\_\_m512i a);
+
+VPMOVSXWQ \_\_m512i \_mm512\_mask\_cvtepi16\_epi64(\_\_m512i a, \_\_mmask8 k, \_\_m512i b);
+
+VPMOVSXWQ \_\_m512i \_mm512\_maskz\_cvtepi16\_epi64( \_\_mmask8 k, \_\_m512i a);
+
+VPMOVSXBW \_\_m256i \_mm256\_cvtepi8\_epi16(\_\_m256i a);
+
+VPMOVSXBW \_\_m256i \_mm256\_mask\_cvtepi8\_epi16(\_\_m256i a, \_\_mmask16 k, \_\_m256i b);
+
+VPMOVSXBW \_\_m256i \_mm256\_maskz\_cvtepi8\_epi16( \_\_mmask16 k, \_\_m256i b);
+
+VPMOVSXBD \_\_m256i \_mm256\_cvtepi8\_epi32(\_\_m256i a);
+
+VPMOVSXBD \_\_m256i \_mm256\_mask\_cvtepi8\_epi32(\_\_m256i a, \_\_mmask8 k, \_\_m256i b);
+
+VPMOVSXBD \_\_m256i \_mm256\_maskz\_cvtepi8\_epi32( \_\_mmask8 k, \_\_m256i b);
+
+VPMOVSXBQ \_\_m256i \_mm256\_cvtepi8\_epi64(\_\_m256i a);
+
+VPMOVSXBQ \_\_m256i \_mm256\_mask\_cvtepi8\_epi64(\_\_m256i a, \_\_mmask8 k, \_\_m256i b);
+
+VPMOVSXBQ \_\_m256i \_mm256\_maskz\_cvtepi8\_epi64( \_\_mmask8 k, \_\_m256i a);
+
+VPMOVSXDQ \_\_m256i \_mm256\_cvtepi32\_epi64(\_\_m256i a);
+
+VPMOVSXDQ \_\_m256i \_mm256\_mask\_cvtepi32\_epi64(\_\_m256i a, \_\_mmask8 k, \_\_m256i b);
+
+VPMOVSXDQ \_\_m256i \_mm256\_maskz\_cvtepi32\_epi64( \_\_mmask8 k, \_\_m256i a);
+
+VPMOVSXWD \_\_m256i \_mm256\_cvtepi16\_epi32(\_\_m256i a);
+
+VPMOVSXWD \_\_m256i \_mm256\_mask\_cvtepi16\_epi32(\_\_m256i a, \_\_mmask16 k, \_\_m256i b);
+
+VPMOVSXWD \_\_m256i \_mm256\_maskz\_cvtepi16\_epi32(\_\_mmask16 k, \_\_m256i a);
+
+VPMOVSXWQ \_\_m256i \_mm256\_cvtepi16\_epi64(\_\_m256i a);
+
+VPMOVSXWQ \_\_m256i \_mm256\_mask\_cvtepi16\_epi64(\_\_m256i a, \_\_mmask8 k, \_\_m256i b);
+
+VPMOVSXWQ \_\_m256i \_mm256\_maskz\_cvtepi16\_epi64( \_\_mmask8 k, \_\_m256i a);
+
+VPMOVSXBW \_\_m128i \_mm\_mask\_cvtepi8\_epi16(\_\_m128i a, \_\_mmask8 k, \_\_m128i b);
+
+VPMOVSXBW \_\_m128i \_mm\_maskz\_cvtepi8\_epi16( \_\_mmask8 k, \_\_m128i b);
+
+VPMOVSXBD \_\_m128i \_mm\_mask\_cvtepi8\_epi32(\_\_m128i a, \_\_mmask8 k, \_\_m128i b);
+
+VPMOVSXBD \_\_m128i \_mm\_maskz\_cvtepi8\_epi32( \_\_mmask8 k, \_\_m128i b);
+
+VPMOVSXBQ \_\_m128i \_mm\_mask\_cvtepi8\_epi64(\_\_m128i a, \_\_mmask8 k, \_\_m128i b);
+
+VPMOVSXBQ \_\_m128i \_mm\_maskz\_cvtepi8\_epi64( \_\_mmask8 k, \_\_m128i a);
+
+VPMOVSXDQ \_\_m128i \_mm\_mask\_cvtepi32\_epi64(\_\_m128i a, \_\_mmask8 k, \_\_m128i b);
+
+VPMOVSXDQ \_\_m128i \_mm\_maskz\_cvtepi32\_epi64( \_\_mmask8 k, \_\_m128i a);
+
+VPMOVSXWD \_\_m128i \_mm\_mask\_cvtepi16\_epi32(\_\_m128i a, \_\_mmask16 k, \_\_m128i b);
+
+VPMOVSXWD \_\_m128i \_mm\_maskz\_cvtepi16\_epi32(\_\_mmask16 k, \_\_m128i a);
+
+VPMOVSXWQ \_\_m128i \_mm\_mask\_cvtepi16\_epi64(\_\_m128i a, \_\_mmask8 k, \_\_m128i b);
+
+VPMOVSXWQ \_\_m128i \_mm\_maskz\_cvtepi16\_epi64( \_\_mmask8 k, \_\_m128i a);
+
+PMOVSXBW \_\_m128i \_mm\_ cvtepi8\_epi16 ( \_\_m128i a);
+
+PMOVSXBD \_\_m128i \_mm\_ cvtepi8\_epi32 ( \_\_m128i a);
+
+PMOVSXBQ \_\_m128i \_mm\_ cvtepi8\_epi64 ( \_\_m128i a);
+
+PMOVSXWD \_\_m128i \_mm\_ cvtepi16\_epi32 ( \_\_m128i a);
+
+PMOVSXWQ \_\_m128i \_mm\_ cvtepi16\_epi64 ( \_\_m128i a);
+
+PMOVSXDQ \_\_m128i \_mm\_ cvtepi32\_epi64 ( \_\_m128i a);
+
+.fi
+.RE
+
+.SS SIMD Floating\-Point Exceptions
+.PP
+None
+
+.SS Other Exceptions
+.PP
+Non\-EVEX\-encoded instruction, see Exceptions Type 5.
+
+.PP
+EVEX\-encoded instruction, see Exceptions Type E5.
+
+.TS
+allbox;
+l l 
+l l .
+#UD	T{
+If VEX.vvvv != 1111B, or EVEX.vvvv != 1111B.
+T}
+.TE
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+MIT licensed by TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

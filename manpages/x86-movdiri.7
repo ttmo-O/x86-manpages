@@ -1,0 +1,211 @@
+.nh
+.TH "X86-MOVDIRI" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+MOVDIRI - MOVE DOUBLEWORD AS DIRECT STORE
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp/En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+T{
+NP 0F 38 F9 /r MOVDIRI m32, r32
+T}
+	A	V/V	MOVDIRI	T{
+Move doubleword from r32 to m32 using direct store.
+T}
+T{
+NP REX.W + 0F 38 F9 /r MOVDIRI m64, r64
+T}
+	A	V/N.E.	MOVDIRI	T{
+Move quadword from r64 to m64 using direct store.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING1
+.PP
+.RS
+
+.PP
+1\&. The Mod field of the ModR/M byte cannot have value 11B.
+
+.RE
+
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+\fB\fCOp/En\fR	\fB\fCTuple\fR	\fB\fCOperand 1\fR	\fB\fCOperand 2\fR	\fB\fCOperand 3\fR	\fB\fCOperand 4\fR
+A	NA	ModRM:r/m (w)	ModRM:reg (r)	NA	NA
+.TE
+
+.SH DESCRIPTION
+.PP
+Moves the doubleword integer in the source operand (second operand) to
+the destination operand (first operand) using a direct\-store operation.
+The source operand is a general purpose register. The destination
+operand is a 32\-bit memory location. In 64\-bit mode, the instruction’s
+default operation size is 32 bits. Use of the REX.R prefix permits
+access to additional registers (R8\-R15). Use of the REX.W prefix
+promotes operation to 64 bits. See summary chart at the beginning of
+this section for encoding data and limits.
+
+.PP
+The direct\-store is implemented by using write combining (WC) memory
+type protocol for writing data. Using this protocol, the processor does
+not write the data into the cache hierarchy, nor does it fetch the
+corresponding cache line from memory into the cache hierarchy. If the
+destination address is cached, the line is written\-back (if modified)
+and invalidated from the cache, before the direct\-store. Unlike stores
+with non\-temporal hint that allow uncached (UC) and write\-protected (WP)
+memory\-type for the destination to override the non\-temporal hint,
+direct\-stores always follow WC memory type protocol irrespective of the
+destination address memory type (including UC and WP types).
+
+.PP
+Unlike WC stores and stores with non\-temporal hint, direct\-stores are
+eligible for immediate eviction from the write\-combining buffer, and
+thus not combined with younger stores (including direct\-stores) to the
+same address. Older WC and non\-temporal stores held in the write\-combing
+buffer may be combined with younger direct stores to the same address.
+Because WC protocol used by direct\-stores follows a weakly\-ordered
+memory consistency model, a fencing operation using SFENCE or MFENCE
+should follow the MOVDIRI instruction to enforce ordering when needed.
+
+.PP
+Direct\-stores issued by MOVDIRI to a destination aligned to a 4\-byte
+boundary (8\-byte boundary if used with REX.W prefix) guarantee 4\-byte
+(8\-byte with REX.W prefix) write\-completion atomicity. This means that
+the data arrives at the destination in a single undivided 4\-byte (or
+8\-byte) write transaction. If the destination is not aligned for the
+write size, the direct\-stores issued by MOVDIRI are split and arrive at
+the destination in two parts. Each part of such split direct\-store will
+not merge with younger stores but can arrive at the destination in
+either order. Availability of the MOVDIRI instruction is indicated by
+the presence of the CPUID feature flag MOVDIRI (bit 27 of the ECX
+register in leaf 07H, see “CPUID—CPU Identification” in the Intel® 64
+and IA\-32 Architectures Software Developer’s Manual, Volume 2A).
+
+.SH OPERATION
+.PP
+.RS
+
+.nf
+DEST ← SRC;
+
+.fi
+.RE
+
+.SS Intel C/C++ Compiler Intrinsic Equivalent
+.PP
+.RS
+
+.nf
+MOVDIRI void \_directstoreu\_u32(void *dst, uint32\_t val)
+
+MOVDIRI void \_directstoreu\_u64(void *dst, uint64\_t val)
+
+.fi
+.RE
+
+.SH PROTECTED MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP(0)	T{
+For an illegal memory operand effective address in the CS, DS, ES, FS or GS segments.
+T}
+#SS(0)	T{
+For an illegal address in the SS segment.
+T}
+#PF	(fault\-code) For a page fault.
+#UD	If CPUID.07H.0H:ECX.MOVDIRI
+[
+bit 27
+]
+ = 0.
+	T{
+If LOCK prefix or operand\-size (66H) prefix is used.
+T}
+#AC	T{
+If alignment checking is enabled and an unaligned memory reference made while in current privilege level 3.
+T}
+.TE
+
+.SH REAL\-ADDRESS MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP	T{
+If any part of the operand lies outside the effective address space from 0 to FFFFH.
+T}
+#UD	If CPUID.07H.0H:ECX.MOVDIRI
+[
+bit 27
+]
+ = 0.
+	T{
+If LOCK prefix or operand\-size (66H) prefix is used.
+T}
+.TE
+
+.SH VIRTUAL\-8086 MODE EXCEPTIONS
+.PP
+Same exceptions as in real address mode.
+
+.TS
+allbox;
+l l 
+l l .
+#PF	(fault\-code) For a page fault.
+#AC	T{
+If alignment checking is enabled and an unaligned memory reference made while in current privilege level 3.
+T}
+.TE
+
+.SH COMPATIBILITY MODE EXCEPTIONS
+.PP
+Same exceptions as in protected mode.
+
+.SH 64\-BIT MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#SS(0)	T{
+If memory address referencing the SS segment is in non\-canonical form.
+T}
+#GP(0)	T{
+If the memory address is in non\-canonical form.
+T}
+#PF	(fault\-code) For a page fault.
+#UD	If CPUID.07H.0H:ECX.MOVDIRI
+[
+bit 27
+]
+ = 0.
+	T{
+If LOCK prefix or operand\-size (66H) prefix is used.
+T}
+#AC	T{
+If alignment checking is enabled and an unaligned memory reference made while in current privilege level 3.
+T}
+.TE
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+MIT licensed by TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

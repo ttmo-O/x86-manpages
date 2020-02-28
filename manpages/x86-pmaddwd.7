@@ -1,0 +1,265 @@
+.nh
+.TH "X86-PMADDWD" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+PMADDWD - MULTIPLY AND ADD PACKED INTEGERS
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp/En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+NP 0F F5 /mm, mm/m64	A	V/V	MMX	T{
+Multiply the packed words in mm.
+T}
+66 0F F5 /xmm2/m128	A	V/V	SSE2	T{
+Multiply the packed word integers in xmm1.
+T}
+T{
+VEX.128.66.0F.WIG F5 /r VPMADDWD xmm1, xmm2, xmm3/m128
+T}
+	B	V/V	AVX	T{
+Multiply the packed word integers in xmm1.
+T}
+T{
+VEX.256.66.0F.WIG F5 /r VPMADDWD ymm1, ymm2, ymm3/m256
+T}
+	B	V/V	AVX2	T{
+Multiply the packed word integers in ymm1.
+T}
+T{
+EVEX.128.66.0F.WIG F5 /r VPMADDWD xmm1 {k1}{z}, xmm2, xmm3/m128
+T}
+	C	V/V	AVX512VL AVX512BW	T{
+Multiply the packed word integers in xmm2 by the packed word integers in xmm3/m128, add adjacent doubleword results, and store in xmm1 under writemask k1.
+T}
+T{
+EVEX.256.66.0F.WIG F5 /r VPMADDWD ymm1 {k1}{z}, ymm2, ymm3/m256
+T}
+	C	V/V	AVX512VL AVX512BW	T{
+Multiply the packed word integers in ymm2 by the packed word integers in ymm3/m256, add adjacent doubleword results, and store in ymm1 under writemask k1.
+T}
+T{
+EVEX.512.66.0F.WIG F5 /r VPMADDWD zmm1 {k1}{z}, zmm2, zmm3/m512
+T}
+	C	V/V	AVX512BW	T{
+Multiply the packed word integers in zmm2 by the packed word integers in zmm3/m512, add adjacent doubleword results, and store in zmm1 under writemask k1.
+T}
+.TE
+
+.PP
+.RS
+
+.PP
+1\&. See note in Section 2.4, “AVX and SSE Instruction Exception
+Specification” in the Intel® 64 and IA\-32 Architectures Software
+Developer’s Manual, Volume 3A.
+
+.RE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+Op/En	Tuple Type	Operand 1	Operand 2	Operand 3	Operand 4
+A	NA	ModRM:reg (r, w)	ModRM:r/m (r)	NA	NA
+B	NA	ModRM:reg (w)	VEX.vvvv (r)	ModRM:r/m (r)	NA
+C	Full Mem	ModRM:reg (w)	EVEX.vvvv (r)	ModRM:r/m (r)	NA
+.TE
+
+.SH DESCRIPTION
+.PP
+Multiplies the individual signed words of the destination operand (first
+operand) by the corresponding signed words of the source operand (second
+operand), producing temporary signed, doubleword results. The adjacent
+double\-word results are then summed and stored in the destination
+operand. For example, the corresponding low\-order words (15\-0) and
+(31\-16) in the source and destination operands are multiplied by one
+another and the double\-word results are added together and stored in the
+low doubleword of the destination register (31\-0). The same operation is
+performed on the other pairs of adjacent words. (Figure 4\-11 shows this
+operation when using 64\-bit operands).
+
+.PP
+The (V)PMADDWD instruction wraps around only in one situation: when the
+2 pairs of words being operated on in a group are all 8000H. In this
+case, the result wraps around to 80000000H.
+
+.PP
+In 64\-bit mode and not encoded with VEX/EVEX, using a REX prefix in the
+form of REX.R permits this instruction to access additional registers
+(XMM8\-XMM15).
+
+.PP
+Legacy SSE version: The first source and destination operands are MMX
+registers. The second source operand is an MMX register or a 64\-bit
+memory location.
+
+.PP
+128\-bit Legacy SSE version: The first source and destination operands
+are XMM registers. The second source operand is an XMM register or a
+128\-bit memory location. Bits (MAXVL\-1:128) of the corresponding YMM
+destination register remain unchanged.
+
+.PP
+VEX.128 encoded version: The first source and destination operands are
+XMM registers. The second source operand is an XMM register or a 128\-bit
+memory location. Bits (MAXVL\-1:128) of the destination YMM register are
+zeroed.
+
+.PP
+VEX.256 encoded version: The second source operand can be an YMM
+register or a 256\-bit memory location. The first source and destination
+operands are YMM registers.
+
+.PP
+EVEX.512 encoded version: The second source operand can be an ZMM
+register or a 512\-bit memory location. The first source and destination
+operands are ZMM registers.
+
+.PP
+SRCX3X2X1X0DESTY3Y2Y1Y0X3 ∗ Y3X2 ∗ Y2X1 ∗ Y1X0 ∗ Y0TEMPDEST(X1∗Y1) +
+(X0∗Y0)(X3∗Y3) + (X2∗Y2)
+
+.PP
+Figure 4\-11. PMADDWD Execution Model Using 64\-bit Operands
+
+.SH OPERATION
+.SS PMADDWD (with 64\-bit operands)
+.PP
+.RS
+
+.nf
+DEST[31:0] ← (DEST[15:0] ∗ SRC[15:0]) + (DEST[31:16] ∗ SRC[31:16]);
+DEST[63:32] ← (DEST[47:32] ∗ SRC[47:32]) + (DEST[63:48] ∗ SRC[63:48]);
+
+.fi
+.RE
+
+.SS PMADDWD (with 128\-bit operands)
+.PP
+.RS
+
+.nf
+DEST[31:0] ← (DEST[15:0] ∗ SRC[15:0]) + (DEST[31:16] ∗ SRC[31:16]);
+DEST[63:32] ← (DEST[47:32] ∗ SRC[47:32]) + (DEST[63:48] ∗ SRC[63:48]);
+DEST[95:64] ← (DEST[79:64] ∗ SRC[79:64]) + (DEST[95:80] ∗ SRC[95:80]);
+DEST[127:96] ← (DEST[111:96] ∗ SRC[111:96]) + (DEST[127:112] ∗ SRC[127:112]);
+
+.fi
+.RE
+
+.SS VPMADDWD (VEX.128 encoded version)
+.PP
+.RS
+
+.nf
+DEST[31:0]←(SRC1[15:0] * SRC2[15:0]) + (SRC1[31:16] * SRC2[31:16])
+DEST[63:32]←(SRC1[47:32] * SRC2[47:32]) + (SRC1[63:48] * SRC2[63:48])
+DEST[95:64]←(SRC1[79:64] * SRC2[79:64]) + (SRC1[95:80] * SRC2[95:80])
+DEST[127:96]←(SRC1[111:96] * SRC2[111:96]) + (SRC1[127:112] * SRC2[127:112])
+DEST[MAXVL\-1:128] ← 0
+
+.fi
+.RE
+
+.SS VPMADDWD (VEX.256 encoded version)
+.PP
+.RS
+
+.nf
+DEST[31:0]←(SRC1[15:0] * SRC2[15:0]) + (SRC1[31:16] * SRC2[31:16])
+DEST[63:32]←(SRC1[47:32] * SRC2[47:32]) + (SRC1[63:48] * SRC2[63:48])
+DEST[95:64]←(SRC1[79:64] * SRC2[79:64]) + (SRC1[95:80] * SRC2[95:80])
+DEST[127:96]←(SRC1[111:96] * SRC2[111:96]) + (SRC1[127:112] * SRC2[127:112])
+DEST[159:128]←(SRC1[143:128] * SRC2[143:128]) + (SRC1[159:144] * SRC2[159:144])
+DEST[191:160]←(SRC1[175:160] * SRC2[175:160]) + (SRC1[191:176] * SRC2[191:176])
+DEST[223:192]←(SRC1[207:192] * SRC2[207:192]) + (SRC1[223:208] * SRC2[223:208])
+DEST[255:224]←(SRC1[239:224] * SRC2[239:224]) + (SRC1[255:240] * SRC2[255:240])
+DEST[MAXVL\-1:256] ← 0
+
+.fi
+.RE
+
+.SS VPMADDWD (EVEX encoded versions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (4, 128), (8, 256), (16, 512)
+FOR j←0 TO KL\-1
+    i←j * 32
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+31:i]←(SRC2[i+31:i+16]* SRC1[i+31:i+16]) + (SRC2[i+15:i]*SRC1[i+15:i])
+        ELSE
+            IF *merging\-masking* ; merging\-masking
+                THEN *DEST[i+31:i] remains unchanged*
+                ELSE *zeroing\-masking*
+                        ; zeroing\-masking
+                    DEST[i+31:i] = 0
+            FI
+    FI;
+ENDFOR;
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SH INTEL C/C++ COMPILER INTRINSIC EQUIVALENT
+.PP
+.RS
+
+.nf
+VPMADDWD \_\_m512i \_mm512\_madd\_epi16( \_\_m512i a, \_\_m512i b);
+
+VPMADDWD \_\_m512i \_mm512\_mask\_madd\_epi16(\_\_m512i s, \_\_mmask32 k, \_\_m512i a, \_\_m512i b);
+
+VPMADDWD \_\_m512i \_mm512\_maskz\_madd\_epi16( \_\_mmask32 k, \_\_m512i a, \_\_m512i b);
+
+VPMADDWD \_\_m256i \_mm256\_mask\_madd\_epi16(\_\_m256i s, \_\_mmask16 k, \_\_m256i a, \_\_m256i b);
+
+VPMADDWD \_\_m256i \_mm256\_maskz\_madd\_epi16( \_\_mmask16 k, \_\_m256i a, \_\_m256i b);
+
+VPMADDWD \_\_m128i \_mm\_mask\_madd\_epi16(\_\_m128i s, \_\_mmask8 k, \_\_m128i a, \_\_m128i b);
+
+VPMADDWD \_\_m128i \_mm\_maskz\_madd\_epi16( \_\_mmask8 k, \_\_m128i a, \_\_m128i b);
+
+PMADDWD:\_\_m64 \_mm\_madd\_pi16(\_\_m64 m1, \_\_m64 m2)
+
+(V)PMADDWD:\_\_m128i \_mm\_madd\_epi16 ( \_\_m128i a, \_\_m128i b)
+
+VPMADDWD:\_\_m256i \_mm256\_madd\_epi16 ( \_\_m256i a, \_\_m256i b)
+
+.fi
+.RE
+
+.SH FLAGS AFFECTED
+.PP
+None.
+
+.SH NUMERIC EXCEPTIONS
+.PP
+None.
+
+.SH OTHER EXCEPTIONS
+.PP
+Non\-EVEX\-encoded instruction, see Exceptions Type 4.
+
+.PP
+EVEX\-encoded instruction, see Exceptions Type E4NF.nb.
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+MIT licensed by TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

@@ -1,0 +1,323 @@
+.nh
+.TH "X86-MOVD-MOVQ" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+MOVD-MOVQ - MOVE DOUBLEWORD-MOVE QUADWORD
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp/ En\fR	\fB\fC64/32\-bit Mode\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+NP 0F 6E /mm, r/m32	A	V/V	MMX	Move doubleword from mm.
+NP REX.W + 0F 6E /mm, r/m64	A	V/N.E.	MMX	Move quadword from mm.
+NP 0F 7E /r/m32, mm	B	V/V	MMX	Move doubleword from r/m32.
+NP REX.W + 0F 7E /r/m64, mm	B	V/N.E.	MMX	Move quadword from r/m64.
+66 0F 6E /r/m32	A	V/V	SSE2	Move doubleword from xmm.
+66 REX.W 0F 6E /r/m64	A	V/N.E.	SSE2	Move quadword from xmm.
+66 0F 7E /xmm	B	V/V	SSE2	Move doubleword from r/m32.
+66 REX.W 0F 7E /xmm	B	V/N.E.	SSE2	Move quadword from r/m64.
+T{
+VEX.128.66.0F.W0 6E / VMOVD xmm1, r32/m32
+T}
+	A	V/V	AVX	Move doubleword from xmm1.
+T{
+VEX.128.66.0F.W1 6E /r VMOVQ xmm1, r64/m64
+T}
+	A	V/N.E1.	AVX	Move quadword from xmm1.
+T{
+VEX.128.66.0F.W0 7E /r VMOVD r32/m32, xmm1
+T}
+	B	V/V	AVX	Move doubleword from r/m32.
+T{
+VEX.128.66.0F.W1 7E /r VMOVQ r64/m64, xmm1
+T}
+	B	V/N.E1.	AVX	Move quadword from r/m64.
+T{
+EVEX.128.66.0F.W0 6E /r VMOVD xmm1, r32/m32
+T}
+	C	V/V	AVX512F	T{
+Move doubleword from r/m32 to xmm1.
+T}
+T{
+EVEX.128.66.0F.W1 6E /r VMOVQ xmm1, r64/m64
+T}
+	C	V/N.E.1	AVX512F	T{
+Move quadword from r/m64 to xmm1.
+T}
+T{
+EVEX.128.66.0F.W0 7E /r VMOVD r32/m32, xmm1
+T}
+	D	V/V	AVX512F	T{
+Move doubleword from xmm1 register to r/m32.
+T}
+T{
+EVEX.128.66.0F.W1 7E /r VMOVQ r64/m64, xmm1
+T}
+	D	V/N.E.1	AVX512F	T{
+Move quadword from xmm1 register to r/m64.
+T}
+.TE
+
+.PP
+.RS
+
+.PP
+1\&. For this specific instruction, VEX.W/EVEX.W in non\-64 bit is
+ignored; the instructions behaves as if the W0 version is used.
+
+.RE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+Op/En	Tuple Type	Operand 1	Operand 2	Operand 3	Operand 4
+A	NA	ModRM:reg (w)	ModRM:r/m (r)	NA	NA
+B	NA	ModRM:r/m (w)	ModRM:reg (r)	NA	NA
+C	Tuple1 Scalar	ModRM:reg (w)	ModRM:r/m (r)	NA	NA
+D	Tuple1 Scalar	ModRM:r/m (w)	ModRM:reg (r)	NA	NA
+.TE
+
+.SH DESCRIPTION
+.PP
+Copies a doubleword from the source operand (second operand) to the
+destination operand (first operand). The source and destination operands
+can be general\-purpose registers, MMX technology registers, XMM
+registers, or 32\-bit memory locations. This instruction can be used to
+move a doubleword to and from the low doubleword of an MMX technology
+register and a general\-purpose register or a 32\-bit memory location, or
+to and from the low doubleword of an XMM register and a general\-purpose
+register or a 32\-bit memory location. The instruction cannot be used to
+transfer data between MMX technology registers, between XMM registers,
+between general\-purpose registers, or between memory locations.
+
+.PP
+When the destination operand is an MMX technology register, the source
+operand is written to the low doubleword of the register, and the
+register is zero\-extended to 64 bits. When the destination operand is an
+XMM register, the source operand is written to the low doubleword of the
+register, and the register is zero\-extended to 128 bits.
+
+.PP
+In 64\-bit mode, the instruction’s default operation size is 32 bits. Use
+of the REX.R prefix permits access to additional registers (R8\-R15). Use
+of the REX.W prefix promotes operation to 64 bits. See the summary chart
+at the beginning of this section for encoding data and limits.
+
+.SS MOVD/Q with XMM destination:
+.PP
+Moves a dword/qword integer from the source operand and stores it in the
+low 32/64\-bits of the destination XMM register. The upper bits of the
+destination are zeroed. The source operand can be a 32/64\-bit register
+or 32/64\-bit memory location.
+
+.PP
+128\-bit Legacy SSE version: Bits (MAXVL\-1:128) of the corresponding YMM
+destination register remain unchanged. Qword operation requires the use
+of REX.W=1.
+
+.PP
+VEX.128 encoded version: Bits (MAXVL\-1:128) of the destination register
+are zeroed. Qword operation requires the use of VEX.W=1.
+
+.PP
+EVEX.128 encoded version: Bits (MAXVL\-1:128) of the destination register
+are zeroed. Qword operation requires the use of EVEX.W=1.
+
+.SS MOVD/Q with 32/64 reg/mem destination:
+.PP
+Stores the low dword/qword of the source XMM register to 32/64\-bit
+memory location or general\-purpose register. Qword operation requires
+the use of REX.W=1, VEX.W=1, or EVEX.W=1.
+
+.PP
+Note: VEX.vvvv and EVEX.vvvv are reserved and must be 1111b otherwise
+instructions will #UD.
+
+.PP
+If VMOVD or VMOVQ is encoded with VEX.L= 1, an attempt to execute the
+instruction encoded with VEX.L= 1 will cause an #UD exception.
+
+.SH OPERATION
+.SS MOVD (when destination operand is MMX technology register)
+.PP
+.RS
+
+.nf
+DEST[31:0] ← SRC;
+DEST[63:32] ← 00000000H;
+
+.fi
+.RE
+
+.SS MOVD (when destination operand is XMM register)
+.PP
+.RS
+
+.nf
+DEST[31:0] ← SRC;
+DEST[127:32] ← 000000000000000000000000H;
+DEST[MAXVL\-1:128] (Unmodified)
+
+.fi
+.RE
+
+.SS MOVD (when source operand is MMX technology or XMM register)
+.PP
+.RS
+
+.nf
+DEST ← SRC[31:0];
+
+.fi
+.RE
+
+.SS VMOVD (VEX\-encoded version when destination is an XMM register)
+.PP
+.RS
+
+.nf
+DEST[31:0] ← SRC[31:0]
+DEST[MAXVL\-1:32] ← 0
+
+.fi
+.RE
+
+.SS MOVQ (when destination operand is XMM register)
+.PP
+.RS
+
+.nf
+DEST[63:0] ← SRC[63:0];
+DEST[127:64] ← 0000000000000000H;
+DEST[MAXVL\-1:128] (Unmodified)
+
+.fi
+.RE
+
+.SS MOVQ (when destination operand is r/m64)
+.PP
+.RS
+
+.nf
+DEST[63:0] ← SRC[63:0];
+
+.fi
+.RE
+
+.SS MOVQ (when source operand is XMM register or r/m64)
+.PP
+.RS
+
+.nf
+DEST ← SRC[63:0];
+
+.fi
+.RE
+
+.SS VMOVQ (VEX\-encoded version when destination is an XMM register)
+.PP
+.RS
+
+.nf
+DEST[63:0] ← SRC[63:0]
+DEST[MAXVL\-1:64] ← 0
+
+.fi
+.RE
+
+.SS VMOVD (EVEX\-encoded version when destination is an XMM register)
+.PP
+.RS
+
+.nf
+DEST[31:0] ← SRC[31:0]
+DEST[MAXVL\-1:32] ← 0
+
+.fi
+.RE
+
+.SS VMOVQ (EVEX\-encoded version when destination is an XMM register)
+.PP
+.RS
+
+.nf
+DEST[63:0] ← SRC[63:0]
+DEST[MAXVL\-1:64] ← 0
+
+.fi
+.RE
+
+.SH INTEL C/C++ COMPILER INTRINSIC EQUIVALENT
+.PP
+.RS
+
+.nf
+MOVD: \_\_m64 \_mm\_cvtsi32\_si64 (int i )
+
+MOVD: int \_mm\_cvtsi64\_si32 ( \_\_m64m )
+
+MOVD: \_\_m128i \_mm\_cvtsi32\_si128 (int a)
+
+MOVD: int \_mm\_cvtsi128\_si32 ( \_\_m128i a)
+
+MOVQ: \_\_int64 \_mm\_cvtsi128\_si64(\_\_m128i);
+
+MOVQ: \_\_m128i \_mm\_cvtsi64\_si128(\_\_int64);
+
+VMOVD \_\_m128i \_mm\_cvtsi32\_si128( int);
+
+VMOVD int \_mm\_cvtsi128\_si32( \_\_m128i );
+
+VMOVQ \_\_m128i \_mm\_cvtsi64\_si128 (\_\_int64);
+
+VMOVQ \_\_int64 \_mm\_cvtsi128\_si64(\_\_m128i );
+
+VMOVQ \_\_m128i \_mm\_loadl\_epi64( \_\_m128i * s);
+
+VMOVQ void \_mm\_storel\_epi64( \_\_m128i * d, \_\_m128i s);
+
+.fi
+.RE
+
+.SH FLAGS AFFECTED
+.PP
+None
+
+.SH SIMD FLOATING\-POINT EXCEPTIONS
+.PP
+None
+
+.SH OTHER EXCEPTIONS
+.PP
+Non\-EVEX\-encoded instruction, see Exceptions Type 5.
+
+.PP
+EVEX\-encoded instruction, see Exceptions Type E9NF.
+
+.TS
+allbox;
+l l 
+l l .
+#UD	If VEX.L = 1.
+	T{
+If VEX.vvvv != 1111B or EVEX.vvvv != 1111B.
+T}
+.TE
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+MIT licensed by TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

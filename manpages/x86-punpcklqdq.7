@@ -1,0 +1,827 @@
+.nh
+.TH "X86-PUNPCKLBW-PUNPCKLWD-PUNPCKLDQ-PUNPCKLQDQ" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+PUNPCKLBW-PUNPCKLWD-PUNPCKLDQ-PUNPCKLQDQ - UNPACK LOW DATA
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp/En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+NP 0F 60 /mm, mm/m32	A	V/V	MMX	T{
+Interleave low\-order bytes from mm.
+T}
+66 0F 60 /xmm2/m128	A	V/V	SSE2	T{
+Interleave low\-order bytes from xmm1.
+T}
+NP 0F 61 /mm, mm/m32	A	V/V	MMX	T{
+Interleave low\-order words from mm.
+T}
+66 0F 61 /xmm2/m128	A	V/V	SSE2	T{
+Interleave low\-order words from xmm1.
+T}
+NP 0F 62 /mm, mm/m32	A	V/V	MMX	T{
+Interleave low\-order doublewords from mm.
+T}
+66 0F 62 /xmm2/m128	A	V/V	SSE2	T{
+Interleave low\-order doublewords from xmm2/m128 into xmm1.
+T}
+66 0F 6C /xmm2/m128	A	V/V	SSE2	T{
+Interleave low\-order quadword from xmm1 register.
+T}
+T{
+VEX.128.66.0F.WIG 60/r VPUNPCKLBW xmm1,xmm2, xmm3/m128
+T}
+	B	V/V	AVX	T{
+Interleave low\-order bytes from xmm1.
+T}
+T{
+VEX.128.66.0F.WIG 61/r VPUNPCKLWD xmm1,xmm2, xmm3/m128
+T}
+	B	V/V	AVX	T{
+Interleave low\-order words from xmm1.
+T}
+T{
+VEX.128.66.0F.WIG 62/r VPUNPCKLDQ xmm1, xmm2, xmm3/m128
+T}
+	B	V/V	AVX	T{
+Interleave low\-order doublewords from xmm1.
+T}
+T{
+VEX.128.66.0F.WIG 6C/r VPUNPCKLQDQ xmm1, xmm2, xmm3/m128
+T}
+	B	V/V	AVX	T{
+Interleave low\-order quadword from xmm1 register.
+T}
+T{
+VEX.256.66.0F.WIG 60 /r VPUNPCKLBW ymm1, ymm2, ymm3/m256
+T}
+	B	V/V	AVX2	T{
+Interleave low\-order bytes from ymm1 register.
+T}
+T{
+VEX.256.66.0F.WIG 61 /r VPUNPCKLWD ymm1, ymm2, ymm3/m256
+T}
+	B	V/V	AVX2	T{
+Interleave low\-order words from ymm1 register.
+T}
+T{
+VEX.256.66.0F.WIG 62 /r VPUNPCKLDQ ymm1, ymm2, ymm3/m256
+T}
+	B	V/V	AVX2	T{
+Interleave low\-order doublewords from ymm1 register.
+T}
+T{
+VEX.256.66.0F.WIG 6C /r VPUNPCKLQDQ ymm1, ymm2, ymm3/m256
+T}
+	B	V/V	AVX2	T{
+Interleave low\-order quadword from ymm1 register.
+T}
+T{
+EVEX.128.66.0F.WIG 60 /r VPUNPCKLBW xmm1 {k1}{z}, xmm2, xmm3/m128
+T}
+	C	V/V	AVX512VL AVX512BW	T{
+Interleave low\-order bytes from xmm2 and xmm3/m128 into xmm1 register subject to write mask k1.
+T}
+T{
+EVEX.128.66.0F.WIG 61 /r VPUNPCKLWD xmm1 {k1}{z}, xmm2, xmm3/m128
+T}
+	C	V/V	AVX512VL AVX512BW	T{
+Interleave low\-order words from xmm2 and xmm3/m128 into xmm1 register subject to write mask k1.
+T}
+T{
+EVEX.128.66.0F.W0 62 /r VPUNPCKLDQ xmm1 {k1}{z}, xmm2, xmm3/m128/m32bcst
+T}
+	D	V/V	AVX512VL AVX512F	T{
+Interleave low\-order doublewords from xmm2 and xmm3/m128/m32bcst into xmm1 register subject to write mask k1.
+T}
+T{
+EVEX.128.66.0F.W1 6C /r VPUNPCKLQDQ xmm1 {k1}{z}, xmm2, xmm3/m128/m64bcst
+T}
+	D	V/V	AVX512VL AVX512F	T{
+Interleave low\-order quadword from zmm2 and zmm3/m512/m64bcst into zmm1 register subject to write mask k1.
+T}
+.TE
+
+.TS
+allbox;
+l l l l l 
+l l l l l .
+T{
+EVEX.256.66.0F.WIG 60 /r VPUNPCKLBW ymm1 {k1}{z}, ymm2, ymm3/m256
+T}
+	C	V/V	AVX512VL AVX512BW	T{
+Interleave low\-order bytes from ymm2 and ymm3/m256 into ymm1 register subject to write mask k1.
+T}
+T{
+EVEX.256.66.0F.WIG 61 /r VPUNPCKLWD ymm1 {k1}{z}, ymm2, ymm3/m256
+T}
+	C	V/V	AVX512VL AVX512BW	T{
+Interleave low\-order words from ymm2 and ymm3/m256 into ymm1 register subject to write mask k1.
+T}
+T{
+EVEX.256.66.0F.W0 62 /r VPUNPCKLDQ ymm1 {k1}{z}, ymm2, ymm3/m256/m32bcst
+T}
+	D	V/V	AVX512VL AVX512F	T{
+Interleave low\-order doublewords from ymm2 and ymm3/m256/m32bcst into ymm1 register subject to write mask k1.
+T}
+T{
+EVEX.256.66.0F.W1 6C /r VPUNPCKLQDQ ymm1 {k1}{z}, ymm2, ymm3/m256/m64bcst
+T}
+	D	V/V	AVX512VL AVX512F	T{
+Interleave low\-order quadword from ymm2 and ymm3/m256/m64bcst into ymm1 register subject to write mask k1.
+T}
+T{
+EVEX.512.66.0F.WIG 60/r VPUNPCKLBW zmm1 {k1}{z}, zmm2, zmm3/m512
+T}
+	C	V/V	AVX512BW	T{
+Interleave low\-order bytes from zmm2 and zmm3/m512 into zmm1 register subject to write mask k1.
+T}
+T{
+EVEX.512.66.0F.WIG 61/r VPUNPCKLWD zmm1 {k1}{z}, zmm2, zmm3/m512
+T}
+	C	V/V	AVX512BW	T{
+Interleave low\-order words from zmm2 and zmm3/m512 into zmm1 register subject to write mask k1.
+T}
+T{
+EVEX.512.66.0F.W0 62 /r VPUNPCKLDQ zmm1 {k1}{z}, zmm2, zmm3/m512/m32bcst
+T}
+	D	V/V	AVX512F	T{
+Interleave low\-order doublewords from zmm2 and zmm3/m512/m32bcst into zmm1 register subject to write mask k1.
+T}
+T{
+EVEX.512.66.0F.W1 6C /r VPUNPCKLQDQ zmm1 {k1}{z}, zmm2, zmm3/m512/m64bcst
+T}
+	D	V/V	AVX512F	T{
+Interleave low\-order quadword from zmm2 and zmm3/m512/m64bcst into zmm1 register subject to write mask k1.
+T}
+.TE
+
+.PP
+.RS
+
+.PP
+1\&. See note in Section 2.4, “AVX and SSE Instruction Exception
+Specification” in the Intel® 64 and IA\-32 Architectures Software
+Developer’s Manual, Volume 3A.
+
+.RE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+Op/En	Tuple Type	Operand 1	Operand 2	Operand 3	Operand 4
+A	NA	ModRM:reg (r, w)	ModRM:r/m (r)	NA	NA
+B	NA	ModRM:reg (w)	VEX.vvvv (r)	ModRM:r/m (r)	NA
+C	Full Mem	ModRM:reg (w)	EVEX.vvvv (r)	ModRM:r/m (r)	NA
+D	Full	ModRM:reg (w)	EVEX.vvvv (r)	ModRM:r/m (r)	NA
+.TE
+
+.SH DESCRIPTION
+.PP
+Unpacks and interleaves the low\-order data elements (bytes, words,
+doublewords, and quadwords) of the destination operand (first operand)
+and source operand (second operand) into the destination operand.
+(Figure 4\-22 shows the unpack operation for bytes in 64\-bit operands.).
+The high\-order data elements are ignored.
+
+.PP
+SRCX7X6X5X4X3X2X1X0DESTY7Y6Y5Y4Y3Y2Y1Y0Y3X3Y2X2Y1X1Y0X0DEST
+
+.PP
+Figure 4\-22. PUNPCKLBW Instruction Operation Using 64\-bit Operands
+
+.PP
+255 31 0 255 31 0
+
+.PP
+SRC2550DEST
+
+.PP
+Figure 4\-23. 256\-bit VPUNPCKLDQ Instruction Operation
+
+.PP
+When the source data comes from a 128\-bit memory operand, an
+implementation may fetch only the appropriate 64 bits; however,
+alignment to a 16\-byte boundary and normal segment checking will still
+be enforced.
+
+.PP
+The (V)PUNPCKLBW instruction interleaves the low\-order bytes of the
+source and destination operands, the (V)PUNPCKLWD instruction
+interleaves the low\-order words of the source and destination operands,
+the (V)PUNPCKLDQ instruction interleaves the low\-order doubleword (or
+doublewords) of the source and destination operands, and the
+(V)PUNPCKLQDQ instruction interleaves the low\-order quadwords of the
+source and destination operands.
+
+.PP
+These instructions can be used to convert bytes to words, words to
+doublewords, doublewords to quadwords, and quadwords to double
+quadwords, respectively, by placing all 0s in the source operand. Here,
+if the source operand contains all 0s, the result (stored in the
+destination operand) contains zero extensions of the high\-order data
+elements from the original value in the destination operand. For
+example, with the (V)PUNPCKLBW instruction the high\-order bytes are zero
+extended (that is, unpacked into unsigned word integers), and with the
+(V)PUNPCKLWD instruction, the high\-order words are zero extended
+(unpacked into unsigned doubleword integers).
+
+.PP
+In 64\-bit mode and not encoded with VEX/EVEX, using a REX prefix in the
+form of REX.R permits this instruction to access additional registers
+(XMM8\-XMM15).
+
+.PP
+Legacy SSE versions 64\-bit operand: The source operand can be an MMX
+technology register or a 32\-bit memory location. The destination operand
+is an MMX technology register.
+
+.PP
+128\-bit Legacy SSE versions: The second source operand is an XMM
+register or a 128\-bit memory location. The first source operand and
+destination operands are XMM registers. Bits (MAXVL\-1:128) of the
+corresponding YMM destination register remain unchanged.
+
+.PP
+VEX.128 encoded versions: The second source operand is an XMM register
+or a 128\-bit memory location. The first source operand and destination
+operands are XMM registers. Bits (MAXVL\-1:128) of the destination YMM
+register are zeroed.
+
+.PP
+VEX.256 encoded version: The second source operand is an YMM register or
+an 256\-bit memory location. The first source operand and destination
+operands are YMM registers. Bits (MAXVL\-1:256) of the corresponding ZMM
+register are zeroed.
+
+.PP
+EVEX encoded VPUNPCKLDQ/QDQ: The second source operand is a ZMM/YMM/XMM
+register, a 512/256/128\-bit memory location or a 512/256/128\-bit vector
+broadcasted from a 32/64\-bit memory location. The first source operand
+and destination operands are ZMM/YMM/XMM registers. The destination is
+conditionally updated with writemask k1.
+
+.PP
+EVEX encoded VPUNPCKLWD/BW: The second source operand is a ZMM/YMM/XMM
+register, a 512/256/128\-bit memory location. The first source operand
+and destination operands are ZMM/YMM/XMM registers. The destination is
+conditionally updated with writemask k1.
+
+.SH OPERATION
+.SS PUNPCKLBW instruction with 64\-bit operands:
+.PP
+.RS
+
+.nf
+DEST[63:56] ← SRC[31:24];
+DEST[55:48] ← DEST[31:24];
+DEST[47:40] ← SRC[23:16];
+DEST[39:32] ← DEST[23:16];
+DEST[31:24] ← SRC[15:8];
+DEST[23:16] ← DEST[15:8];
+DEST[15:8] ← SRC[7:0];
+DEST[7:0] ← DEST[7:0];
+
+.fi
+.RE
+
+.SS PUNPCKLWD instruction with 64\-bit operands:
+.PP
+.RS
+
+.nf
+DEST[63:48] ← SRC[31:16];
+DEST[47:32] ← DEST[31:16];
+DEST[31:16] ← SRC[15:0];
+DEST[15:0] ← DEST[15:0];
+
+.fi
+.RE
+
+.SS PUNPCKLDQ instruction with 64\-bit operands:
+.PP
+.RS
+
+.nf
+    DEST[63:32] ← SRC[31:0];
+    DEST[31:0] ← DEST[31:0];
+INTERLEAVE\_BYTES\_512b (SRC1, SRC2)
+TMP\_DEST[255:0]←INTERLEAVE\_BYTES\_256b(SRC1[255:0], SRC[255:0])
+TMP\_DEST[511:256]←INTERLEAVE\_BYTES\_256b(SRC1[511:256], SRC[511:256])
+INTERLEAVE\_BYTES\_256b (SRC1, SRC2)
+DEST[7:0] ← SRC1[7:0]
+DEST[15:8] ← SRC2[7:0]
+DEST[23:16] ← SRC1[15:8]
+DEST[31:24] ← SRC2[15:8]
+DEST[39:32] ← SRC1[23:16]
+DEST[47:40] ← SRC2[23:16]
+DEST[55:48] ← SRC1[31:24]
+DEST[63:56] ← SRC2[31:24]
+DEST[71:64] ← SRC1[39:32]
+DEST[79:72] ← SRC2[39:32]
+DEST[87:80] ← SRC1[47:40]
+DEST[95:88] ← SRC2[47:40]
+DEST[103:96] ← SRC1[55:48]
+DEST[111:104] ← SRC2[55:48]
+DEST[119:112] ← SRC1[63:56]
+DEST[127:120] ← SRC2[63:56]
+DEST[135:128] ← SRC1[135:128]
+DEST[143:136] ← SRC2[135:128]
+DEST[151:144] ← SRC1[143:136]
+DEST[159:152] ← SRC2[143:136]
+DEST[167:160] ← SRC1[151:144]
+DEST[175:168] ← SRC2[151:144]
+DEST[183:176] ← SRC1[159:152]
+DEST[191:184] ← SRC2[159:152]
+DEST[199:192] ← SRC1[167:160]
+DEST[207:200] ← SRC2[167:160]
+DEST[215:208] ← SRC1[175:168]
+DEST[223:216] ← SRC2[175:168]
+DEST[231:224] ← SRC1[183:176]
+DEST[239:232] ← SRC2[183:176]
+DEST[247:240] ← SRC1[191:184]
+DEST[255:248] ← SRC2[191:184]
+INTERLEAVE\_BYTES (SRC1, SRC2)
+DEST[7:0] ← SRC1[7:0]
+DEST[15:8] ← SRC2[7:0]
+DEST[23:16] ← SRC2[15:8]
+DEST[31:24] ← SRC2[15:8]
+DEST[39:32] ← SRC1[23:16]
+DEST[47:40] ← SRC2[23:16]
+DEST[55:48] ← SRC1[31:24]
+DEST[63:56] ← SRC2[31:24]
+DEST[71:64] ← SRC1[39:32]
+DEST[79:72] ← SRC2[39:32]
+DEST[87:80] ← SRC1[47:40]
+DEST[95:88] ← SRC2[47:40]
+DEST[103:96] ← SRC1[55:48]
+DEST[111:104] ← SRC2[55:48]
+DEST[119:112] ← SRC1[63:56]
+DEST[127:120] ← SRC2[63:56]
+INTERLEAVE\_WORDS\_512b (SRC1, SRC2)
+TMP\_DEST[255:0]←INTERLEAVE\_WORDS\_256b(SRC1[255:0], SRC[255:0])
+TMP\_DEST[511:256]←INTERLEAVE\_WORDS\_256b(SRC1[511:256], SRC[511:256])
+INTERLEAVE\_WORDS\_256b(SRC1, SRC2)
+DEST[15:0] ← SRC1[15:0]
+DEST[31:16] ← SRC2[15:0]
+DEST[47:32] ← SRC1[31:16]
+DEST[63:48] ← SRC2[31:16]
+DEST[79:64] ← SRC1[47:32]
+DEST[95:80] ← SRC2[47:32]
+DEST[111:96] ← SRC1[63:48]
+DEST[127:112] ← SRC2[63:48]
+DEST[143:128] ← SRC1[143:128]
+DEST[159:144] ← SRC2[143:128]
+DEST[175:160] ← SRC1[159:144]
+DEST[191:176] ← SRC2[159:144]
+DEST[207:192] ← SRC1[175:160]
+DEST[223:208] ← SRC2[175:160]
+DEST[239:224] ← SRC1[191:176]
+DEST[255:240] ← SRC2[191:176]
+INTERLEAVE\_WORDS (SRC1, SRC2)
+DEST[15:0] ← SRC1[15:0]
+DEST[31:16] ← SRC2[15:0]
+DEST[47:32] ← SRC1[31:16]
+DEST[63:48] ← SRC2[31:16]
+DEST[79:64] ← SRC1[47:32]
+DEST[95:80] ← SRC2[47:32]
+DEST[111:96] ← SRC1[63:48]
+DEST[127:112] ← SRC2[63:48]
+INTERLEAVE\_DWORDS\_512b (SRC1, SRC2)
+TMP\_DEST[255:0]←INTERLEAVE\_DWORDS\_256b(SRC1[255:0], SRC2[255:0])
+TMP\_DEST[511:256]←INTERLEAVE\_DWORDS\_256b(SRC1[511:256], SRC2[511:256])
+INTERLEAVE\_DWORDS\_256b(SRC1, SRC2)
+DEST[31:0] ← SRC1[31:0]
+DEST[63:32] ← SRC2[31:0]
+DEST[95:64] ← SRC1[63:32]
+DEST[127:96] ← SRC2[63:32]
+DEST[159:128] ← SRC1[159:128]
+DEST[191:160] ← SRC2[159:128]
+DEST[223:192] ← SRC1[191:160]
+DEST[255:224] ← SRC2[191:160]
+INTERLEAVE\_DWORDS(SRC1, SRC2)
+DEST[31:0] ← SRC1[31:0]
+DEST[63:32] ← SRC2[31:0]
+DEST[95:64] ← SRC1[63:32]
+DEST[127:96] ← SRC2[63:32]
+INTERLEAVE\_QWORDS\_512b (SRC1, SRC2)
+TMP\_DEST[255:0]←INTERLEAVE\_QWORDS\_256b(SRC1[255:0], SRC2[255:0])
+TMP\_DEST[511:256]←INTERLEAVE\_QWORDS\_256b(SRC1[511:256], SRC2[511:256])
+INTERLEAVE\_QWORDS\_256b(SRC1, SRC2)
+DEST[63:0] ← SRC1[63:0]
+DEST[127:64] ← SRC2[63:0]
+DEST[191:128] ← SRC1[191:128]
+DEST[255:192] ← SRC2[191:128]
+INTERLEAVE\_QWORDS(SRC1, SRC2)
+DEST[63:0] ← SRC1[63:0]
+DEST[127:64] ← SRC2[63:0]
+
+.fi
+.RE
+
+.SS PUNPCKLBW
+.PP
+.RS
+
+.nf
+DEST[127:0]←INTERLEAVE\_BYTES(DEST, SRC)
+DEST[255:127] (Unmodified)
+
+.fi
+.RE
+
+.SS VPUNPCKLBW (VEX.128 encoded instruction)
+.PP
+.RS
+
+.nf
+DEST[127:0]←INTERLEAVE\_BYTES(SRC1, SRC2)
+DEST[MAXVL\-1:127] ←0
+
+.fi
+.RE
+
+.SS VPUNPCKLBW (VEX.256 encoded instruction)
+.PP
+.RS
+
+.nf
+DEST[255:0]←INTERLEAVE\_BYTES\_256b(SRC1, SRC2)
+DEST[MAXVL\-1:256] ←0
+
+.fi
+.RE
+
+.SS VPUNPCKLBW (EVEX.512 encoded instruction)
+.PP
+.RS
+
+.nf
+(KL, VL) = (16, 128), (32, 256), (64, 512)
+IF VL = 128
+    TMP\_DEST[VL\-1:0]←INTERLEAVE\_BYTES(SRC1[VL\-1:0], SRC2[VL\-1:0])
+FI;
+IF VL = 256
+    TMP\_DEST[VL\-1:0]←INTERLEAVE\_BYTES\_256b(SRC1[VL\-1:0], SRC2[VL\-1:0])
+FI;
+IF VL = 512
+    TMP\_DEST[VL\-1:0]←INTERLEAVE\_BYTES\_512b(SRC1[VL\-1:0], SRC2[VL\-1:0])
+FI;
+FOR j←0 TO KL\-1
+    i←j * 8
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+7:i]←TMP\_DEST[i+7:i]
+        ELSE
+            IF *merging\-masking*
+                        ; merging\-masking
+                THEN *DEST[i+7:i] remains unchanged*
+                ELSE *zeroing\-masking*
+                            ; zeroing\-masking
+                    DEST[i+7:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+DEST[511:0]←INTERLEAVE\_BYTES\_512b(SRC1, SRC2)
+
+.fi
+.RE
+
+.SS PUNPCKLWD
+.PP
+.RS
+
+.nf
+DEST[127:0]←INTERLEAVE\_WORDS(DEST, SRC)
+DEST[255:127] (Unmodified)
+
+.fi
+.RE
+
+.SS VPUNPCKLWD (VEX.128 encoded instruction)
+.PP
+.RS
+
+.nf
+DEST[127:0]←INTERLEAVE\_WORDS(SRC1, SRC2)
+DEST[MAXVL\-1:127] ←0
+
+.fi
+.RE
+
+.SS VPUNPCKLWD (VEX.256 encoded instruction)
+.PP
+.RS
+
+.nf
+DEST[255:0]←INTERLEAVE\_WORDS\_256b(SRC1, SRC2)
+DEST[MAXVL\-1:256] ←0
+
+.fi
+.RE
+
+.SS VPUNPCKLWD (EVEX.512 encoded instruction)
+.PP
+.RS
+
+.nf
+(KL, VL) = (8, 128), (16, 256), (32, 512)
+IF VL = 128
+    TMP\_DEST[VL\-1:0]←INTERLEAVE\_WORDS(SRC1[VL\-1:0], SRC2[VL\-1:0])
+FI;
+IF VL = 256
+    TMP\_DEST[VL\-1:0]←INTERLEAVE\_WORDS\_256b(SRC1[VL\-1:0], SRC2[VL\-1:0])
+FI;
+IF VL = 512
+    TMP\_DEST[VL\-1:0]←INTERLEAVE\_WORDS\_512b(SRC1[VL\-1:0], SRC2[VL\-1:0])
+FI;
+FOR j←0 TO KL\-1
+    i←j * 16
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+15:i]←TMP\_DEST[i+15:i]
+        ELSE
+            IF *merging\-masking* ; merging\-masking
+                THEN *DEST[i+15:i] remains unchanged*
+                ELSE *zeroing\-masking*
+                        ; zeroing\-masking
+                    DEST[i+15:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+DEST[511:0]←INTERLEAVE\_WORDS\_512b(SRC1, SRC2)
+
+.fi
+.RE
+
+.SS PUNPCKLDQ
+.PP
+.RS
+
+.nf
+DEST[127:0]←INTERLEAVE\_DWORDS(DEST, SRC)
+DEST[MAXVL\-1:128] (Unmodified)
+
+.fi
+.RE
+
+.SS VPUNPCKLDQ (VEX.128 encoded instruction)
+.PP
+.RS
+
+.nf
+DEST[127:0]←INTERLEAVE\_DWORDS(SRC1, SRC2)
+DEST[MAXVL\-1:128] ←0
+
+.fi
+.RE
+
+.SS VPUNPCKLDQ (VEX.256 encoded instruction)
+.PP
+.RS
+
+.nf
+DEST[255:0]←INTERLEAVE\_DWORDS\_256b(SRC1, SRC2)
+DEST[MAXVL\-1:256] ←0
+
+.fi
+.RE
+
+.SS VPUNPCKLDQ (EVEX encoded instructions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (4, 128), (8, 256), (16, 512)
+FOR j←0 TO KL\-1
+    i←j * 32
+    IF (EVEX.b = 1) AND (SRC2 *is memory*)
+        THEN TMP\_SRC2[i+31:i]←SRC2[31:0]
+        ELSE TMP\_SRC2[i+31:i]←SRC2[i+31:i]
+    FI;
+ENDFOR;
+IF VL = 128
+    TMP\_DEST[VL\-1:0]←INTERLEAVE\_DWORDS(SRC1[VL\-1:0], TMP\_SRC2[VL\-1:0])
+FI;
+IF VL = 256
+    TMP\_DEST[VL\-1:0]←INTERLEAVE\_DWORDS\_256b(SRC1[VL\-1:0], TMP\_SRC2[VL\-1:0])
+FI;
+IF VL = 512
+    TMP\_DEST[VL\-1:0]←INTERLEAVE\_DWORDS\_512b(SRC1[VL\-1:0], TMP\_SRC2[VL\-1:0])
+FI;
+FOR j←0 TO KL\-1
+    i←j * 32
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+31:i]←TMP\_DEST[i+31:i]
+        ELSE
+            IF *merging\-masking*
+                        ; merging\-masking
+                THEN *DEST[i+31:i] remains unchanged*
+                ELSE *zeroing\-masking*
+                            ; zeroing\-masking
+                    DEST[i+31:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST511:0]←INTERLEAVE\_DWORDS\_512b(SRC1, SRC2)
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS PUNPCKLQDQ
+.PP
+.RS
+
+.nf
+DEST[127:0]←INTERLEAVE\_QWORDS(DEST, SRC)
+DEST[MAXVL\-1:128] (Unmodified)
+
+.fi
+.RE
+
+.SS VPUNPCKLQDQ (VEX.128 encoded instruction)
+.PP
+.RS
+
+.nf
+DEST[127:0]←INTERLEAVE\_QWORDS(SRC1, SRC2)
+DEST[MAXVL\-1:128] ←0
+
+.fi
+.RE
+
+.SS VPUNPCKLQDQ (VEX.256 encoded instruction)
+.PP
+.RS
+
+.nf
+DEST[255:0]←INTERLEAVE\_QWORDS\_256b(SRC1, SRC2)
+DEST[MAXVL\-1:256] ←0
+
+.fi
+.RE
+
+.SS VPUNPCKLQDQ (EVEX encoded instructions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (2, 128), (4, 256), (8, 512)
+FOR j←0 TO KL\-1
+    i←j * 64
+    IF (EVEX.b = 1) AND (SRC2 *is memory*)
+        THEN TMP\_SRC2[i+63:i]←SRC2[63:0]
+        ELSE TMP\_SRC2[i+63:i]←SRC2[i+63:i]
+    FI;
+ENDFOR;
+IF VL = 128
+    TMP\_DEST[VL\-1:0]←INTERLEAVE\_QWORDS(SRC1[VL\-1:0], TMP\_SRC2[VL\-1:0])
+FI;
+IF VL = 256
+    TMP\_DEST[VL\-1:0]←INTERLEAVE\_QWORDS\_256b(SRC1[VL\-1:0], TMP\_SRC2[VL\-1:0])
+FI;
+IF VL = 512
+    TMP\_DEST[VL\-1:0]←INTERLEAVE\_QWORDS\_512b(SRC1[VL\-1:0], TMP\_SRC2[VL\-1:0])
+FI;
+FOR j←0 TO KL\-1
+    i←j * 64
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+63:i]←TMP\_DEST[i+63:i]
+        ELSE
+            IF *merging\-masking*
+                        ; merging\-masking
+                THEN *DEST[i+63:i] remains unchanged*
+                ELSE *zeroing\-masking*
+                            ; zeroing\-masking
+                    DEST[i+63:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SH INTEL C/C++ COMPILER INTRINSIC EQUIVALENTS
+.PP
+.RS
+
+.nf
+VPUNPCKLBW \_\_m512i \_mm512\_unpacklo\_epi8(\_\_m512i a, \_\_m512i b);
+
+VPUNPCKLBW \_\_m512i \_mm512\_mask\_unpacklo\_epi8(\_\_m512i s, \_\_mmask64 k, \_\_m512i a, \_\_m512i b);
+
+VPUNPCKLBW \_\_m512i \_mm512\_maskz\_unpacklo\_epi8( \_\_mmask64 k, \_\_m512i a, \_\_m512i b);
+
+VPUNPCKLBW \_\_m256i \_mm256\_mask\_unpacklo\_epi8(\_\_m256i s, \_\_mmask32 k, \_\_m256i a, \_\_m256i b);
+
+VPUNPCKLBW \_\_m256i \_mm256\_maskz\_unpacklo\_epi8( \_\_mmask32 k, \_\_m256i a, \_\_m256i b);
+
+VPUNPCKLBW \_\_m128i \_mm\_mask\_unpacklo\_epi8(v s, \_\_mmask16 k, \_\_m128i a, \_\_m128i b);
+
+VPUNPCKLBW \_\_m128i \_mm\_maskz\_unpacklo\_epi8( \_\_mmask16 k, \_\_m128i a, \_\_m128i b);
+
+VPUNPCKLWD \_\_m512i \_mm512\_unpacklo\_epi16(\_\_m512i a, \_\_m512i b);
+
+VPUNPCKLWD \_\_m512i \_mm512\_mask\_unpacklo\_epi16(\_\_m512i s, \_\_mmask32 k, \_\_m512i a, \_\_m512i b);
+
+VPUNPCKLWD \_\_m512i \_mm512\_maskz\_unpacklo\_epi16( \_\_mmask32 k, \_\_m512i a, \_\_m512i b);
+
+VPUNPCKLWD \_\_m256i \_mm256\_mask\_unpacklo\_epi16(\_\_m256i s, \_\_mmask16 k, \_\_m256i a, \_\_m256i b);
+
+VPUNPCKLWD \_\_m256i \_mm256\_maskz\_unpacklo\_epi16( \_\_mmask16 k, \_\_m256i a, \_\_m256i b);
+
+VPUNPCKLWD \_\_m128i \_mm\_mask\_unpacklo\_epi16(v s, \_\_mmask8 k, \_\_m128i a, \_\_m128i b);
+
+VPUNPCKLWD \_\_m128i \_mm\_maskz\_unpacklo\_epi16( \_\_mmask8 k, \_\_m128i a, \_\_m128i b);
+
+VPUNPCKLDQ \_\_m512i \_mm512\_unpacklo\_epi32(\_\_m512i a, \_\_m512i b);
+
+VPUNPCKLDQ \_\_m512i \_mm512\_mask\_unpacklo\_epi32(\_\_m512i s, \_\_mmask16 k, \_\_m512i a, \_\_m512i b);
+
+VPUNPCKLDQ \_\_m512i \_mm512\_maskz\_unpacklo\_epi32( \_\_mmask16 k, \_\_m512i a, \_\_m512i b);
+
+VPUNPCKLDQ \_\_m256i \_mm256\_mask\_unpacklo\_epi32(\_\_m256i s, \_\_mmask8 k, \_\_m256i a, \_\_m256i b);
+
+VPUNPCKLDQ \_\_m256i \_mm256\_maskz\_unpacklo\_epi32( \_\_mmask8 k, \_\_m256i a, \_\_m256i b);
+
+VPUNPCKLDQ \_\_m128i \_mm\_mask\_unpacklo\_epi32(v s, \_\_mmask8 k, \_\_m128i a, \_\_m128i b);
+
+VPUNPCKLDQ \_\_m128i \_mm\_maskz\_unpacklo\_epi32( \_\_mmask8 k, \_\_m128i a, \_\_m128i b);
+
+VPUNPCKLQDQ \_\_m512i \_mm512\_unpacklo\_epi64(\_\_m512i a, \_\_m512i b);
+
+VPUNPCKLQDQ \_\_m512i \_mm512\_mask\_unpacklo\_epi64(\_\_m512i s, \_\_mmask8 k, \_\_m512i a, \_\_m512i b);
+
+VPUNPCKLQDQ \_\_m512i \_mm512\_maskz\_unpacklo\_epi64( \_\_mmask8 k, \_\_m512i a, \_\_m512i b);
+
+VPUNPCKLQDQ \_\_m256i \_mm256\_mask\_unpacklo\_epi64(\_\_m256i s, \_\_mmask8 k, \_\_m256i a, \_\_m256i b);
+
+VPUNPCKLQDQ \_\_m256i \_mm256\_maskz\_unpacklo\_epi64( \_\_mmask8 k, \_\_m256i a, \_\_m256i b);
+
+VPUNPCKLQDQ \_\_m128i \_mm\_mask\_unpacklo\_epi64(\_\_m128i s, \_\_mmask8 k, \_\_m128i a, \_\_m128i b);
+
+VPUNPCKLQDQ \_\_m128i \_mm\_maskz\_unpacklo\_epi64( \_\_mmask8 k, \_\_m128i a, \_\_m128i b);
+
+PUNPCKLBW:\_\_m64 \_mm\_unpacklo\_pi8 (\_\_m64 m1, \_\_m64 m2)
+
+(V)PUNPCKLBW:\_\_m128i \_mm\_unpacklo\_epi8 (\_\_m128i m1, \_\_m128i m2)
+
+VPUNPCKLBW:\_\_m256i \_mm256\_unpacklo\_epi8 (\_\_m256i m1, \_\_m256i m2)
+
+PUNPCKLWD:\_\_m64 \_mm\_unpacklo\_pi16 (\_\_m64 m1, \_\_m64 m2)
+
+(V)PUNPCKLWD:\_\_m128i \_mm\_unpacklo\_epi16 (\_\_m128i m1, \_\_m128i m2)
+
+VPUNPCKLWD:\_\_m256i \_mm256\_unpacklo\_epi16 (\_\_m256i m1, \_\_m256i m2)
+
+PUNPCKLDQ:\_\_m64 \_mm\_unpacklo\_pi32 (\_\_m64 m1, \_\_m64 m2)
+
+(V)PUNPCKLDQ:\_\_m128i \_mm\_unpacklo\_epi32 (\_\_m128i m1, \_\_m128i m2)
+
+VPUNPCKLDQ:\_\_m256i \_mm256\_unpacklo\_epi32 (\_\_m256i m1, \_\_m256i m2)
+
+(V)PUNPCKLQDQ:\_\_m128i \_mm\_unpacklo\_epi64 (\_\_m128i m1, \_\_m128i m2)
+
+VPUNPCKLQDQ:\_\_m256i \_mm256\_unpacklo\_epi64 (\_\_m256i m1, \_\_m256i m2)
+
+.fi
+.RE
+
+.SH FLAGS AFFECTED
+.PP
+None.
+
+.SH NUMERIC EXCEPTIONS
+.PP
+None.
+
+.SH OTHER EXCEPTIONS
+.PP
+Non\-EVEX\-encoded instruction, see Exceptions Type 4.
+
+.PP
+EVEX\-encoded VPUNPCKLDQ/QDQ, see Exceptions Type E4NF.
+
+.PP
+EVEX\-encoded VPUNPCKLBW/WD, see Exceptions Type E4NF.nb.
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+MIT licensed by TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

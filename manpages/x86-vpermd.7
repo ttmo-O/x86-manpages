@@ -1,0 +1,239 @@
+.nh
+.TH "X86-VPERMD-VPERMW" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+VPERMD-VPERMW - PERMUTE PACKED DOUBLEWORDS-WORDS ELEMENTS
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp / En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+T{
+VEX.256.66.0F38.W0 36 /r VPERMD ymm1, ymm2, ymm3/m256
+T}
+	A	V/V	AVX2	T{
+Permute doublewords in ymm3/m256 using indices in ymm2 and store the result in ymm1.
+T}
+T{
+EVEX.256.66.0F38.W0 36 /r VPERMD ymm1 {k1}{z}, ymm2, ymm3/m256/m32bcst
+T}
+	B	V/V	AVX512VL AVX512F	T{
+Permute doublewords in ymm3/m256/m32bcst using indexes in ymm2 and store the result in ymm1 using writemask k1.
+T}
+T{
+EVEX.512.66.0F38.W0 36 /r VPERMD zmm1 {k1}{z}, zmm2, zmm3/m512/m32bcst
+T}
+	B	V/V	AVX512F	T{
+Permute doublewords in zmm3/m512/m32bcst using indices in zmm2 and store the result in zmm1 using writemask k1.
+T}
+T{
+EVEX.128.66.0F38.W1 8D /r VPERMW xmm1 {k1}{z}, xmm2, xmm3/m128
+T}
+	C	V/V	AVX512VL AVX512BW	T{
+Permute word integers in xmm3/m128 using indexes in xmm2 and store the result in xmm1 using writemask k1.
+T}
+T{
+EVEX.256.66.0F38.W1 8D /r VPERMW ymm1 {k1}{z}, ymm2, ymm3/m256
+T}
+	C	V/V	AVX512VL AVX512BW	T{
+Permute word integers in ymm3/m256 using indexes in ymm2 and store the result in ymm1 using writemask k1.
+T}
+T{
+EVEX.512.66.0F38.W1 8D /r VPERMW zmm1 {k1}{z}, zmm2, zmm3/m512
+T}
+	C	V/V	AVX512BW	T{
+Permute word integers in zmm3/m512 using indexes in zmm2 and store the result in zmm1 using writemask k1.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+Op/En	Tuple Type	Operand 1	Operand 2	Operand 3	Operand 4
+A	NA	ModRM:reg (w)	VEX.vvvv	ModRM:r/m (r)	NA
+B	Full	ModRM:reg (w)	EVEX.vvvv	ModRM:r/m (r)	NA
+C	Full Mem	ModRM:reg (w)	VEX.vvvv	ModRM:r/m (r)	NA
+.TE
+
+.SS Description
+.PP
+Copies doublewords (or words) from the second source operand (the third
+operand) to the destination operand (the first operand) according to the
+indices in the first source operand (the second operand). Note that this
+instruction permits a doubleword (word) in the source operand to be
+copied to more than one location in the destination operand.
+
+.PP
+VEX.256 encoded VPERMD: The first and second operands are YMM registers,
+the third operand can be a YMM register or memory location. Bits
+(MAXVL\-1:256) of the corresponding destination register are zeroed.
+
+.PP
+EVEX encoded VPERMD: The first and second operands are ZMM/YMM
+registers, the third operand can be a ZMM/YMM register, a 512/256\-bit
+memory location or a 512/256\-bit vector broadcasted from a 32\-bit memory
+location. The elements in the destination are updated using the
+writemask k1.
+
+.PP
+VPERMW: first and second operands are ZMM/YMM/XMM registers, the third
+operand can be a ZMM/YMM/XMM register, or a 512/256/128\-bit memory
+location. The destination is updated using the writemask k1.
+
+.PP
+EVEX.128 encoded versions: Bits (MAXVL\-1:128) of the corresponding ZMM
+register are zeroed.
+
+.SS Operation
+.SS VPERMD (EVEX encoded versions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (8, 256), (16, 512)
+IF VL = 256 THEN n←2; FI;
+IF VL = 512 THEN n←3; FI;
+FOR j←0 TO KL\-1
+    i←j * 32
+    id ← 32*SRC1[i+n:i]
+    IF k1[j] OR *no writemask*
+        THEN
+            IF (EVEX.b = 1) AND (SRC2 *is memory*)
+                THEN DEST[i+31:i]←SRC2[31:0];
+                ELSE DEST[i+31:i]←SRC2[id+31:id];
+            FI;
+        ELSE
+            IF *merging\-masking* ; merging\-masking
+                THEN *DEST[i+31:i] remains unchanged*
+                ELSE ; zeroing\-masking
+                    DEST[i+31:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS VPERMD (VEX.256 encoded version)
+.PP
+.RS
+
+.nf
+DEST[31:0]←(SRC2[255:0] >> (SRC1[2:0] * 32))[31:0];
+DEST[63:32]←(SRC2[255:0] >> (SRC1[34:32] * 32))[31:0];
+DEST[95:64]←(SRC2[255:0] >> (SRC1[66:64] * 32))[31:0];
+DEST[127:96]←(SRC2[255:0] >> (SRC1[98:96] * 32))[31:0];
+DEST[159:128]←(SRC2[255:0] >> (SRC1[130:128] * 32))[31:0];
+DEST[191:160]←(SRC2[255:0] >> (SRC1[162:160] * 32))[31:0];
+DEST[223:192]←(SRC2[255:0] >> (SRC1[194:192] * 32))[31:0];
+DEST[255:224]←(SRC2[255:0] >> (SRC1[226:224] * 32))[31:0];
+DEST[MAXVL\-1:256] ← 0
+
+.fi
+.RE
+
+.SS VPERMW (EVEX encoded versions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (8, 128), (16, 256), (32, 512)
+IF VL = 128 THEN n←2; FI;
+IF VL = 256 THEN n←3; FI;
+IF VL = 512 THEN n←4; FI;
+FOR j←0 TO KL\-1
+    i←j * 16
+    id ← 16*SRC1[i+n:i]
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+15:i]←SRC2[id+15:id]
+        ELSE
+            IF *merging\-masking*
+                THEN *DEST[i+15:i] remains unchanged*
+                ELSE ; zeroing\-masking
+                    DEST[i+15:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS Intel C/C++ Compiler Intrinsic Equivalent
+.PP
+.RS
+
+.nf
+VPERMD \_\_m512i \_mm512\_permutexvar\_epi32( \_\_m512i idx, \_\_m512i a);
+
+VPERMD \_\_m512i \_mm512\_mask\_permutexvar\_epi32(\_\_m512i s, \_\_mmask16 k, \_\_m512i idx, \_\_m512i a);
+
+VPERMD \_\_m512i \_mm512\_maskz\_permutexvar\_epi32( \_\_mmask16 k, \_\_m512i idx, \_\_m512i a);
+
+VPERMD \_\_m256i \_mm256\_permutexvar\_epi32( \_\_m256i idx, \_\_m256i a);
+
+VPERMD \_\_m256i \_mm256\_mask\_permutexvar\_epi32(\_\_m256i s, \_\_mmask8 k, \_\_m256i idx, \_\_m256i a);
+
+VPERMD \_\_m256i \_mm256\_maskz\_permutexvar\_epi32( \_\_mmask8 k, \_\_m256i idx, \_\_m256i a);
+
+VPERMW \_\_m512i \_mm512\_permutexvar\_epi16( \_\_m512i idx, \_\_m512i a);
+
+VPERMW \_\_m512i \_mm512\_mask\_permutexvar\_epi16(\_\_m512i s, \_\_mmask32 k, \_\_m512i idx, \_\_m512i a);
+
+VPERMW \_\_m512i \_mm512\_maskz\_permutexvar\_epi16( \_\_mmask32 k, \_\_m512i idx, \_\_m512i a);
+
+VPERMW \_\_m256i \_mm256\_permutexvar\_epi16( \_\_m256i idx, \_\_m256i a);
+
+VPERMW \_\_m256i \_mm256\_mask\_permutexvar\_epi16(\_\_m256i s, \_\_mmask16 k, \_\_m256i idx, \_\_m256i a);
+
+VPERMW \_\_m256i \_mm256\_maskz\_permutexvar\_epi16( \_\_mmask16 k, \_\_m256i idx, \_\_m256i a);
+
+VPERMW \_\_m128i \_mm\_permutexvar\_epi16( \_\_m128i idx, \_\_m128i a);
+
+VPERMW \_\_m128i \_mm\_mask\_permutexvar\_epi16(\_\_m128i s, \_\_mmask8 k, \_\_m128i idx, \_\_m128i a);
+
+VPERMW \_\_m128i \_mm\_maskz\_permutexvar\_epi16( \_\_mmask8 k, \_\_m128i idx, \_\_m128i a);
+
+.fi
+.RE
+
+.SS SIMD Floating\-Point Exceptions
+.PP
+None
+
+.SS Other Exceptions
+.PP
+Non\-EVEX\-encoded instruction, see Exceptions Type 4.
+
+.PP
+EVEX\-encoded VPERMD, see Exceptions Type E4NF.
+
+.PP
+EVEX\-encoded VPERMW, see Exceptions Type E4NF.nb.
+
+.TS
+allbox;
+l l 
+l l .
+#UD	If VEX.L = 0.
+	If EVEX.L’L = 0 for VPERMD.
+.TE
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+MIT licensed by TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

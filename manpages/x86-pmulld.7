@@ -1,0 +1,297 @@
+.nh
+.TH "X86-PMULLD-PMULLQ" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+PMULLD-PMULLQ - MULTIPLY PACKED INTEGERS AND STORE LOW RESULT
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp/En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+T{
+66 0F 38 40 /r PMULLD xmm1, xmm2/m128
+T}
+	A	V/V	SSE4\_1	T{
+Multiply the packed dword signed integers in xmm1 and xmm2/m128 and store the low 32 bits of each product in xmm1.
+T}
+T{
+VEX.128.66.0F38.WIG 40 /r VPMULLD xmm1, xmm2, xmm3/m128
+T}
+	B	V/V	AVX	T{
+Multiply the packed dword signed integers in xmm2 and xmm3/m128 and store the low 32 bits of each product in xmm1.
+T}
+T{
+VEX.256.66.0F38.WIG 40 /r VPMULLD ymm1, ymm2, ymm3/m256
+T}
+	B	V/V	AVX2	T{
+Multiply the packed dword signed integers in ymm2 and ymm3/m256 and store the low 32 bits of each product in ymm1.
+T}
+T{
+EVEX.128.66.0F38.W0 40 /r VPMULLD xmm1 {k1}{z}, xmm2, xmm3/m128/m32bcst
+T}
+	C	V/V	AVX512VL AVX512F	T{
+Multiply the packed dword signed integers in xmm2 and xmm3/m128/m32bcst and store the low 32 bits of each product in xmm1 under writemask k1.
+T}
+T{
+EVEX.256.66.0F38.W0 40 /r VPMULLD ymm1 {k1}{z}, ymm2, ymm3/m256/m32bcst
+T}
+	C	V/V	AVX512VL AVX512F	T{
+Multiply the packed dword signed integers in ymm2 and ymm3/m256/m32bcst and store the low 32 bits of each product in ymm1 under writemask k1.
+T}
+T{
+EVEX.512.66.0F38.W0 40 /r VPMULLD zmm1 {k1}{z}, zmm2, zmm3/m512/m32bcst
+T}
+	C	V/V	AVX512F	T{
+Multiply the packed dword signed integers in zmm2 and zmm3/m512/m32bcst and store the low 32 bits of each product in zmm1 under writemask k1.
+T}
+T{
+EVEX.128.66.0F38.W1 40 /r VPMULLQ xmm1 {k1}{z}, xmm2, xmm3/m128/m64bcst
+T}
+	C	V/V	AVX512VL AVX512DQ	T{
+Multiply the packed qword signed integers in xmm2 and xmm3/m128/m64bcst and store the low 64 bits of each product in xmm1 under writemask k1.
+T}
+T{
+EVEX.256.66.0F38.W1 40 /r VPMULLQ ymm1 {k1}{z}, ymm2, ymm3/m256/m64bcst
+T}
+	C	V/V	AVX512VL AVX512DQ	T{
+Multiply the packed qword signed integers in ymm2 and ymm3/m256/m64bcst and store the low 64 bits of each product in ymm1 under writemask k1.
+T}
+T{
+EVEX.512.66.0F38.W1 40 /r VPMULLQ zmm1 {k1}{z}, zmm2, zmm3/m512/m64bcst
+T}
+	C	V/V	AVX512DQ	T{
+Multiply the packed qword signed integers in zmm2 and zmm3/m512/m64bcst and store the low 64 bits of each product in zmm1 under writemask k1.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+Op/En	Tuple Type	Operand 1	Operand 2	Operand 3	Operand 4
+A	NA	ModRM:reg (r, w)	ModRM:r/m (r)	NA	NA
+B	NA	ModRM:reg (w)	VEX.vvvv (r)	ModRM:r/m (r)	NA
+C	Full	ModRM:reg (w)	EVEX.vvvv (r)	ModRM:r/m (r)	NA
+.TE
+
+.SS Description
+.PP
+Performs a SIMD signed multiply of the packed signed dword/qword
+integers from each element of the first source operand with the
+corresponding element in the second source operand. The low 32/64 bits
+of each 64/128\-bit intermediate results are stored to the destination
+operand.
+
+.PP
+128\-bit Legacy SSE version: The first source and destination operands
+are XMM registers. The second source operand is an XMM register or a
+128\-bit memory location. Bits (MAXVL\-1:128) of the corresponding ZMM
+destination register remain unchanged.
+
+.PP
+VEX.128 encoded version: The first source and destination operands are
+XMM registers. The second source operand is an XMM register or a 128\-bit
+memory location. Bits (MAXVL\-1:128) of the corresponding ZMM register
+are zeroed.
+
+.PP
+VEX.256 encoded version: The first source operand is a YMM register; The
+second source operand is a YMM register or 256\-bit memory location. Bits
+(MAXVL\-1:256) of the corresponding destination ZMM register are zeroed.
+
+.PP
+EVEX encoded versions: The first source operand is a ZMM/YMM/XMM
+register. The second source operand is a ZMM/YMM/XMM register, a
+512/256/128\-bit memory location or a 512/256/128\-bit vector broadcasted
+from a 32/64\-bit memory location. The destination operand is
+conditionally updated based on writemask k1.
+
+.SS Operation
+.SS VPMULLQ (EVEX encoded versions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (2, 128), (4, 256), (8, 512)
+FOR j←0 TO KL\-1
+    i←j * 64
+    IF k1[j] OR *no writemask* THEN
+            IF (EVEX.b == 1) AND (SRC2 *is memory*)
+                THEN Temp[127:0]←SRC1[i+63:i] * SRC2[63:0]
+                ELSE Temp[127:0]←SRC1[i+63:i] * SRC2[i+63:i]
+            FI;
+            DEST[i+63:i] ← Temp[63:0]
+        ELSE
+            IF *merging\-masking* ; merging\-masking
+                THEN *DEST[i+63:i] remains unchanged*
+                ELSE ; zeroing\-masking
+                    DEST[i+63:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS VPMULLD (EVEX encoded versions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (4, 128), (8, 256), (16, 512)
+FOR j←0 TO KL\-1
+    i←j * 32
+    IF k1[j] OR *no writemask* THEN
+            IF (EVEX.b = 1) AND (SRC2 *is memory*)
+                THEN Temp[63:0]←SRC1[i+31:i] * SRC2[31:0]
+                ELSE Temp[63:0]←SRC1[i+31:i] * SRC2[i+31:i]
+            FI;
+            DEST[i+31:i] ← Temp[31:0]
+        ELSE
+            IF *merging\-masking* ; merging\-masking
+                *DEST[i+31:i] remains unchanged*
+                ELSE
+                        ; zeroing\-masking
+                    DEST[i+31:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS VPMULLD (VEX.256 encoded version)
+.PP
+.RS
+
+.nf
+Temp0[63:0]←SRC1[31:0] * SRC2[31:0]
+Temp1[63:0]←SRC1[63:32] * SRC2[63:32]
+Temp2[63:0]←SRC1[95:64] * SRC2[95:64]
+Temp3[63:0]←SRC1[127:96] * SRC2[127:96]
+Temp4[63:0]←SRC1[159:128] * SRC2[159:128]
+Temp5[63:0]←SRC1[191:160] * SRC2[191:160]
+Temp6[63:0]←SRC1[223:192] * SRC2[223:192]
+Temp7[63:0]←SRC1[255:224] * SRC2[255:224]
+DEST[31:0] ← Temp0[31:0]
+DEST[63:32] ← Temp1[31:0]
+DEST[95:64] ← Temp2[31:0]
+DEST[127:96] ← Temp3[31:0]
+DEST[159:128] ← Temp4[31:0]
+DEST[191:160] ← Temp5[31:0]
+DEST[223:192] ← Temp6[31:0]
+DEST[255:224] ← Temp7[31:0]
+DEST[MAXVL\-1:256] ← 0
+
+.fi
+.RE
+
+.SS VPMULLD (VEX.128 encoded version)
+.PP
+.RS
+
+.nf
+Temp0[63:0]←SRC1[31:0] * SRC2[31:0]
+Temp1[63:0]←SRC1[63:32] * SRC2[63:32]
+Temp2[63:0]←SRC1[95:64] * SRC2[95:64]
+Temp3[63:0]←SRC1[127:96] * SRC2[127:96]
+DEST[31:0] ← Temp0[31:0]
+DEST[63:32] ← Temp1[31:0]
+DEST[95:64] ← Temp2[31:0]
+DEST[127:96] ← Temp3[31:0]
+DEST[MAXVL\-1:128] ← 0
+
+.fi
+.RE
+
+.SS PMULLD (128\-bit Legacy SSE version)
+.PP
+.RS
+
+.nf
+Temp0[63:0]←DEST[31:0] * SRC[31:0]
+Temp1[63:0]←DEST[63:32] * SRC[63:32]
+Temp2[63:0]←DEST[95:64] * SRC[95:64]
+Temp3[63:0]←DEST[127:96] * SRC[127:96]
+DEST[31:0] ← Temp0[31:0]
+DEST[63:32] ← Temp1[31:0]
+DEST[95:64] ← Temp2[31:0]
+DEST[127:96] ← Temp3[31:0]
+DEST[MAXVL\-1:128] (Unmodified)
+
+.fi
+.RE
+
+.SS Intel C/C++ Compiler Intrinsic Equivalent
+.PP
+.RS
+
+.nf
+VPMULLD \_\_m512i \_mm512\_mullo\_epi32(\_\_m512i a, \_\_m512i b);
+
+VPMULLD \_\_m512i \_mm512\_mask\_mullo\_epi32(\_\_m512i s, \_\_mmask16 k, \_\_m512i a, \_\_m512i b);
+
+VPMULLD \_\_m512i \_mm512\_maskz\_mullo\_epi32( \_\_mmask16 k, \_\_m512i a, \_\_m512i b);
+
+VPMULLD \_\_m256i \_mm256\_mask\_mullo\_epi32(\_\_m256i s, \_\_mmask8 k, \_\_m256i a, \_\_m256i b);
+
+VPMULLD \_\_m256i \_mm256\_maskz\_mullo\_epi32( \_\_mmask8 k, \_\_m256i a, \_\_m256i b);
+
+VPMULLD \_\_m128i \_mm\_mask\_mullo\_epi32(\_\_m128i s, \_\_mmask8 k, \_\_m128i a, \_\_m128i b);
+
+VPMULLD \_\_m128i \_mm\_maskz\_mullo\_epi32( \_\_mmask8 k, \_\_m128i a, \_\_m128i b);
+
+VPMULLD \_\_m256i \_mm256\_mullo\_epi32(\_\_m256i a, \_\_m256i b);
+
+PMULLD \_\_m128i \_mm\_mullo\_epi32(\_\_m128i a, \_\_m128i b);
+
+VPMULLQ \_\_m512i \_mm512\_mullo\_epi64(\_\_m512i a, \_\_m512i b);
+
+VPMULLQ \_\_m512i \_mm512\_mask\_mullo\_epi64(\_\_m512i s, \_\_mmask8 k, \_\_m512i a, \_\_m512i b);
+
+VPMULLQ \_\_m512i \_mm512\_maskz\_mullo\_epi64( \_\_mmask8 k, \_\_m512i a, \_\_m512i b);
+
+VPMULLQ \_\_m256i \_mm256\_mullo\_epi64(\_\_m256i a, \_\_m256i b);
+
+VPMULLQ \_\_m256i \_mm256\_mask\_mullo\_epi64(\_\_m256i s, \_\_mmask8 k, \_\_m256i a, \_\_m256i b);
+
+VPMULLQ \_\_m256i \_mm256\_maskz\_mullo\_epi64( \_\_mmask8 k, \_\_m256i a, \_\_m256i b);
+
+VPMULLQ \_\_m128i \_mm\_mullo\_epi64(\_\_m128i a, \_\_m128i b);
+
+VPMULLQ \_\_m128i \_mm\_mask\_mullo\_epi64(\_\_m128i s, \_\_mmask8 k, \_\_m128i a, \_\_m128i b);
+
+VPMULLQ \_\_m128i \_mm\_maskz\_mullo\_epi64( \_\_mmask8 k, \_\_m128i a, \_\_m128i b);
+
+.fi
+.RE
+
+.SS SIMD Floating\-Point Exceptions
+.PP
+None
+
+.SS Other Exceptions
+.PP
+Non\-EVEX\-encoded instruction, see Exceptions Type 4.
+
+.PP
+EVEX\-encoded instruction, see Exceptions Type E4.
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+MIT licensed by TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

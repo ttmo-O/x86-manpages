@@ -1,0 +1,202 @@
+.nh
+.TH "X86-SHRD" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+SHRD - DOUBLE PRECISION SHIFT RIGHT
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+\fB\fCOpcode*\fR	\fB\fCInstruction\fR	\fB\fCOp/En\fR	\fB\fC64\-Bit Mode\fR	\fB\fCCompat/Leg Mode\fR	\fB\fCDescription\fR
+0F AC /r ib	SHRD r/m16, r16, imm8	MRI	Valid	Valid	Shift r16 in from the left.
+0F AD /r	SHRD r/m16, r16, CL	MRC	Valid	Valid	Shift r16 in from the left.
+0F AC /r ib	SHRD r/m32, r32, imm8	MRI	Valid	Valid	Shift r32 in from the left.
+REX.W + 0F AC /r ib	SHRD r/m64, r64, imm8	MRI	Valid	N.E.	Shift r64 in from the left.
+0F AD /r	SHRD r/m32, r32, CL	MRC	Valid	Valid	Shift r32 in from the left.
+REX.W + 0F AD /r	SHRD r/m64, r64, CL	MRC	Valid	N.E.	Shift r64 in from the left.
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l 
+l l l l l .
+Op/En	Operand 1	Operand 2	Operand 3	Operand 4
+MRI	ModRM:r/m (w)	ModRM:reg (r)	imm8	NA
+MRC	ModRM:r/m (w)	ModRM:reg (r)	CL	NA
+.TE
+
+.SH DESCRIPTION
+.PP
+The SHRD instruction is useful for multi\-precision shifts of 64 bits or
+more.
+
+.PP
+The instruction shifts the first operand (destination operand) to the
+right the number of bits specified by the third operand (count operand).
+The second operand (source operand) provides bits to shift in from the
+left (starting with the most significant bit of the destination
+operand).
+
+.PP
+The destination operand can be a register or a memory location; the
+source operand is a register. The count operand is an unsigned integer
+that can be stored in an immediate byte or the CL register. If the count
+operand is CL, the shift count is the logical AND of CL and a count
+mask. In non\-64\-bit modes and default 64\-bit mode, the width of the
+count mask is 5 bits. Only bits 0 through 4 of the count register are
+used (masking the count to a value between 0 and 31). If the count is
+greater than the operand size, the result is undefined.
+
+.PP
+If the count is 1 or greater, the CF flag is filled with the last bit
+shifted out of the destination operand. For a 1\-bit shift, the OF flag
+is set if a sign change occurred; otherwise, it is cleared. If the count
+operand is 0, flags are not affected.
+
+.PP
+In 64\-bit mode, the instruction’s default operation size is 32 bits.
+Using a REX prefix in the form of REX.R permits access to additional
+registers (R8\-R15). Using a REX prefix in the form of REX.W promotes
+operation to 64 bits (upgrading the count mask to 6 bits). See the
+summary chart at the beginning of this section for encoding data and
+limits.
+
+.SH OPERATION
+.PP
+.RS
+
+.nf
+IF (In 64\-Bit Mode and REX.W = 1)
+    THEN COUNT ← COUNT MOD 64;
+    ELSE COUNT ← COUNT MOD 32;
+FI
+SIZE ← OperandSize;
+IF COUNT = 0
+    THEN
+        No operation;
+    ELSE
+        IF COUNT > SIZE
+            THEN (* Bad parameters *)
+                DEST is undefined;
+                CF, OF, SF, ZF, AF, PF are undefined;
+            ELSE (* Perform the shift *)
+                CF ← BIT[DEST, COUNT – 1]; (* Last bit shifted out on exit *)
+                FOR i ← 0 TO SIZE – 1 – COUNT
+                    DO
+                        BIT[DEST, i] ← BIT[DEST, i + COUNT];
+                    OD;
+                FOR i ← SIZE – COUNT TO SIZE – 1
+                    DO
+                        BIT[DEST,i] ← BIT[SRC, i + COUNT – SIZE];
+                    OD;
+        FI;
+FI;
+
+.fi
+.RE
+
+.SH FLAGS AFFECTED
+.PP
+If the count is 1 or greater, the CF flag is filled with the last bit
+shifted out of the destination operand and the SF, ZF, and PF flags are
+set according to the value of the result. For a 1\-bit shift, the OF flag
+is set if a sign change occurred; otherwise, it is cleared. For shifts
+greater than 1 bit, the OF flag is undefined. If a shift occurs, the AF
+flag is undefined. If the count operand is 0, the flags are not
+affected. If the count is greater than the operand size, the flags are
+undefined.
+
+.SH PROTECTED MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP(0)	T{
+If the destination is located in a non\-writable segment.
+T}
+	T{
+If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit.
+T}
+	T{
+If the DS, ES, FS, or GS register contains a NULL segment selector.
+T}
+#SS(0)	T{
+If a memory operand effective address is outside the SS segment limit.
+T}
+#PF(fault\-code)	If a page fault occurs.
+#AC(0)	T{
+If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3.
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH REAL\-ADDRESS MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP	T{
+If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit.
+T}
+#SS	T{
+If a memory operand effective address is outside the SS segment limit.
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH VIRTUAL\-8086 MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP(0)	T{
+If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit.
+T}
+#SS(0)	T{
+If a memory operand effective address is outside the SS segment limit.
+T}
+#PF(fault\-code)	If a page fault occurs.
+#AC(0)	T{
+If alignment checking is enabled and an unaligned memory reference is made.
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH COMPATIBILITY MODE EXCEPTIONS
+.PP
+Same exceptions as in protected mode.
+
+.SH 64\-BIT MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#SS(0)	T{
+If a memory address referencing the SS segment is in a non\-canonical form.
+T}
+#GP(0)	T{
+If the memory address is in a non\-canonical form.
+T}
+#PF(fault\-code)	If a page fault occurs.
+#AC(0)	T{
+If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3.
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+MIT licensed by TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

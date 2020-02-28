@@ -1,0 +1,242 @@
+.nh
+.TH "X86-MOVQ" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+MOVQ - MOVE QUADWORD
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp/ En\fR	\fB\fC64/32\-bit Mode\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+NP 0F 6F /mm, mm/m64	A	V/V	MMX	Move quadword from mm.
+NP 0F 7F /mm/m64, mm	B	V/V	MMX	Move quadword from mm/m64.
+F3 0F 7E /r MOVQ xmm2/m64	A	V/V	SSE2	Move quadword from xmm1.
+T{
+VEX.128.F3.0F.WIG 7E /r VMOVQ xmm1, xmm2/m64
+T}
+	A	V/V	AVX	Move quadword from xmm1.
+T{
+EVEX.128.F3.0F.W1 7E /r VMOVQ xmm1, xmm2/m64
+T}
+	C	V/V	AVX512F	T{
+Move quadword from xmm2/m64 to xmm1.
+T}
+66 0F D6 /r MOVQ xmm1	B	V/V	SSE2	Move quadword from xmm2/mem64.
+T{
+VEX.128.66.0F.WIG D6 /r VMOVQ xmm1/m64, xmm2
+T}
+	B	V/V	AVX	Move quadword from xmm1/m64.
+T{
+EVEX.128.66.0F.W1 D6 /r VMOVQ xmm1/m64, xmm2
+T}
+	D	V/V	AVX512F	T{
+Move quadword from xmm2 register to xmm1/m64.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+Op/En	Tuple Type	Operand 1	Operand 2	Operand 3	Operand 4
+A	NA	ModRM:reg (w)	ModRM:r/m (r)	NA	NA
+B	NA	ModRM:r/m (w)	ModRM:reg (r)	NA	NA
+C	Tuple1 Scalar	ModRM:reg (w)	ModRM:r/m (r)	NA	NA
+D	Tuple1 Scalar	ModRM:r/m (w)	ModRM:reg (r)	NA	NA
+.TE
+
+.SH DESCRIPTION
+.PP
+Copies a quadword from the source operand (second operand) to the
+destination operand (first operand). The source and destination operands
+can be MMX technology registers, XMM registers, or 64\-bit memory
+locations. This instruction can be used to move a quadword between two
+MMX technology registers or between an MMX technology register and a
+64\-bit memory location, or to move data between two XMM registers or
+between an XMM register and a 64\-bit memory location. The instruction
+cannot be used to transfer data between memory locations.
+
+.PP
+When the source operand is an XMM register, the low quadword is moved;
+when the destination operand is an XMM register, the quadword is stored
+to the low quadword of the register, and the high quadword is cleared to
+all 0s.
+
+.PP
+In 64\-bit mode and if not encoded using VEX/EVEX, use of the REX prefix
+in the form of REX.R permits this instruction to access additional
+registers (XMM8\-XMM15).
+
+.PP
+Note: VEX.vvvv and EVEX.vvvv are reserved and must be 1111b, otherwise
+instructions will #UD.
+
+.PP
+If VMOVQ is encoded with VEX.L= 1, an attempt to execute the instruction
+encoded with VEX.L= 1 will cause an #UD exception.
+
+.SH OPERATION
+.SS MOVQ instruction when operating on MMX technology registers and memory locations
+.PP
+.RS
+
+.nf
+DEST ← SRC;
+
+.fi
+.RE
+
+.SS MOVQ instruction when source and destination operands are XMM registers
+.PP
+.RS
+
+.nf
+DEST[63:0] ← SRC[63:0];
+DEST[127:64] ← 0000000000000000H;
+
+.fi
+.RE
+
+.SS MOVQ instruction when source operand is XMM register and destination
+.PP
+.RS
+
+.nf
+operand is memory location:
+    DEST ← SRC[63:0];
+
+.fi
+.RE
+
+.SS MOVQ instruction when source operand is memory location and destination
+.PP
+.RS
+
+.nf
+operand is XMM register:
+    DEST[63:0] ← SRC;
+    DEST[127:64] ← 0000000000000000H;
+
+.fi
+.RE
+
+.SS VMOVQ (VEX.128.F3.0F 7E) with XMM register source and destination
+.PP
+.RS
+
+.nf
+DEST[63:0] ← SRC[63:0]
+DEST[MAXVL\-1:64] ← 0
+
+.fi
+.RE
+
+.SS VMOVQ (VEX.128.66.0F D6) with XMM register source and destination
+.PP
+.RS
+
+.nf
+DEST[63:0] ← SRC[63:0]
+DEST[MAXVL\-1:64] ← 0
+
+.fi
+.RE
+
+.SS VMOVQ (7E \- EVEX encoded version) with XMM register source and destination
+.PP
+.RS
+
+.nf
+DEST[63:0] ← SRC[63:0]
+DEST[MAXVL\-1:64] ← 0
+
+.fi
+.RE
+
+.SS VMOVQ (D6 \- EVEX encoded version) with XMM register source and destination
+.PP
+.RS
+
+.nf
+DEST[63:0] ← SRC[63:0]
+DEST[MAXVL\-1:64] ← 0
+
+.fi
+.RE
+
+.SS VMOVQ (7E) with memory source
+.PP
+.RS
+
+.nf
+DEST[63:0] ← SRC[63:0]
+DEST[MAXVL\-1:64] ← 0
+
+.fi
+.RE
+
+.SS VMOVQ (7E \- EVEX encoded version) with memory source
+.PP
+.RS
+
+.nf
+DEST[63:0] ← SRC[63:0]
+DEST[:MAXVL\-1:64] ← 0
+
+.fi
+.RE
+
+.SS VMOVQ (D6) with memory dest
+.PP
+.RS
+
+.nf
+DEST[63:0] ← SRC2[63:0]
+
+.fi
+.RE
+
+.SH FLAGS AFFECTED
+.PP
+None.
+
+.SH INTEL C/C++ COMPILER INTRINSIC EQUIVALENT
+.PP
+.RS
+
+.nf
+VMOVQ \_\_m128i \_mm\_loadu\_si64( void * s);
+
+VMOVQ void \_mm\_storeu\_si64( void * d, \_\_m128i s);
+
+MOVQ m128i \_mm\_move\_epi64(\_\_m128i a)
+
+.fi
+.RE
+
+.SH SIMD FLOATING\-POINT EXCEPTIONS
+.PP
+None
+
+.SH OTHER EXCEPTIONS
+.PP
+See Table 22\-8, “Exception Conditions
+for Legacy SIMD/MMX Instructions without FP Exception,” in the Intel® 64
+and IA\-32 Architectures Software Developer’s Manual, Volume 3B.
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+MIT licensed by TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

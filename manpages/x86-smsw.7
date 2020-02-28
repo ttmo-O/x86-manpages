@@ -1,0 +1,193 @@
+.nh
+.TH "X86-SMSW" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+SMSW - STORE MACHINE STATUS WORD
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+\fB\fCOpcode*\fR	\fB\fCInstruction\fR	\fB\fCOp/En\fR	\fB\fC64\-Bit Mode\fR	\fB\fCCompat/Leg Mode\fR	\fB\fCDescription\fR
+0F 01 /4	SMSW r/m16	M	Valid	Valid	T{
+Store machine status word to r/m16.
+T}
+0F 01 /4	SMSW r32/m16	M	Valid	Valid	T{
+Store machine status word in low\-order 16 bits of r32 are undefined.
+T}
+REX.W + 0F 01 /4	SMSW r64/m16	M	Valid	Valid	T{
+Store machine status word in low\-order 16 bits of r32 are undefined.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l 
+l l l l l .
+Op/En	Operand 1	Operand 2	Operand 3	Operand 4
+M	ModRM:r/m (w)	NA	NA	NA
+.TE
+
+.SH DESCRIPTION
+.PP
+Stores the machine status word (bits 0 through 15 of control register
+CR0) into the destination operand. The destination operand can be a
+general\-purpose register or a memory location.
+
+.PP
+In non\-64\-bit modes, when the destination operand is a 32\-bit register,
+the low\-order 16 bits of register CR0 are copied into the low\-order 16
+bits of the register and the high\-order 16 bits are undefined. When the
+destination operand is a memory location, the low\-order 16 bits of
+register CR0 are written to memory as a 16\-bit quantity, regardless of
+the operand size.
+
+.PP
+In 64\-bit mode, the behavior of the SMSW instruction is defined by the
+following examples:
+
+.RS
+.IP \(bu 2
+SMSW r16 operand size 16, store CR0[15:0] in r16
+.IP \(bu 2
+SMSW r32 operand size 32, zero\-extend CR0[31:0], and store in r32
+.IP \(bu 2
+SMSW r64 operand size 64, zero\-extend CR0[63:0], and store in r64
+.IP \(bu 2
+SMSW m16 operand size 16, store CR0[15:0] in m16
+.IP \(bu 2
+SMSW m16 operand size 32, store CR0[15:0] in m16 (not m32)
+.IP \(bu 2
+SMSW m16 operands size 64, store CR0[15:0] in m16 (not m64)
+
+.RE
+
+.PP
+SMSW is only useful in operating\-system software. However, it is not a
+privileged instruction and can be used in application programs if
+CR4.UMIP = 0. It is provided for compatibility with the Intel 286
+processor. Programs and procedures intended to run on IA\-32 and Intel 64
+processors beginning with the Intel386 processors should use the MOV CR
+instruction to load the machine status word.
+
+.PP
+See “Changes to Instruction Behavior in VMX Non\-Root Operation” in
+Chapter 25 of the Intel® 64 and IA\-32 Architectures Software Developer’s
+Manual, Volume 3C, for more information about the behavior of this
+instruction in VMX non\-root operation.
+
+.SH OPERATION
+.PP
+.RS
+
+.nf
+DEST ← CR0[15:0];
+(* Machine status word *)
+
+.fi
+.RE
+
+.SH FLAGS AFFECTED
+.PP
+None.
+
+.SH PROTECTED MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP(0)	T{
+If the destination is located in a non\-writable segment.
+T}
+	T{
+If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit.
+T}
+	T{
+If the DS, ES, FS, or GS register is used to access memory and it contains a NULL segment selector.
+T}
+	If CR4.UMIP = 1 and CPL 
+\&gt;
+ 0.
+#SS(0)	T{
+If a memory operand effective address is outside the SS segment limit.
+T}
+#PF(fault\-code)	If a page fault occurs.
+#AC(0)	T{
+If alignment checking is enabled and an unaligned memory reference is made while CPL = 3.
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH REAL\-ADDRESS MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP	T{
+If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit.
+T}
+#SS(0)	T{
+If a memory operand effective address is outside the SS segment limit.
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH VIRTUAL\-8086 MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP(0)	T{
+If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit.
+T}
+	If CR4.UMIP = 1.
+#SS(0)	T{
+If a memory operand effective address is outside the SS segment limit.
+T}
+#PF(fault\-code)	If a page fault occurs.
+#AC(0)	T{
+If alignment checking is enabled and an unaligned memory reference is made.
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH COMPATIBILITY MODE EXCEPTIONS
+.PP
+Same exceptions as in protected mode.
+
+.SH 64\-BIT MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#SS(0)	T{
+If a memory address referencing the SS segment is in a non\-canonical form.
+T}
+#GP(0)	T{
+If the memory address is in a non\-canonical form.
+T}
+	If CR4.UMIP = 1 and CPL 
+\&gt;
+ 0.
+#PF(fault\-code)	If a page fault occurs.
+#AC(0)	T{
+If alignment checking is enabled and an unaligned memory reference is made while CPL = 3.
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+MIT licensed by TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

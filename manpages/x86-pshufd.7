@@ -1,0 +1,298 @@
+.nh
+.TH "X86-PSHUFD" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+PSHUFD - SHUFFLE PACKED DOUBLEWORDS
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp/En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+66 0F 70 /imm8	A	V/V	SSE2	T{
+Shuffle the doublewords in xmm1.
+T}
+T{
+VEX.128.66.0F.WIG 70 /r ib VPSHUFD xmm1, xmm2/m128, imm8
+T}
+	A	V/V	AVX	T{
+Shuffle the doublewords in xmm1.
+T}
+T{
+VEX.256.66.0F.WIG 70 /r ib VPSHUFD ymm1, ymm2/m256, imm8
+T}
+	A	V/V	AVX2	T{
+Shuffle the doublewords in ymm1.
+T}
+T{
+EVEX.128.66.0F.W0 70 /r ib VPSHUFD xmm1 {k1}{z}, xmm2/m128/m32bcst, imm8
+T}
+	B	V/V	AVX512VL AVX512F	T{
+Shuffle the doublewords in xmm2/m128/m32bcst based on the encoding in imm8 and store the result in xmm1 using writemask k1.
+T}
+T{
+EVEX.256.66.0F.W0 70 /r ib VPSHUFD ymm1 {k1}{z}, ymm2/m256/m32bcst, imm8
+T}
+	B	V/V	AVX512VL AVX512F	T{
+Shuffle the doublewords in ymm2/m256/m32bcst based on the encoding in imm8 and store the result in ymm1 using writemask k1.
+T}
+T{
+EVEX.512.66.0F.W0 70 /r ib VPSHUFD zmm1 {k1}{z}, zmm2/m512/m32bcst, imm8
+T}
+	B	V/V	AVX512F	T{
+Shuffle the doublewords in zmm2/m512/m32bcst based on the encoding in imm8 and store the result in zmm1 using writemask k1.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+Op/En	Tuple Type	Operand 1	Operand 2	Operand 3	Operand 4
+A	NA	ModRM:reg (w)	ModRM:r/m (r)	imm8	NA
+B	Full	ModRM:reg (w)	ModRM:r/m (r)	Imm8	NA
+.TE
+
+.SH DESCRIPTION
+.PP
+Copies doublewords from source operand (second operand) and inserts them
+in the destination operand (first operand) at the locations selected
+with the order operand (third operand). Figure 4\-16 shows the operation of the
+256\-bit VPSHUFD instruction and the encoding of the order operand. Each
+2\-bit field in the order operand selects the contents of one doubleword
+location within a 128\-bit lane and copy to the target element in the
+destination operand. For example, bits 0 and 1 of the order operand
+targets the first doubleword element in the low and high 128\-bit lane of
+the destination operand for 256\-bit VPSHUFD. The encoded value of bits
+1:0 of the order operand (see the field encoding in Figure 4\-16) determines which doubleword
+element (from the respective 128\-bit lane) of the source operand will be
+copied to doubleword 0 of the destination operand.
+
+.PP
+For 128\-bit operation, only the low 128\-bit lane are operative. The
+source operand can be an XMM register or a 128\-bit memory location. The
+destination operand is an XMM register. The order operand is an 8\-bit
+immediate. Note that this instruction permits a doubleword in the source
+operand to be copied to more than one doubleword location in the
+destination operand.
+
+.PP
+SRCX7X6X5X4X3X2X1X0DESTY7Y6Y5Y4Y3Y2Y1Y000B \- X4Encoding00B \-
+X0Encoding01B \- X5of Fields inORDER01B \- X1of Fields in10B \- X6ORDER
+
+.PP
+10B \- X2 ORDER Operand 11B\-X7 7 6 5 4 3 2 1 0 Operand 11B\-X3
+
+.PP
+Figure 4\-16\&. 256\-\&bit VPSHUFD
+Instruction Operation
+
+.PP
+The source operand can be an XMM register or a 128\-bit memory location.
+The destination operand is an XMM register. The order operand is an
+8\-bit immediate. Note that this instruction permits a doubleword in the
+source operand to be copied to more than one doubleword location in the
+destination operand.
+
+.PP
+In 64\-bit mode and not encoded in VEX/EVEX, using REX.R permits this
+instruction to access XMM8\-XMM15.
+
+.PP
+128\-bit Legacy SSE version: Bits (MAXVL\-1:128) of the corresponding YMM
+destination register remain unchanged.
+
+.PP
+VEX.128 encoded version: The source operand can be an XMM register or a
+128\-bit memory location. The destination operand is an XMM register.
+Bits (MAXVL\-1:128) of the corresponding ZMM register are zeroed.
+
+.PP
+VEX.256 encoded version: The source operand can be an YMM register or a
+256\-bit memory location. The destination operand is an YMM register.
+Bits (MAXVL\-1:256) of the corresponding ZMM register are zeroed. Bits
+(255\-1:128) of the destination stores the shuffled results of the upper
+16 bytes of the source operand using the immediate byte as the order
+operand.
+
+.PP
+EVEX encoded version: The source operand can be an ZMM/YMM/XMM register,
+a 512/256/128\-bit memory location, or a 512/256/128\-bit vector
+broadcasted from a 32\-bit memory location. The destination operand is a
+ZMM/YMM/XMM register updated according to the writemask.
+
+.PP
+Each 128\-bit lane of the destination stores the shuffled results of the
+respective lane of the source operand using the immediate byte as the
+order operand.
+
+.PP
+Note: EVEX.vvvv and VEX.vvvv are reserved and must be 1111b otherwise
+instructions will #UD.
+
+.SH OPERATION
+.SS PSHUFD (128\-bit Legacy SSE version)
+.PP
+.RS
+
+.nf
+DEST[31:0]←(SRC >> (ORDER[1:0] * 32))[31:0];
+DEST[63:32]←(SRC >> (ORDER[3:2] * 32))[31:0];
+DEST[95:64]←(SRC >> (ORDER[5:4] * 32))[31:0];
+DEST[127:96]←(SRC >> (ORDER[7:6] * 32))[31:0];
+DEST[MAXVL\-1:128] (Unmodified)
+
+.fi
+.RE
+
+.SS VPSHUFD (VEX.128 encoded version)
+.PP
+.RS
+
+.nf
+DEST[31:0]←(SRC >> (ORDER[1:0] * 32))[31:0];
+DEST[63:32]←(SRC >> (ORDER[3:2] * 32))[31:0];
+DEST[95:64]←(SRC >> (ORDER[5:4] * 32))[31:0];
+DEST[127:96]←(SRC >> (ORDER[7:6] * 32))[31:0];
+DEST[MAXVL\-1:128] ← 0
+
+.fi
+.RE
+
+.SS VPSHUFD (VEX.256 encoded version)
+.PP
+.RS
+
+.nf
+DEST[31:0]←(SRC[127:0] >> (ORDER[1:0] * 32))[31:0];
+DEST[63:32]←(SRC[127:0] >> (ORDER[3:2] * 32))[31:0];
+DEST[95:64]←(SRC[127:0] >> (ORDER[5:4] * 32))[31:0];
+DEST[127:96]←(SRC[127:0] >> (ORDER[7:6] * 32))[31:0];
+DEST[159:128]←(SRC[255:128] >> (ORDER[1:0] * 32))[31:0];
+DEST[191:160]←(SRC[255:128] >> (ORDER[3:2] * 32))[31:0];
+DEST[223:192]←(SRC[255:128] >> (ORDER[5:4] * 32))[31:0];
+DEST[255:224]←(SRC[255:128] >> (ORDER[7:6] * 32))[31:0];
+DEST[MAXVL\-1:256] ← 0
+
+.fi
+.RE
+
+.SS VPSHUFD (EVEX encoded versions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (4, 128), (8, 256), (16, 512)
+FOR j←0 TO KL\-1
+    i←j * 32
+    IF (EVEX.b = 1) AND (SRC *is memory*)
+        THEN TMP\_SRC[i+31:i]←SRC[31:0]
+        ELSE TMP\_SRC[i+31:i]←SRC[i+31:i]
+    FI;
+ENDFOR;
+IF VL >= 128
+    TMP\_DEST[31:0]←(TMP\_SRC[127:0] >> (ORDER[1:0] * 32))[31:0];
+    TMP\_DEST[63:32]←(TMP\_SRC[127:0] >> (ORDER[3:2] * 32))[31:0];
+    TMP\_DEST[95:64]←(TMP\_SRC[127:0] >> (ORDER[5:4] * 32))[31:0];
+    TMP\_DEST[127:96]←(TMP\_SRC[127:0] >> (ORDER[7:6] * 32))[31:0];
+FI;
+IF VL >= 256
+    TMP\_DEST[159:128]←(TMP\_SRC[255:128] >> (ORDER[1:0] * 32))[31:0];
+    TMP\_DEST[191:160]←(TMP\_SRC[255:128] >> (ORDER[3:2] * 32))[31:0];
+    TMP\_DEST[223:192]←(TMP\_SRC[255:128] >> (ORDER[5:4] * 32))[31:0];
+    TMP\_DEST[255:224]←(TMP\_SRC[255:128] >> (ORDER[7:6] * 32))[31:0];
+FI;
+IF VL >= 512
+    TMP\_DEST[287:256]←(TMP\_SRC[383:256] >> (ORDER[1:0] * 32))[31:0];
+    TMP\_DEST[319:288]←(TMP\_SRC[383:256] >> (ORDER[3:2] * 32))[31:0];
+    TMP\_DEST[351:320]←(TMP\_SRC[383:256] >> (ORDER[5:4] * 32))[31:0];
+    TMP\_DEST[383:352]←(TMP\_SRC[383:256] >> (ORDER[7:6] * 32))[31:0];
+    TMP\_DEST[415:384]←(TMP\_SRC[511:384] >> (ORDER[1:0] * 32))[31:0];
+    TMP\_DEST[447:416]←(TMP\_SRC[511:384] >> (ORDER[3:2] * 32))[31:0];
+    TMP\_DEST[479:448]←(TMP\_SRC[511:384] >> (ORDER[5:4] * 32))[31:0];
+    TMP\_DEST[511:480]←(TMP\_SRC[511:384] >> (ORDER[7:6] * 32))[31:0];
+FI;
+FOR j←0 TO KL\-1
+    i←j * 32
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+31:i]←TMP\_DEST[i+31:i]
+        ELSE
+            IF *merging\-masking*
+                        ; merging\-masking
+                THEN *DEST[i+31:i] remains unchanged*
+                ELSE *zeroing\-masking*
+                            ; zeroing\-masking
+                    DEST[i+31:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SH INTEL C/C++ COMPILER INTRINSIC EQUIVALENT
+.PP
+.RS
+
+.nf
+VPSHUFD \_\_m512i \_mm512\_shuffle\_epi32(\_\_m512i a, int n );
+
+VPSHUFD \_\_m512i \_mm512\_mask\_shuffle\_epi32(\_\_m512i s, \_\_mmask16 k, \_\_m512i a, int n );
+
+VPSHUFD \_\_m512i \_mm512\_maskz\_shuffle\_epi32( \_\_mmask16 k, \_\_m512i a, int n );
+
+VPSHUFD \_\_m256i \_mm256\_mask\_shuffle\_epi32(\_\_m256i s, \_\_mmask8 k, \_\_m256i a, int n );
+
+VPSHUFD \_\_m256i \_mm256\_maskz\_shuffle\_epi32( \_\_mmask8 k, \_\_m256i a, int n );
+
+VPSHUFD \_\_m128i \_mm\_mask\_shuffle\_epi32(\_\_m128i s, \_\_mmask8 k, \_\_m128i a, int n );
+
+VPSHUFD \_\_m128i \_mm\_maskz\_shuffle\_epi32( \_\_mmask8 k, \_\_m128i a, int n );
+
+(V)PSHUFD:\_\_m128i \_mm\_shuffle\_epi32(\_\_m128i a, int n)
+
+VPSHUFD:\_\_m256i \_mm256\_shuffle\_epi32(\_\_m256i a, const int n)
+
+.fi
+.RE
+
+.SH FLAGS AFFECTED
+.PP
+None.
+
+.SH SIMD FLOATING\-POINT EXCEPTIONS
+.PP
+None.
+
+.SH OTHER EXCEPTIONS
+.PP
+Non\-EVEX\-encoded instruction, see Exceptions Type 4.
+
+.PP
+EVEX\-encoded instruction, see Exceptions Type E4NF.
+
+.TS
+allbox;
+l l 
+l l .
+#UD	T{
+If VEX.vvvv ≠ 1111B or EVEX.vvvv ≠ 1111B.
+T}
+.TE
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+MIT licensed by TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

@@ -1,0 +1,217 @@
+.nh
+.TH "X86-VPCONFLICTD-VPCONFLICTQ" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+VPCONFLICTD-VPCONFLICTQ - DETECT CONFLICTS WITHIN A VECTOR OF PACKED DWORD-QWORD VALUES INTO DENSE MEMORY- REGISTER
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp/En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+T{
+EVEX.128.66.0F38.W0 C4 /r VPCONFLICTD xmm1 {k1}{z}, xmm2/m128/m32bcst
+T}
+	A	V/V	AVX512VL AVX512CD	T{
+Detect duplicate double\-word values in xmm2/m128/m32bcst using writemask k1.
+T}
+T{
+EVEX.256.66.0F38.W0 C4 /r VPCONFLICTD ymm1 {k1}{z}, ymm2/m256/m32bcst
+T}
+	A	V/V	AVX512VL AVX512CD	T{
+Detect duplicate double\-word values in ymm2/m256/m32bcst using writemask k1.
+T}
+T{
+EVEX.512.66.0F38.W0 C4 /r VPCONFLICTD zmm1 {k1}{z}, zmm2/m512/m32bcst
+T}
+	A	V/V	AVX512CD	T{
+Detect duplicate double\-word values in zmm2/m512/m32bcst using writemask k1.
+T}
+T{
+EVEX.128.66.0F38.W1 C4 /r VPCONFLICTQ xmm1 {k1}{z}, xmm2/m128/m64bcst
+T}
+	A	V/V	AVX512VL AVX512CD	T{
+Detect duplicate quad\-word values in xmm2/m128/m64bcst using writemask k1.
+T}
+T{
+EVEX.256.66.0F38.W1 C4 /r VPCONFLICTQ ymm1 {k1}{z}, ymm2/m256/m64bcst
+T}
+	A	V/V	AVX512VL AVX512CD	T{
+Detect duplicate quad\-word values in ymm2/m256/m64bcst using writemask k1.
+T}
+T{
+EVEX.512.66.0F38.W1 C4 /r VPCONFLICTQ zmm1 {k1}{z}, zmm2/m512/m64bcst
+T}
+	A	V/V	AVX512CD	T{
+Detect duplicate quad\-word values in zmm2/m512/m64bcst using writemask k1.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+Op/En	Tuple Type	Operand 1	Operand 2	Operand 3	Operand 4
+A	Full	ModRM:reg (w)	ModRM:r/m (r)	NA	NA
+.TE
+
+.SS Description
+.PP
+Test each dword/qword element of the source operand (the second operand)
+for equality with all other elements in the source operand closer to the
+least significant element. Each element’s comparison results form a bit
+vector, which is then zero extended and written to the destination
+according to the writemask.
+
+.PP
+EVEX.512 encoded version: The source operand is a ZMM register, a
+512\-bit memory location, or a 512\-bit vector broadcasted from a
+32/64\-bit memory location. The destination operand is a ZMM register,
+conditionally updated using writemask k1.
+
+.PP
+EVEX.256 encoded version: The source operand is a YMM register, a
+256\-bit memory location, or a 256\-bit vector broadcasted from a
+32/64\-bit memory location. The destination operand is a YMM register,
+conditionally updated using writemask k1.
+
+.PP
+EVEX.128 encoded version: The source operand is a XMM register, a
+128\-bit memory location, or a 128\-bit vector broadcasted from a
+32/64\-bit memory location. The destination operand is a XMM register,
+conditionally updated using writemask k1.
+
+.PP
+EVEX.vvvv is reserved and must be 1111b otherwise instructions will
+#UD.
+
+.SS Operation
+.SS VPCONFLICTD
+.PP
+.RS
+
+.nf
+(KL, VL) = (4, 128), (8, 256), (16, 512)
+FOR j←0 TO KL\-1
+    i←j*32
+    IF MaskBit(j) OR *no writemask*THEN
+        FOR k←0 TO j\-1
+            m←k*32
+            IF ((SRC[i+31:i] = SRC[m+31:m])) THEN
+                DEST[i+k] ← 1
+            ELSE
+                DEST[i+k] ← 0
+            FI
+        ENDFOR
+        DEST[i+31:i+j] ← 0
+    ELSE
+        IF *merging\-masking* THEN
+            *DEST[i+31:i] remains unchanged*
+        ELSE
+            DEST[i+31:i] ← 0
+        FI
+    FI
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS VPCONFLICTQ
+.PP
+.RS
+
+.nf
+(KL, VL) = (2, 128), (4, 256), (8, 512)
+FOR j←0 TO KL\-1
+        i←j*64
+        IF MaskBit(j) OR *no writemask*THEN
+            FOR k←0 TO j\-1
+                    m←k*64
+                        IF ((SRC[i+63:i] = SRC[m+63:m])) THEN
+                            DEST[i+k] ← 1
+                        ELSE
+                            DEST[i+k] ← 0
+                    FI
+            ENDFOR
+            DEST[i+63:i+j] ← 0
+    ELSE
+            IF *merging\-masking* THEN
+                        *DEST[i+63:i] remains unchanged*
+                ELSE
+                        DEST[i+63:i] ← 0
+                FI
+    FI
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS Intel C/C++ Compiler Intrinsic Equivalent
+.PP
+.RS
+
+.nf
+VPCONFLICTD \_\_m512i \_mm512\_conflict\_epi32( \_\_m512i a);
+
+VPCONFLICTD \_\_m512i \_mm512\_mask\_conflict\_epi32(\_\_m512i s, \_\_mmask16 m, \_\_m512i a);
+
+VPCONFLICTD \_\_m512i \_mm512\_maskz\_conflict\_epi32(\_\_mmask16 m, \_\_m512i a);
+
+VPCONFLICTQ \_\_m512i \_mm512\_conflict\_epi64( \_\_m512i a);
+
+VPCONFLICTQ \_\_m512i \_mm512\_mask\_conflict\_epi64(\_\_m512i s, \_\_mmask8 m, \_\_m512i a);
+
+VPCONFLICTQ \_\_m512i \_mm512\_maskz\_conflict\_epi64(\_\_mmask8 m, \_\_m512i a);
+
+VPCONFLICTD \_\_m256i \_mm256\_conflict\_epi32( \_\_m256i a);
+
+VPCONFLICTD \_\_m256i \_mm256\_mask\_conflict\_epi32(\_\_m256i s, \_\_mmask8 m, \_\_m256i a);
+
+VPCONFLICTD \_\_m256i \_mm256\_maskz\_conflict\_epi32(\_\_mmask8 m, \_\_m256i a);
+
+VPCONFLICTQ \_\_m256i \_mm256\_conflict\_epi64( \_\_m256i a);
+
+VPCONFLICTQ \_\_m256i \_mm256\_mask\_conflict\_epi64(\_\_m256i s, \_\_mmask8 m, \_\_m256i a);
+
+VPCONFLICTQ \_\_m256i \_mm256\_maskz\_conflict\_epi64(\_\_mmask8 m, \_\_m256i a);
+
+VPCONFLICTD \_\_m128i \_mm\_conflict\_epi32( \_\_m128i a);
+
+VPCONFLICTD \_\_m128i \_mm\_mask\_conflict\_epi32(\_\_m128i s, \_\_mmask8 m, \_\_m128i a);
+
+VPCONFLICTD \_\_m128i \_mm\_maskz\_conflict\_epi32(\_\_mmask8 m, \_\_m128i a);
+
+VPCONFLICTQ \_\_m128i \_mm\_conflict\_epi64( \_\_m128i a);
+
+VPCONFLICTQ \_\_m128i \_mm\_mask\_conflict\_epi64(\_\_m128i s, \_\_mmask8 m, \_\_m128i a);
+
+VPCONFLICTQ \_\_m128i \_mm\_maskz\_conflict\_epi64(\_\_mmask8 m, \_\_m128i a);
+
+.fi
+.RE
+
+.SS SIMD Floating\-Point Exceptions
+.PP
+None
+
+.SS Other Exceptions
+.PP
+EVEX\-encoded instruction, see Exceptions Type E4NF.
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+MIT licensed by TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

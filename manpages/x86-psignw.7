@@ -1,0 +1,505 @@
+.nh
+.TH "X86-PSIGNB-PSIGNW-PSIGND" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+PSIGNB-PSIGNW-PSIGND - PACKED SIGN
+.PP
+Opcode/Instruction
+
+.PP
+Op/En
+
+.PP
+64/32 bit Mode Support
+
+.PP
+CPUID Feature Flag
+
+.PP
+Description
+
+.PP
+NP 0F 38 08 /r1 PSIGNB mm1, mm2/m64
+
+.PP
+RM
+
+.PP
+V/V
+
+.PP
+SSSE3
+
+.PP
+Negate/zero/preserve packed byte integers in mm2/m64.
+
+.PP
+66 0F 38 08 /r PSIGNB xmm1, xmm2/m128
+
+.PP
+RM
+
+.PP
+V/V
+
+.PP
+SSSE3
+
+.PP
+Negate/zero/preserve packed byte integers in xmm2/m128.
+
+.PP
+NP 0F 38 09 /r1 PSIGNW mm1, mm2/m64
+
+.PP
+RM
+
+.PP
+V/V
+
+.PP
+SSSE3
+
+.PP
+Negate/zero/preserve packed word integers in mm2/m128.
+
+.PP
+66 0F 38 09 /r PSIGNW xmm1, xmm2/m128
+
+.PP
+RM
+
+.PP
+V/V
+
+.PP
+SSSE3
+
+.PP
+Negate/zero/preserve packed word integers in xmm2/m128.
+
+.PP
+NP 0F 38 0A /r1 PSIGND mm1, mm2/m64
+
+.PP
+RM
+
+.PP
+V/V
+
+.PP
+SSSE3
+
+.PP
+Negate/zero/preserve packed doubleword integers in mm2/m128.
+
+.PP
+66 0F 38 0A /r PSIGND xmm1, xmm2/m128
+
+.PP
+RM
+
+.PP
+V/V
+
+.PP
+SSSE3
+
+.PP
+Negate/zero/preserve packed doubleword integers in xmm2/m128.
+
+.PP
+VEX.128.66.0F38.WIG 08 /r VPSIGNB xmm1, xmm2, xmm3/m128
+
+.PP
+RVM
+
+.PP
+V/V
+
+.PP
+AVX
+
+.PP
+Negate/zero/preserve packed byte integers in xmm3/m128.
+
+.PP
+VEX.128.66.0F38.WIG 09 /r VPSIGNW xmm1, xmm2, xmm3/m128
+
+.PP
+RVM
+
+.PP
+V/V
+
+.PP
+AVX
+
+.PP
+Negate/zero/preserve packed word integers in xmm3/m128.
+
+.PP
+VEX.128.66.0F38.WIG 0A /r VPSIGND xmm1, xmm2, xmm3/m128
+
+.PP
+RVM
+
+.PP
+V/V
+
+.PP
+AVX
+
+.PP
+Negate/zero/preserve packed doubleword integers in xmm3/m128.
+
+.PP
+VEX.256.66.0F38.WIG 08 /r VPSIGNB ymm1, ymm2, ymm3/m256
+
+.PP
+RVM
+
+.PP
+V/V
+
+.PP
+AVX2
+
+.PP
+Negate packed byte integers in ymm3/m256 is less than zero.
+
+.PP
+VEX.256.66.0F38.WIG 09 /r VPSIGNW ymm1, ymm2, ymm3/m256
+
+.PP
+RVM
+
+.PP
+V/V
+
+.PP
+AVX2
+
+.PP
+Negate packed 16\-bit integers in ymm3/m256 is less than zero.
+
+.PP
+VEX.256.66.0F38.WIG 0A /r VPSIGND ymm1, ymm2, ymm3/m256
+
+.PP
+RVM
+
+.PP
+V/V
+
+.PP
+AVX2
+
+.PP
+Negate packed doubleword integers in ymm3/m256 is less than zero.
+
+.PP
+NOTES: 1. See note in Section 2.4, “AVX and SSE Instruction Exception
+Specification” in the Intel® 64 and IA\-32 Architectures Software
+Developer’s Manual, Volume 3A.
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l 
+l l l l l .
+Op/En	Operand 1	Operand 2	Operand 3	Operand 4
+RM	ModRM:reg (r, w)	ModRM:r/m (r)	NA	NA
+RVM	ModRM:reg (w)	VEX.vvvv (r)	ModRM:r/m (r)	NA
+.TE
+
+.SH DESCRIPTION
+.PP
+(V)PSIGNB/(V)PSIGNW/(V)PSIGND negates each data element of the
+destination operand (the first operand) if the signed integer value of
+the corresponding data element in the source operand (the second
+operand) is less than zero. If the signed integer value of a data
+element in the source operand is positive, the corresponding data
+element in the destination operand is unchanged. If a data element in
+the source operand is zero, the corresponding data element in the
+destination operand is set to zero.
+
+.PP
+(V)PSIGNB operates on signed bytes. (V)PSIGNW operates on 16\-bit signed
+words. (V)PSIGND operates on signed 32\-bit integers. When the source
+operand is a 128bit memory operand, the operand must be aligned on a
+16\-byte boundary or a general\-protection exception (#GP) will be
+generated.
+
+.PP
+Legacy SSE instructions: Both operands can be MMX registers. In 64\-bit
+mode, use the REX prefix to access additional registers.
+
+.PP
+128\-bit Legacy SSE version: The first source and destination operands
+are XMM registers. The second source operand is an XMM register or a
+128\-bit memory location. Bits (MAXVL\-1:128) of the corresponding YMM
+destination register remain unchanged.
+
+.PP
+VEX.128 encoded version: The first source and destination operands are
+XMM registers. The second source operand is an XMM register or a 128\-bit
+memory location. Bits (MAXVL\-1:128) of the destination YMM register are
+zeroed. VEX.L must be 0, otherwise instructions will #UD.
+
+.PP
+VEX.256 encoded version: The first source and destination operands are
+YMM registers. The second source operand is an YMM register or a 256\-bit
+memory location.
+
+.SH OPERATION
+.SS PSIGNB (with 64 bit operands)
+.PP
+.RS
+
+.nf
+IF (SRC[7:0] < 0 )
+    DEST[7:0] ← Neg(DEST[7:0])
+ELSEIF (SRC[7:0] = 0 )
+    DEST[7:0] ← 0
+ELSEIF (SRC[7:0] > 0 )
+    DEST[7:0] ← DEST[7:0]
+Repeat operation for 2nd through 7th bytes
+IF (SRC[63:56] < 0 )
+    DEST[63:56] ← Neg(DEST[63:56])
+ELSEIF (SRC[63:56] = 0 )
+    DEST[63:56] ← 0
+ELSEIF (SRC[63:56] > 0 )
+    DEST[63:56] ← DEST[63:56]
+
+.fi
+.RE
+
+.SS PSIGNB (with 128 bit operands)
+.PP
+.RS
+
+.nf
+IF (SRC[7:0] < 0 )
+    DEST[7:0] ← Neg(DEST[7:0])
+ELSEIF (SRC[7:0] = 0 )
+    DEST[7:0] ← 0
+ELSEIF (SRC[7:0] > 0 )
+    DEST[7:0] ← DEST[7:0]
+Repeat operation for 2nd through 15th bytes
+IF (SRC[127:120] < 0 )
+    DEST[127:120] ← Neg(DEST[127:120])
+ELSEIF (SRC[127:120] = 0 )
+    DEST[127:120] ← 0
+ELSEIF (SRC[127:120] > 0 )
+    DEST[127:120] ← DEST[127:120]
+
+.fi
+.RE
+
+.SS VPSIGNB (VEX.128 encoded version)
+.PP
+.RS
+
+.nf
+DEST[127:0]←BYTE\_SIGN(SRC1, SRC2)
+DEST[MAXVL\-1:128] ← 0
+
+.fi
+.RE
+
+.SS VPSIGNB (VEX.256 encoded version)
+.PP
+.RS
+
+.nf
+DEST[255:0]←BYTE\_SIGN\_256b(SRC1, SRC2)
+
+.fi
+.RE
+
+.SS PSIGNW (with 64 bit operands)
+.PP
+.RS
+
+.nf
+    IF (SRC[15:0] < 0 )
+        DEST[15:0] ← Neg(DEST[15:0])
+    ELSEIF (SRC[15:0] = 0 )
+        DEST[15:0] ← 0
+    ELSEIF (SRC[15:0] > 0 )
+        DEST[15:0] ← DEST[15:0]
+Repeat operation for 2nd through 3rd words
+    IF (SRC[63:48] < 0 )
+        DEST[63:48] ← Neg(DEST[63:48])
+    ELSEIF (SRC[63:48] = 0 )
+        DEST[63:48] ← 0
+    ELSEIF (SRC[63:48] > 0 )
+        DEST[63:48] ← DEST[63:48]
+
+.fi
+.RE
+
+.SS PSIGNW (with 128 bit operands)
+.PP
+.RS
+
+.nf
+IF (SRC[15:0] < 0 )
+    DEST[15:0] ← Neg(DEST[15:0])
+ELSEIF (SRC[15:0] = 0 )
+    DEST[15:0] ← 0
+ELSEIF (SRC[15:0] > 0 )
+    DEST[15:0] ← DEST[15:0]
+Repeat operation for 2nd through 7th words
+IF (SRC[127:112] < 0 )
+    DEST[127:112] ← Neg(DEST[127:112])
+ELSEIF (SRC[127:112] = 0 )
+    DEST[127:112] ← 0
+ELSEIF (SRC[127:112] > 0 )
+    DEST[127:112] ← DEST[127:112]
+
+.fi
+.RE
+
+.SS VPSIGNW (VEX.128 encoded version)
+.PP
+.RS
+
+.nf
+DEST[127:0]←WORD\_SIGN(SRC1, SRC2)
+DEST[MAXVL\-1:128] ← 0
+
+.fi
+.RE
+
+.SS VPSIGNW (VEX.256 encoded version)
+.PP
+.RS
+
+.nf
+DEST[255:0]←WORD\_SIGN(SRC1, SRC2)
+
+.fi
+.RE
+
+.SS PSIGND (with 64 bit operands)
+.PP
+.RS
+
+.nf
+IF (SRC[31:0] < 0 )
+    DEST[31:0] ← Neg(DEST[31:0])
+ELSEIF (SRC[31:0] = 0 )
+    DEST[31:0] ← 0
+ELSEIF (SRC[31:0] > 0 )
+    DEST[31:0] ← DEST[31:0]
+IF (SRC[63:32] < 0 )
+    DEST[63:32] ← Neg(DEST[63:32])
+ELSEIF (SRC[63:32] = 0 )
+    DEST[63:32] ← 0
+ELSEIF (SRC[63:32] > 0 )
+    DEST[63:32] ← DEST[63:32]
+
+.fi
+.RE
+
+.SS PSIGND (with 128 bit operands)
+.PP
+.RS
+
+.nf
+IF (SRC[31:0] < 0 )
+    DEST[31:0] ← Neg(DEST[31:0])
+ELSEIF (SRC[31:0] = 0 )
+    DEST[31:0] ← 0
+ELSEIF (SRC[31:0] > 0 )
+    DEST[31:0] ← DEST[31:0]
+Repeat operation for 2nd through 3rd double words
+IF (SRC[127:96] < 0 )
+    DEST[127:96] ← Neg(DEST[127:96])
+ELSEIF (SRC[127:96] = 0 )
+    DEST[127:96] ← 0
+ELSEIF (SRC[127:96] > 0 )
+    DEST[127:96] ← DEST[127:96]
+
+.fi
+.RE
+
+.SS VPSIGND (VEX.128 encoded version)
+.PP
+.RS
+
+.nf
+DEST[127:0]←DWORD\_SIGN(SRC1, SRC2)
+DEST[MAXVL\-1:128] ← 0
+
+.fi
+.RE
+
+.SS VPSIGND (VEX.256 encoded version)
+.PP
+.RS
+
+.nf
+DEST[255:0]←DWORD\_SIGN(SRC1, SRC2)
+
+.fi
+.RE
+
+.SH INTEL C/C++ COMPILER INTRINSIC EQUIVALENT
+.PP
+.RS
+
+.nf
+PSIGNB: \_\_m64 \_mm\_sign\_pi8 (\_\_m64 a, \_\_m64 b)
+
+(V)PSIGNB: \_\_m128i \_mm\_sign\_epi8 (\_\_m128i a, \_\_m128i b)
+
+VPSIGNB: \_\_m256i \_mm256\_sign\_epi8 (\_\_m256i a, \_\_m256i b)
+
+PSIGNW: \_\_m64 \_mm\_sign\_pi16 (\_\_m64 a, \_\_m64 b)
+
+(V)PSIGNW: \_\_m128i \_mm\_sign\_epi16 (\_\_m128i a, \_\_m128i b)
+
+VPSIGNW: \_\_m256i \_mm256\_sign\_epi16 (\_\_m256i a, \_\_m256i b)
+
+PSIGND: \_\_m64 \_mm\_sign\_pi32 (\_\_m64 a, \_\_m64 b)
+
+(V)PSIGND: \_\_m128i \_mm\_sign\_epi32 (\_\_m128i a, \_\_m128i b)
+
+VPSIGND: \_\_m256i \_mm256\_sign\_epi32 (\_\_m256i a, \_\_m256i b)
+
+.fi
+.RE
+
+.SH SIMD FLOATING\-POINT EXCEPTIONS
+.PP
+None.
+
+.SH OTHER EXCEPTIONS
+.PP
+See Exceptions Type 4; additionally
+
+.TS
+allbox;
+l l 
+l l .
+#UD	If VEX.L = 1.
+.TE
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+MIT licensed by TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

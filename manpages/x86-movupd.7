@@ -1,0 +1,327 @@
+.nh
+.TH "X86-MOVUPD" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+MOVUPD - MOVE UNALIGNED PACKED DOUBLE-PRECISION FLOATING-POINT VALUES
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp / En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+T{
+66 0F 10 /r MOVUPD xmm1, xmm2/m128
+T}
+	A	V/V	SSE2	T{
+Move unaligned packed double\-precision floating\-point from xmm2/mem to xmm1.
+T}
+T{
+66 0F 11 /r MOVUPD xmm2/m128, xmm1
+T}
+	B	V/V	SSE2	T{
+Move unaligned packed double\-precision floating\-point from xmm1 to xmm2/mem.
+T}
+T{
+VEX.128.66.0F.WIG 10 /r VMOVUPD xmm1, xmm2/m128
+T}
+	A	V/V	AVX	T{
+Move unaligned packed double\-precision floating\-point from xmm2/mem to xmm1.
+T}
+T{
+VEX.128.66.0F.WIG 11 /r VMOVUPD xmm2/m128, xmm1
+T}
+	B	V/V	AVX	T{
+Move unaligned packed double\-precision floating\-point from xmm1 to xmm2/mem.
+T}
+T{
+VEX.256.66.0F.WIG 10 /r VMOVUPD ymm1, ymm2/m256
+T}
+	A	V/V	AVX	T{
+Move unaligned packed double\-precision floating\-point from ymm2/mem to ymm1.
+T}
+T{
+VEX.256.66.0F.WIG 11 /r VMOVUPD ymm2/m256, ymm1
+T}
+	B	V/V	AVX	T{
+Move unaligned packed double\-precision floating\-point from ymm1 to ymm2/mem.
+T}
+T{
+EVEX.128.66.0F.W1 10 /r VMOVUPD xmm1 {k1}{z}, xmm2/m128
+T}
+	C	V/V	AVX512VL AVX512F	T{
+Move unaligned packed double\-precision floating\-point from xmm2/m128 to xmm1 using writemask k1.
+T}
+T{
+EVEX.128.66.0F.W1 11 /r VMOVUPD xmm2/m128 {k1}{z}, xmm1
+T}
+	D	V/V	AVX512VL AVX512F	T{
+Move unaligned packed double\-precision floating\-point from xmm1 to xmm2/m128 using writemask k1.
+T}
+T{
+EVEX.256.66.0F.W1 10 /r VMOVUPD ymm1 {k1}{z}, ymm2/m256
+T}
+	C	V/V	AVX512VL AVX512F	T{
+Move unaligned packed double\-precision floating\-point from ymm2/m256 to ymm1 using writemask k1.
+T}
+T{
+EVEX.256.66.0F.W1 11 /r VMOVUPD ymm2/m256 {k1}{z}, ymm1
+T}
+	D	V/V	AVX512VL AVX512F	T{
+Move unaligned packed double\-precision floating\-point from ymm1 to ymm2/m256 using writemask k1.
+T}
+T{
+EVEX.512.66.0F.W1 10 /r VMOVUPD zmm1 {k1}{z}, zmm2/m512
+T}
+	C	V/V	AVX512F	T{
+Move unaligned packed double\-precision floating\-point values from zmm2/m512 to zmm1 using writemask k1.
+T}
+T{
+EVEX.512.66.0F.W1 11 /r VMOVUPD zmm2/m512 {k1}{z}, zmm1
+T}
+	D	V/V	AVX512F	T{
+Move unaligned packed double\-precision floating\-point values from zmm1 to zmm2/m512 using writemask k1.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+Op/En	Tuple Type	Operand 1	Operand 2	Operand 3	Operand 4
+A	NA	ModRM:reg (w)	ModRM:r/m (r)	NA	NA
+B	NA	ModRM:r/m (w)	ModRM:reg (r)	NA	NA
+C	Full Mem	ModRM:reg (w)	ModRM:r/m (r)	NA	NA
+D	Full Mem	ModRM:r/m (w)	ModRM:reg (r)	NA	NA
+.TE
+
+.SS Description
+.PP
+Note: VEX.vvvv and EVEX.vvvv is reserved and must be 1111b otherwise
+instructions will #UD.
+
+.PP
+EVEX.512 encoded version:
+
+.PP
+Moves 512 bits of packed double\-precision floating\-point values from the
+source operand (second operand) to the destination operand (first
+operand). This instruction can be used to load a ZMM register from a
+float64 memory location, to store the contents of a ZMM register into a
+memory. The destination operand is updated according to the writemask.
+
+.PP
+VEX.256 encoded version:
+
+.PP
+Moves 256 bits of packed double\-precision floating\-point values from the
+source operand (second operand) to the destination operand (first
+operand). This instruction can be used to load a YMM register from a
+256\-bit memory location, to store the contents of a YMM register into a
+256\-bit memory location, or to move data between two YMM registers. Bits
+(MAXVL\-1:256) of the destination register are zeroed.
+
+.SS 128\-bit versions:
+.PP
+Moves 128 bits of packed double\-precision floating\-point values from the
+source operand (second operand) to the destination operand (first
+operand). This instruction can be used to load an XMM register from a
+128\-bit memory location, to store the contents of an XMM register into a
+128\-bit memory location, or to move data between two XMM registers.
+
+.PP
+128\-bit Legacy SSE version: Bits (MAXVL\-1:128) of the corresponding
+destination register remain unchanged.
+
+.PP
+When the source or destination operand is a memory operand, the operand
+may be unaligned on a 16\-byte boundary without causing a
+general\-protection exception (#GP) to be generated
+
+.PP
+VEX.128 and EVEX.128 encoded versions: Bits (MAXVL\-1:128) of the
+destination register are zeroed.
+
+.SS Operation
+.SS VMOVUPD (EVEX encoded versions, register\-copy form)
+.PP
+.RS
+
+.nf
+(KL, VL) = (2, 128), (4, 256), (8, 512)
+FOR j←0 TO KL\-1
+    i←j * 64
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+63:i]←SRC[i+63:i]
+        ELSE
+            IF *merging\-masking*
+                    ; merging\-masking
+                THEN *DEST[i+63:i] remains unchanged*
+                ELSE DEST[i+63:i]←0
+                    ; zeroing\-masking
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS VMOVUPD (EVEX encoded versions, store\-form)
+.PP
+.RS
+
+.nf
+(KL, VL) = (2, 128), (4, 256), (8, 512)
+FOR j←0 TO KL\-1
+    i←j * 64
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+63:i]←SRC[i+63:i]
+        ELSE *DEST[i+63:i] remains unchanged*
+            ; merging\-masking
+    FI;
+ENDFOR;
+
+.fi
+.RE
+
+.SS VMOVUPD (EVEX encoded versions, load\-form)
+.PP
+.RS
+
+.nf
+(KL, VL) = (2, 128), (4, 256), (8, 512)
+FOR j←0 TO KL\-1
+    i←j * 64
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+63:i]←SRC[i+63:i]
+        ELSE
+            IF *merging\-masking*
+                THEN *DEST[i+63:i] remains unchanged*
+                ELSE DEST[i+63:i]←0 ; zeroing\-masking
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+VMOVUPD (VEX.256 encoded version, load \- and register copy)
+DEST[255:0] ← SRC[255:0]
+DEST[MAXVL\-1:256] ← 0
+
+.fi
+.RE
+
+.SS VMOVUPD (VEX.256 encoded version, store\-form)
+.PP
+.RS
+
+.nf
+DEST[255:0] ← SRC[255:0]
+
+.fi
+.RE
+
+.SS VMOVUPD (VEX.128 encoded version)
+.PP
+.RS
+
+.nf
+DEST[127:0] ← SRC[127:0]
+DEST[MAXVL\-1:128] ← 0
+
+.fi
+.RE
+
+.SS MOVUPD (128\-bit load\- and register\-copy\- form Legacy SSE version)
+.PP
+.RS
+
+.nf
+DEST[127:0] ← SRC[127:0]
+DEST[MAXVL\-1:128] (Unmodified)
+
+.fi
+.RE
+
+.SS (V)MOVUPD (128\-bit store\-form version)
+.PP
+.RS
+
+.nf
+DEST[127:0] ← SRC[127:0]
+
+.fi
+.RE
+
+.SS Intel C/C++ Compiler Intrinsic Equivalent
+.PP
+.RS
+
+.nf
+VMOVUPD \_\_m512d \_mm512\_loadu\_pd( void * s);
+
+VMOVUPD \_\_m512d \_mm512\_mask\_loadu\_pd(\_\_m512d a, \_\_mmask8 k, void * s);
+
+VMOVUPD \_\_m512d \_mm512\_maskz\_loadu\_pd( \_\_mmask8 k, void * s);
+
+VMOVUPD void \_mm512\_storeu\_pd( void * d, \_\_m512d a);
+
+VMOVUPD void \_mm512\_mask\_storeu\_pd( void * d, \_\_mmask8 k, \_\_m512d a);
+
+VMOVUPD \_\_m256d \_mm256\_mask\_loadu\_pd(\_\_m256d s, \_\_mmask8 k, void * m);
+
+VMOVUPD \_\_m256d \_mm256\_maskz\_loadu\_pd( \_\_mmask8 k, void * m);
+
+VMOVUPD void \_mm256\_mask\_storeu\_pd( void * d, \_\_mmask8 k, \_\_m256d a);
+
+VMOVUPD \_\_m128d \_mm\_mask\_loadu\_pd(\_\_m128d s, \_\_mmask8 k, void * m);
+
+VMOVUPD \_\_m128d \_mm\_maskz\_loadu\_pd( \_\_mmask8 k, void * m);
+
+VMOVUPD void \_mm\_mask\_storeu\_pd( void * d, \_\_mmask8 k, \_\_m128d a);
+
+MOVUPD \_\_m256d \_mm256\_loadu\_pd (double * p);
+
+MOVUPD void \_mm256\_storeu\_pd( double *p, \_\_m256d a);
+
+MOVUPD \_\_m128d \_mm\_loadu\_pd (double * p);
+
+MOVUPD void \_mm\_storeu\_pd( double *p, \_\_m128d a);
+
+.fi
+.RE
+
+.SS SIMD Floating\-Point Exceptions
+.PP
+None
+
+.SS Other Exceptions
+.PP
+Non\-EVEX\-encoded instruction, see Exceptions Type 4.
+
+.PP
+Note treatment of #AC varies; additionally
+
+.TS
+allbox;
+l l 
+l l .
+#UD	If VEX.vvvv != 1111B.
+.TE
+
+.PP
+EVEX\-encoded instruction, see Exceptions Type E4.nb.
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+MIT licensed by TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

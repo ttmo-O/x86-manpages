@@ -1,0 +1,214 @@
+.nh
+.TH "X86-FCOMI-FCOMIP-FUCOMI-FUCOMIP" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+FCOMI-FCOMIP-FUCOMI-FUCOMIP - COMPARE FLOATING POINT VALUES AND SET EFLAGS
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode\fR	\fB\fCInstruction\fR	\fB\fC64\-Bit Mode\fR	\fB\fCCompat/Leg Mode\fR	\fB\fCDescription\fR
+DB F0+i	FCOMI ST, ST(i)	Valid	Valid	T{
+Compare ST(0) with ST(i) and set status flags accordingly.
+T}
+DF F0+i	FCOMIP ST, ST(i)	Valid	Valid	T{
+Compare ST(0) with ST(i), set status flags accordingly, and pop register stack.
+T}
+DB E8+i	FUCOMI ST, ST(i)	Valid	Valid	T{
+Compare ST(0) with ST(i), check for ordered values, and set status flags accordingly.
+T}
+DF E8+i	FUCOMIP ST, ST(i)	Valid	Valid	T{
+Compare ST(0) with ST(i), check for ordered values, set status flags accordingly, and pop register stack.
+T}
+.TE
+
+.SH DESCRIPTION
+.PP
+Performs an unordered comparison of the contents of registers ST(0) and
+ST(i) and sets the status flags ZF, PF, and CF in the EFLAGS register
+according to the results (see the table below). The sign of zero is
+ignored for comparisons, so that –0.0 is equal to +0.0.
+
+.TS
+allbox;
+l l l l 
+l l l l .
+\fB\fCComparison Results*\fR	\fB\fCZF\fR	\fB\fCPF\fR	\fB\fCCF\fR
+ST0 \&gt; ST(i)	0	0	0
+ST0 \&lt; ST(i)	0	0	1
+ST0 = ST(i)	1	0	0
+Unordered**	1	1	1
+.TE
+
+.PP
+Table 3\-22. FCOMI/FCOMIP/ FUCOMI/FUCOMIP Results
+
+.PP
+.RS
+
+.PP
+* SeetheIA\-32ArchitectureCompatibilitysectionbelow.
+
+.PP
+** Flags not set if unmasked invalid\-arithmetic\-operand (#IA)
+exception is generated.
+
+.RE
+
+.PP
+An unordered comparison checks the class of the numbers being compared
+(see “FXAM—Examine Floating\-Point” in this chapter). The FUCOMI/FUCOMIP
+instructions perform the same operations as the FCOMI/FCOMIP
+instructions. The only difference is that the FUCOMI/FUCOMIP
+instructions raise the invalid\-arithmetic\-operand exception (#IA) only
+when either or both operands are an SNaN or are in an unsupported
+format; QNaNs cause the condition code flags to be set to unordered, but
+do not cause an exception to be generated. The FCOMI/FCOMIP instructions
+raise an invalid\-operation exception when either or both of the operands
+are a NaN value of any kind or are in an unsupported format.
+
+.PP
+If the operation results in an invalid\-arithmetic\-operand exception
+being raised, the status flags in the EFLAGS register are set only if
+the exception is masked.
+
+.PP
+The FCOMI/FCOMIP and FUCOMI/FUCOMIP instructions set the OF, SF and AF
+flags to zero in the EFLAGS register (regardless of whether an
+invalid\-operation exception is detected).
+
+.PP
+The FCOMIP and FUCOMIP instructions also pop the register stack
+following the comparison operation. To pop the register stack, the
+processor marks the ST(0) register as empty and increments the stack
+pointer (TOP) by 1.
+
+.PP
+This instruction’s operation is the same in non\-64\-bit modes and 64\-bit
+mode.
+
+.SH IA\-32 ARCHITECTURE COMPATIBILITY
+.PP
+The FCOMI/FCOMIP/FUCOMI/FUCOMIP instructions were introduced to the
+IA\-32 Architecture in the P6 family processors and are not available in
+earlier IA\-32 processors.
+
+.SH OPERATION
+.PP
+.RS
+
+.nf
+CASE (relation of operands) OF
+    ST(0) > ST(i):
+                        ZF, PF, CF ← 000;
+    ST(0) < ST(i):
+                        ZF, PF, CF ← 001;
+    ST(0) = ST(i):
+                        ZF, PF, CF ← 100;
+ESAC;
+IF Instruction is FCOMI or FCOMIP
+    THEN
+        IF ST(0) or ST(i) = NaN or unsupported format
+            THEN
+                #IA
+                IF FPUControlWord.IM = 1
+                        THEN
+                            ZF, PF, CF ← 111;
+                FI;
+        FI;
+FI;
+IF Instruction is FUCOMI or FUCOMIP
+    THEN
+        IF ST(0) or ST(i) = QNaN, but not SNaN or unsupported format
+            THEN
+                ZF, PF, CF ← 111;
+            ELSE (* ST(0) or ST(i) is SNaN or unsupported format *)
+                    #IA;
+                IF FPUControlWord.IM = 1
+                        THEN
+                            ZF, PF, CF ← 111;
+                FI;
+        FI;
+FI;
+IF Instruction is FCOMIP or FUCOMIP
+    THEN
+        PopRegisterStack;
+FI;
+
+.fi
+.RE
+
+.SH FPU FLAGS AFFECTED
+.TS
+allbox;
+l l 
+l l .
+C1	Set to 0.
+C0, C2, C3	Not affected.
+.TE
+
+.SH FLOATING\-POINT EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#IS	Stack underflow occurred.
+#IA	T{
+(FCOMI or FCOMIP instruction) One or both operands are NaN values or have unsupported formats.
+T}
+	T{
+(FUCOMI or FUCOMIP instruction) One or both operands are SNaN values (but not QNaNs) or have undefined formats. Detection of a QNaN value does not raise an invalid\-operand exception.
+T}
+.TE
+
+.SH PROTECTED MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#NM	CR0.EM
+[
+bit 2
+]
+ or CR0.TS
+[
+bit 3
+]
+ = 1.
+#MF	T{
+If there is a pending x87 FPU exception.
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH REAL\-ADDRESS MODE EXCEPTIONS
+.PP
+Same exceptions as in protected mode.
+
+.SH VIRTUAL\-8086 MODE EXCEPTIONS
+.PP
+Same exceptions as in protected mode.
+
+.SH COMPATIBILITY MODE EXCEPTIONS
+.PP
+Same exceptions as in protected mode.
+
+.SH 64\-BIT MODE EXCEPTIONS
+.PP
+Same exceptions as in protected mode.
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+MIT licensed by TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

@@ -1,0 +1,245 @@
+.nh
+.TH "X86-MOVSHDUP" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+MOVSHDUP - REPLICATE SINGLE FP VALUES
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp/En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+T{
+F3 0F 16 /r MOVSHDUP xmm1, xmm2/m128
+T}
+	A	V/V	SSE3	T{
+Move odd index single\-precision floating\-point values from xmm2/mem and duplicate each element into xmm1.
+T}
+T{
+VEX.128.F3.0F.WIG 16 /r VMOVSHDUP xmm1, xmm2/m128
+T}
+	A	V/V	AVX	T{
+Move odd index single\-precision floating\-point values from xmm2/mem and duplicate each element into xmm1.
+T}
+T{
+VEX.256.F3.0F.WIG 16 /r VMOVSHDUP ymm1, ymm2/m256
+T}
+	A	V/V	AVX	T{
+Move odd index single\-precision floating\-point values from ymm2/mem and duplicate each element into ymm1.
+T}
+T{
+EVEX.128.F3.0F.W0 16 /r VMOVSHDUP xmm1 {k1}{z}, xmm2/m128
+T}
+	B	V/V	AVX512VL AVX512F	T{
+Move odd index single\-precision floating\-point values from xmm2/m128 and duplicate each element into xmm1 under writemask.
+T}
+T{
+EVEX.256.F3.0F.W0 16 /r VMOVSHDUP ymm1 {k1}{z}, ymm2/m256
+T}
+	B	V/V	AVX512VL AVX512F	T{
+Move odd index single\-precision floating\-point values from ymm2/m256 and duplicate each element into ymm1 under writemask.
+T}
+T{
+EVEX.512.F3.0F.W0 16 /r VMOVSHDUP zmm1 {k1}{z}, zmm2/m512
+T}
+	B	V/V	AVX512F	T{
+Move odd index single\-precision floating\-point values from zmm2/m512 and duplicate each element into zmm1 under writemask.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+Op/En	Tuple Type	Operand 1	Operand 2	Operand 3	Operand 4
+A	NA	ModRM:reg (w)	ModRM:r/m (r)	NA	NA
+B	Full Mem	ModRM:reg (w)	ModRM:r/m (r)	NA	NA
+.TE
+
+.SS Description
+.PP
+Duplicates odd\-indexed single\-precision floating\-point values from the
+source operand (the second operand) to adjacent element pair in the
+destination operand (the first operand). See Figure 4\-3. The source
+operand is an XMM, YMM or ZMM register or 128, 256 or 512\-bit memory
+location and the destination operand is an XMM, YMM or ZMM register.
+
+.PP
+128\-bit Legacy SSE version: Bits (MAXVL\-1:128) of the corresponding
+destination register remain unchanged.
+
+.PP
+VEX.128 encoded version: Bits (MAXVL\-1:128) of the destination register
+are zeroed.
+
+.PP
+VEX.256 encoded version: Bits (MAXVL\-1:256) of the destination register
+are zeroed.
+
+.PP
+EVEX encoded version: The destination operand is updated at 32\-bit
+granularity according to the writemask.
+
+.PP
+Note: VEX.vvvv and EVEX.vvvv are reserved and must be 1111b otherwise
+instructions will #UD.
+
+.PP
+X7X6X5X4X3X2X1X0SRCDESTX7X7X5X5X3X3X1X1
+
+.PP
+Figure 4\-3. MOVSHDUP Operation
+
+.SS Operation
+.SS VMOVSHDUP (EVEX encoded versions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (4, 128), (8, 256), (16, 512)
+TMP\_SRC[31:0] ← SRC[63:32]
+TMP\_SRC[63:32] ← SRC[63:32]
+TMP\_SRC[95:64] ← SRC[127:96]
+TMP\_SRC[127:96] ← SRC[127:96]
+IF VL >= 256
+    TMP\_SRC[159:128] ← SRC[191:160]
+    TMP\_SRC[191:160] ← SRC[191:160]
+    TMP\_SRC[223:192] ← SRC[255:224]
+    TMP\_SRC[255:224] ← SRC[255:224]
+FI;
+IF VL >= 512
+    TMP\_SRC[287:256] ← SRC[319:288]
+    TMP\_SRC[319:288] ← SRC[319:288]
+    TMP\_SRC[351:320] ← SRC[383:352]
+    TMP\_SRC[383:352] ← SRC[383:352]
+    TMP\_SRC[415:384] ← SRC[447:416]
+    TMP\_SRC[447:416] ← SRC[447:416]
+    TMP\_SRC[479:448] ← SRC[511:480]
+    TMP\_SRC[511:480] ← SRC[511:480]
+FI;
+FOR j←0 TO KL\-1
+    i←j * 32
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+31:i]←TMP\_SRC[i+31:i]
+        ELSE
+            IF *merging\-masking*
+                        ; merging\-masking
+                THEN *DEST[i+31:i] remains unchanged*
+                ELSE
+                        ; zeroing\-masking
+                    DEST[i+31:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS VMOVSHDUP (VEX.256 encoded version)
+.PP
+.RS
+
+.nf
+DEST[31:0] ← SRC[63:32]
+DEST[63:32] ← SRC[63:32]
+DEST[95:64] ← SRC[127:96]
+DEST[127:96] ← SRC[127:96]
+DEST[159:128] ← SRC[191:160]
+DEST[191:160] ← SRC[191:160]
+DEST[223:192] ← SRC[255:224]
+DEST[255:224] ← SRC[255:224]
+DEST[MAXVL\-1:256] ← 0
+
+.fi
+.RE
+
+.SS VMOVSHDUP (VEX.128 encoded version)
+.PP
+.RS
+
+.nf
+DEST[31:0] ← SRC[63:32]
+DEST[63:32] ← SRC[63:32]
+DEST[95:64] ← SRC[127:96]
+DEST[127:96] ← SRC[127:96]
+DEST[MAXVL\-1:128] ← 0
+
+.fi
+.RE
+
+.SS MOVSHDUP (128\-bit Legacy SSE version)
+.PP
+.RS
+
+.nf
+DEST[31:0] ←SRC[63:32]
+DEST[63:32] ←SRC[63:32]
+DEST[95:64] ←SRC[127:96]
+DEST[127:96] ←SRC[127:96]
+DEST[MAXVL\-1:128] (Unmodified)
+
+.fi
+.RE
+
+.SS Intel C/C++ Compiler Intrinsic Equivalent
+.PP
+.RS
+
+.nf
+VMOVSHDUP \_\_m512 \_mm512\_movehdup\_ps( \_\_m512 a);
+
+VMOVSHDUP \_\_m512 \_mm512\_mask\_movehdup\_ps(\_\_m512 s, \_\_mmask16 k, \_\_m512 a);
+
+VMOVSHDUP \_\_m512 \_mm512\_maskz\_movehdup\_ps( \_\_mmask16 k, \_\_m512 a);
+
+VMOVSHDUP \_\_m256 \_mm256\_mask\_movehdup\_ps(\_\_m256 s, \_\_mmask8 k, \_\_m256 a);
+
+VMOVSHDUP \_\_m256 \_mm256\_maskz\_movehdup\_ps( \_\_mmask8 k, \_\_m256 a);
+
+VMOVSHDUP \_\_m128 \_mm\_mask\_movehdup\_ps(\_\_m128 s, \_\_mmask8 k, \_\_m128 a);
+
+VMOVSHDUP \_\_m128 \_mm\_maskz\_movehdup\_ps( \_\_mmask8 k, \_\_m128 a);
+
+VMOVSHDUP \_\_m256 \_mm256\_movehdup\_ps (\_\_m256 a);
+
+VMOVSHDUP \_\_m128 \_mm\_movehdup\_ps (\_\_m128 a);
+
+.fi
+.RE
+
+.SS SIMD Floating\-Point Exceptions
+.PP
+None
+
+.SS Other Exceptions
+.PP
+Non\-EVEX\-encoded instruction, see Exceptions Type 4;
+
+.PP
+EVEX\-encoded instruction, see Exceptions Type E4NF.nb.
+
+.TS
+allbox;
+l l 
+l l .
+#UD	T{
+If EVEX.vvvv != 1111B or VEX.vvvv != 1111B.
+T}
+.TE
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+MIT licensed by TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

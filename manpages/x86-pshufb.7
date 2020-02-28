@@ -1,0 +1,283 @@
+.nh
+.TH "X86-PSHUFB" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+PSHUFB - PACKED SHUFFLE BYTES
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp/En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+T{
+NP 0F 38 00 /r1 PSHUFB mm1, mm2/m64
+T}
+	A	V/V	SSSE3	Shuffle bytes in mm2/m64.
+T{
+66 0F 38 00 /r PSHUFB xmm1, xmm2/m128
+T}
+	A	V/V	SSSE3	Shuffle bytes in xmm2/m128.
+T{
+VEX.128.66.0F38.WIG 00 /r VPSHUFB xmm1, xmm2, xmm3/m128
+T}
+	B	V/V	AVX	Shuffle bytes in xmm3/m128.
+T{
+VEX.256.66.0F38.WIG 00 /r VPSHUFB ymm1, ymm2, ymm3/m256
+T}
+	B	V/V	AVX2	Shuffle bytes in ymm3/m256.
+T{
+EVEX.128.66.0F38.WIG 00 /r VPSHUFB xmm1 {k1}{z}, xmm2, xmm3/m128
+T}
+	C	V/V	AVX512VL AVX512BW	T{
+Shuffle bytes in xmm2 according to contents of xmm3/m128 under write mask k1.
+T}
+T{
+EVEX.256.66.0F38.WIG 00 /r VPSHUFB ymm1 {k1}{z}, ymm2, ymm3/m256
+T}
+	C	V/V	AVX512VL AVX512BW	T{
+Shuffle bytes in ymm2 according to contents of ymm3/m256 under write mask k1.
+T}
+T{
+EVEX.512.66.0F38.WIG 00 /r VPSHUFB zmm1 {k1}{z}, zmm2, zmm3/m512
+T}
+	C	V/V	AVX512BW	T{
+Shuffle bytes in zmm2 according to contents of zmm3/m512 under write mask k1.
+T}
+.TE
+
+.PP
+.RS
+
+.PP
+1\&. See note in Section 2.4, “AVX and SSE Instruction Exception
+Specification” in the Intel® 64 and IA\-32 Architectures Software
+Developer’s Manual, Volume 3A.
+
+.RE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+Op/En	Tuple Type	Operand 1	Operand 2	Operand 3	Operand 4
+A	NA	ModRM:reg (r, w)	ModRM:r/m (r)	NA	NA
+B	NA	ModRM:reg (w)	VEX.vvvv (r)	ModRM:r/m (r)	NA
+C	Full Mem	ModRM:reg (w)	EVEX.vvvv (r)	ModRM:r/m (r)	NA
+.TE
+
+.SH DESCRIPTION
+.PP
+PSHUFB performs in\-place shuffles of bytes in the destination operand
+(the first operand) according to the shuffle control mask in the source
+operand (the second operand). The instruction permutes the data in the
+destination operand, leaving the shuffle mask unaffected. If the most
+significant bit (bit[7]) of each byte of the shuffle control mask is
+set, then constant zero is written in the result byte. Each byte in the
+shuffle control mask forms an index to permute the corresponding byte in
+the destination operand. The value of each index is the least
+significant 4 bits (128\-bit operation) or 3 bits (64\-bit operation) of
+the shuffle control byte. When the source operand is a 128\-bit memory
+operand, the operand must be aligned on a 16\-byte boundary or a
+general\-protection exception (#GP) will be generated.
+
+.PP
+In 64\-bit mode and not encoded with VEX/EVEX, use the REX prefix to
+access XMM8\-XMM15 registers.
+
+.PP
+Legacy SSE version 64\-bit operand: Both operands can be MMX registers.
+
+.PP
+128\-bit Legacy SSE version: The first source operand and the destination
+operand are the same. Bits (MAXVL\-1:128) of the corresponding YMM
+destination register remain unchanged.
+
+.PP
+VEX.128 encoded version: The destination operand is the first operand,
+the first source operand is the second operand, the second source
+operand is the third operand. Bits (MAXVL\-1:128) of the destination YMM
+register are zeroed.
+
+.PP
+VEX.256 encoded version: Bits (255:128) of the destination YMM register
+stores the 16\-byte shuffle result of the upper 16 bytes of the first
+source operand, using the upper 16\-bytes of the second source operand as
+control mask.
+
+.PP
+The value of each index is for the high 128\-bit lane is the least
+significant 4 bits of the respective shuffle control byte. The index
+value selects a source data element within each 128\-bit lane.
+
+.PP
+EVEX encoded version: The second source operand is an ZMM/YMM/XMM
+register or an 512/256/128\-bit memory location. The first source operand
+and destination operands are ZMM/YMM/XMM registers. The destination is
+conditionally updated with writemask k1.
+
+.PP
+EVEX and VEX encoded version: Four/two in\-lane 128\-bit shuffles.
+
+.SH OPERATION
+.SS PSHUFB (with 64 bit operands)
+.PP
+.RS
+
+.nf
+TEMP ← DEST
+for i = 0 to 7 {
+    if (SRC[(i * 8)+7] = 1 ) then
+        DEST[(i*8)+7...(i*8)+0] ← 0;
+    else
+        index[2..0] ← SRC[(i*8)+2 .. (i*8)+0];
+        DEST[(i*8)+7...(i*8)+0] ← TEMP[(index*8+7)..(index*8+0)];
+    endif;
+}
+
+.fi
+.RE
+
+.SS PSHUFB (with 128 bit operands)
+.PP
+.RS
+
+.nf
+TEMP ← DEST
+for i = 0 to 15 {
+    if (SRC[(i * 8)+7] = 1 ) then
+            DEST[(i*8)+7..(i*8)+0] ← 0;
+        else
+            index[3..0] ← SRC[(i*8)+3 .. (i*8)+0];
+            DEST[(i*8)+7..(i*8)+0] ← TEMP[(index*8+7)..(index*8+0)];
+    endif
+}
+
+.fi
+.RE
+
+.SS VPSHUFB (VEX.128 encoded version)
+.PP
+.RS
+
+.nf
+for i = 0 to 15 {
+    if (SRC2[(i * 8)+7] = 1) then
+        DEST[(i*8)+7..(i*8)+0] ← 0;
+        else
+        index[3..0]←SRC2[(i*8)+3 .. (i*8)+0];
+        DEST[(i*8)+7..(i*8)+0] ← SRC1[(index*8+7)..(index*8+0)];
+    endif
+}
+DEST[MAXVL\-1:128] ← 0
+
+.fi
+.RE
+
+.SS VPSHUFB (VEX.256 encoded version)
+.PP
+.RS
+
+.nf
+for i = 0 to 15 {
+    if (SRC2[(i * 8)+7] == 1 ) then
+        DEST[(i*8)+7..(i*8)+0] ← 0;
+        else
+        index[3..0]←SRC2[(i*8)+3 .. (i*8)+0];
+        DEST[(i*8)+7..(i*8)+0] ← SRC1[(index*8+7)..(index*8+0)];
+    endif
+    if (SRC2[128 + (i * 8)+7] == 1 ) then
+        DEST[128 + (i*8)+7..(i*8)+0]←0;
+        else
+        index[3..0]←SRC2[128 + (i*8)+3 .. (i*8)+0];
+        DEST[128 + (i*8)+7..(i*8)+0]←SRC1[128 + (index*8+7)..(index*8+0)];
+    endif
+}
+
+.fi
+.RE
+
+.SS VPSHUFB (EVEX encoded versions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (16, 128), (32, 256), (64, 512)
+jmask←(KL\-1) \& \~0xF
+                // 0x00, 0x10, 0x30 depending on the VL
+FOR j = 0 TO KL\-1
+                // dest
+    IF kl[ i ] or no\_masking
+        index←src.byte[ j ];
+        IF index \& 0x80
+            Dest.byte[ j ]←0;
+        ELSE
+            index←(index \& 0xF) + (j \& jmask);
+                // 16\-element in\-lane lookup
+            Dest.byte[ j ]←src.byte[ index ];
+    ELSE if zeroing
+        Dest.byte[ j ]←0;
+DEST[MAXVL\-1:VL] ← 0;
+
+.fi
+.RE
+
+.PP
+MM207H07HFFH80H01H00H00H00HMM104H01H07H03H02H02HFFH01HMM104H04H00H00HFFH01H01H01H
+
+.PP
+Figure 4\-15. PSHUFB with 64\-Bit Operands
+
+.SH INTEL C/C++ COMPILER INTRINSIC EQUIVALENT
+.PP
+.RS
+
+.nf
+VPSHUFB \_\_m512i \_mm512\_shuffle\_epi8(\_\_m512i a, \_\_m512i b);
+
+VPSHUFB \_\_m512i \_mm512\_mask\_shuffle\_epi8(\_\_m512i s, \_\_mmask64 k, \_\_m512i a, \_\_m512i b);
+
+VPSHUFB \_\_m512i \_mm512\_maskz\_shuffle\_epi8( \_\_mmask64 k, \_\_m512i a, \_\_m512i b);
+
+VPSHUFB \_\_m256i \_mm256\_mask\_shuffle\_epi8(\_\_m256i s, \_\_mmask32 k, \_\_m256i a, \_\_m256i b);
+
+VPSHUFB \_\_m256i \_mm256\_maskz\_shuffle\_epi8( \_\_mmask32 k, \_\_m256i a, \_\_m256i b);
+
+VPSHUFB \_\_m128i \_mm\_mask\_shuffle\_epi8(\_\_m128i s, \_\_mmask16 k, \_\_m128i a, \_\_m128i b);
+
+VPSHUFB \_\_m128i \_mm\_maskz\_shuffle\_epi8( \_\_mmask16 k, \_\_m128i a, \_\_m128i b);
+
+PSHUFB: \_\_m64 \_mm\_shuffle\_pi8 (\_\_m64 a, \_\_m64 b)
+
+(V)PSHUFB: \_\_m128i \_mm\_shuffle\_epi8 (\_\_m128i a, \_\_m128i b)
+
+VPSHUFB:\_\_m256i \_mm256\_shuffle\_epi8(\_\_m256i a, \_\_m256i b)
+
+.fi
+.RE
+
+.SH SIMD FLOATING\-POINT EXCEPTIONS
+.PP
+None.
+
+.SH OTHER EXCEPTIONS
+.PP
+Non\-EVEX\-encoded instruction, see Exceptions Type 4.
+
+.PP
+EVEX\-encoded instruction, see Exceptions Type E4NF.nb.
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+MIT licensed by TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

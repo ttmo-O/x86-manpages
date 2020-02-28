@@ -1,0 +1,1252 @@
+.nh
+.TH "X86-SETCC" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+SETCC - SET BYTE ON CONDITION
+.PP
+Opcode
+
+.PP
+Instruction
+
+.PP
+Op/En
+
+.PP
+64\-Bit Mode
+
+.PP
+Compat/Leg Mode
+
+.PP
+Description
+
+.PP
+0F 97
+
+.PP
+SETA r/m8
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+Set byte if above (CF=0 and ZF=0).
+
+.PP
+REX + 0F 97
+
+.PP
+SETA r/m8*
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+N.E.
+
+.PP
+Set byte if above (CF=0 and ZF=0).
+
+.PP
+0F 93
+
+.PP
+SETAE r/m8
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+Set byte if above or equal (CF=0).
+
+.PP
+REX + 0F 93
+
+.PP
+SETAE r/m8*
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+N.E.
+
+.PP
+Set byte if above or equal (CF=0).
+
+.PP
+0F 92
+
+.PP
+SETB r/m8
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+Set byte if below (CF=1).
+
+.PP
+REX + 0F 92
+
+.PP
+SETB r/m8*
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+N.E.
+
+.PP
+Set byte if below (CF=1).
+
+.PP
+0F 96
+
+.PP
+SETBE r/m8
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+Set byte if below or equal (CF=1 or ZF=1).
+
+.PP
+REX + 0F 96
+
+.PP
+SETBE r/m8*
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+N.E.
+
+.PP
+Set byte if below or equal (CF=1 or ZF=1).
+
+.PP
+0F 92
+
+.PP
+SETC r/m8
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+Set byte if carry (CF=1).
+
+.PP
+REX + 0F 92
+
+.PP
+SETC r/m8*
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+N.E.
+
+.PP
+Set byte if carry (CF=1).
+
+.PP
+0F 94
+
+.PP
+SETE r/m8
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+Set byte if equal (ZF=1).
+
+.PP
+REX + 0F 94
+
+.PP
+SETE r/m8*
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+N.E.
+
+.PP
+Set byte if equal (ZF=1).
+
+.PP
+0F 9F
+
+.PP
+SETG r/m8
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+Set byte if greater (ZF=0 and SF=OF).
+
+.PP
+REX + 0F 9F
+
+.PP
+SETG r/m8*
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+N.E.
+
+.PP
+Set byte if greater (ZF=0 and SF=OF).
+
+.PP
+0F 9D
+
+.PP
+SETGE r/m8
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+Set byte if greater or equal (SF=OF).
+
+.PP
+REX + 0F 9D
+
+.PP
+SETGE r/m8*
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+N.E.
+
+.PP
+Set byte if greater or equal (SF=OF).
+
+.PP
+0F 9C
+
+.PP
+SETL r/m8
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+Set byte if less (SF≠ OF).
+
+.PP
+REX + 0F 9C
+
+.PP
+SETL r/m8*
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+N.E.
+
+.PP
+Set byte if less (SF≠ OF).
+
+.PP
+0F 9E
+
+.PP
+SETLE r/m8
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+Set byte if less or equal (ZF=1 or SF≠ OF).
+
+.PP
+REX + 0F 9E
+
+.PP
+SETLE r/m8*
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+N.E.
+
+.PP
+Set byte if less or equal (ZF=1 or SF≠ OF).
+
+.PP
+0F 96
+
+.PP
+SETNA r/m8
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+Set byte if not above (CF=1 or ZF=1).
+
+.PP
+REX + 0F 96
+
+.PP
+SETNA r/m8*
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+N.E.
+
+.PP
+Set byte if not above (CF=1 or ZF=1).
+
+.PP
+0F 92
+
+.PP
+SETNAE r/m8
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+Set byte if not above or equal (CF=1).
+
+.PP
+REX + 0F 92
+
+.PP
+SETNAE r/m8*
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+N.E.
+
+.PP
+Set byte if not above or equal (CF=1).
+
+.PP
+0F 93
+
+.PP
+SETNB r/m8
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+Set byte if not below (CF=0).
+
+.PP
+REX + 0F 93
+
+.PP
+SETNB r/m8*
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+N.E.
+
+.PP
+Set byte if not below (CF=0).
+
+.PP
+0F 97
+
+.PP
+SETNBE r/m8
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+Set byte if not below or equal (CF=0 and ZF=0).
+
+.PP
+REX + 0F 97
+
+.PP
+SETNBE r/m8*
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+N.E.
+
+.PP
+Set byte if not below or equal (CF=0 and ZF=0).
+
+.PP
+0F 93
+
+.PP
+SETNC r/m8
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+Set byte if not carry (CF=0).
+
+.PP
+REX + 0F 93
+
+.PP
+SETNC r/m8*
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+N.E.
+
+.PP
+Set byte if not carry (CF=0).
+
+.PP
+0F 95
+
+.PP
+SETNE r/m8
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+Set byte if not equal (ZF=0).
+
+.PP
+REX + 0F 95
+
+.PP
+SETNE r/m8*
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+N.E.
+
+.PP
+Set byte if not equal (ZF=0).
+
+.PP
+0F 9E
+
+.PP
+SETNG r/m8
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+Set byte if not greater (ZF=1 or SF≠ OF)
+
+.PP
+REX + 0F 9E
+
+.PP
+SETNG r/m8*
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+N.E.
+
+.PP
+Set byte if not greater (ZF=1 or SF≠ OF).
+
+.PP
+0F 9C
+
+.PP
+SETNGE r/m8
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+Set byte if not greater or equal (SF≠ OF).
+
+.PP
+REX + 0F 9C
+
+.PP
+SETNGE r/m8*
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+N.E.
+
+.PP
+Set byte if not greater or equal (SF≠ OF).
+
+.PP
+0F 9D
+
+.PP
+SETNL r/m8
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+Set byte if not less (SF=OF).
+
+.PP
+REX + 0F 9D
+
+.PP
+SETNL r/m8*
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+N.E.
+
+.PP
+Set byte if not less (SF=OF).
+
+.PP
+0F 9F
+
+.PP
+SETNLE r/m8
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+Set byte if not less or equal (ZF=0 and SF=OF).
+
+.PP
+REX + 0F 9F
+
+.PP
+SETNLE r/m8*
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+N.E.
+
+.PP
+Set byte if not less or equal (ZF=0 and SF=OF).
+
+.PP
+0F 91
+
+.PP
+SETNO r/m8
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+Set byte if not overflow (OF=0).
+
+.PP
+REX + 0F 91
+
+.PP
+SETNO r/m8*
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+N.E.
+
+.PP
+Set byte if not overflow (OF=0).
+
+.PP
+0F 9B
+
+.PP
+SETNP r/m8
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+Set byte if not parity (PF=0).
+
+.PP
+REX + 0F 9B
+
+.PP
+SETNP r/m8*
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+N.E.
+
+.PP
+Set byte if not parity (PF=0).
+
+.PP
+0F 99
+
+.PP
+SETNS r/m8
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+Set byte if not sign (SF=0).
+
+.PP
+REX + 0F 99
+
+.PP
+SETNS r/m8*
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+N.E.
+
+.PP
+Set byte if not sign (SF=0).
+
+.PP
+0F 95
+
+.PP
+SETNZ r/m8
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+Set byte if not zero (ZF=0).
+
+.PP
+REX + 0F 95
+
+.PP
+SETNZ r/m8*
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+N.E.
+
+.PP
+Set byte if not zero (ZF=0).
+
+.PP
+0F 90
+
+.PP
+SETO r/m8
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+Set byte if overflow (OF=1)
+
+.PP
+REX + 0F 90
+
+.PP
+SETO r/m8*
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+N.E.
+
+.PP
+Set byte if overflow (OF=1).
+
+.PP
+0F 9A
+
+.PP
+SETP r/m8
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+Set byte if parity (PF=1).
+
+.PP
+REX + 0F 9A
+
+.PP
+SETP r/m8*
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+N.E.
+
+.PP
+Set byte if parity (PF=1).
+
+.PP
+0F 9A
+
+.PP
+SETPE r/m8
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+Set byte if parity even (PF=1).
+
+.PP
+REX + 0F 9A
+
+.PP
+SETPE r/m8*
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+N.E.
+
+.PP
+Set byte if parity even (PF=1).
+
+.PP
+0F 9B
+
+.PP
+SETPO r/m8
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+Set byte if parity odd (PF=0).
+
+.PP
+REX + 0F 9B
+
+.PP
+SETPO r/m8*
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+N.E.
+
+.PP
+Set byte if parity odd (PF=0).
+
+.PP
+0F 98
+
+.PP
+SETS r/m8
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+Set byte if sign (SF=1).
+
+.PP
+REX + 0F 98
+
+.PP
+SETS r/m8*
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+N.E.
+
+.PP
+Set byte if sign (SF=1).
+
+.PP
+0F 94
+
+.PP
+SETZ r/m8
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+Valid
+
+.PP
+Set byte if zero (ZF=1).
+
+.PP
+REX + 0F 94
+
+.PP
+SETZ r/m8*
+
+.PP
+M
+
+.PP
+Valid
+
+.PP
+N.E.
+
+.PP
+Set byte if zero (ZF=1).
+
+.PP
+NOTES: *
+In64\-bitmode,r/m8cannotbeencodedtoaccessthefollowingbyteregistersifaREXprefixisused:AH,BH,CH,DH.
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l 
+l l l l l .
+Op/En	Operand 1	Operand 2	Operand 3	Operand 4
+M	ModRM:r/m (r)	NA	NA	NA
+.TE
+
+.SH DESCRIPTION
+.PP
+Sets the destination operand to 0 or 1 depending on the settings of the
+status flags (CF, SF, OF, ZF, and PF) in the EFLAGS register. The
+destination operand points to a byte register or a byte in memory. The
+condition code suffix (cc) indicates the condition being tested for.
+
+.PP
+The terms “above” and “below” are associated with the CF flag and refer
+to the relationship between two unsigned integer values. The terms
+“greater” and “less” are associated with the SF and OF flags and refer
+to the relationship between two signed integer values.
+
+.PP
+Many of the SETIntel® 64 and IA\-32 Architectures Software Developer’s
+Manual, Volume 1, shows the alternate mnemonics for various test
+conditions.
+
+.PP
+Some languages represent a logical one as an integer with all bits set.
+This representation can be obtained by choosing the logically opposite
+condition for the SETcc instruction, then decrementing the result. For
+example, to test for overflow, use the SETNO instruction, then decrement
+the result.
+
+.PP
+The reg field of the ModR/M byte is not used for the SETCC instruction
+and those opcode bits are ignored by the processor.
+
+.PP
+In IA\-64 mode, the operand size is fixed at 8 bits. Use of REX prefix
+enable uniform addressing to additional byte registers. Otherwise, this
+instruction’s operation is the same as in legacy mode and compatibility
+mode.
+
+.SH OPERATION
+.PP
+.RS
+
+.nf
+IF condition
+    THEN DEST ← 1;
+    ELSE DEST ← 0;
+FI;
+
+.fi
+.RE
+
+.SH FLAGS AFFECTED
+.PP
+None.
+
+.SH PROTECTED MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP(0)	T{
+If the destination is located in a non\-writable segment.
+T}
+	T{
+If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit.
+T}
+	T{
+If the DS, ES, FS, or GS register contains a NULL segment selector.
+T}
+#SS(0)	T{
+If a memory operand effective address is outside the SS segment limit.
+T}
+#PF(fault\-code)	If a page fault occurs.
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH REAL\-ADDRESS MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP	T{
+If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit.
+T}
+#SS	T{
+If a memory operand effective address is outside the SS segment limit.
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH VIRTUAL\-8086 MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP(0)	T{
+If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit.
+T}
+#SS(0)	T{
+If a memory operand effective address is outside the SS segment limit.
+T}
+#PF(fault\-code)	If a page fault occurs.
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH COMPATIBILITY MODE EXCEPTIONS
+.PP
+Same exceptions as in protected mode.
+
+.SH 64\-BIT MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#SS(0)	T{
+If a memory address referencing the SS segment is in a non\-canonical form.
+T}
+#GP(0)	T{
+If the memory address is in a non\-canonical form.
+T}
+#PF(fault\-code)	If a page fault occurs.
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+MIT licensed by TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

@@ -1,0 +1,249 @@
+.nh
+.TH "X86-PMADDUBSW" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+PMADDUBSW - MULTIPLY AND ADD PACKED SIGNED AND UNSIGNED BYTES
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp/En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+T{
+NP 0F 38 04 /r1 PMADDUBSW mm1, mm2/m64
+T}
+	A	V/V	SSSE3	T{
+Multiply signed and unsigned bytes, add horizontal pair of signed words, pack saturated signed\-words to mm1.
+T}
+T{
+66 0F 38 04 /r PMADDUBSW xmm1, xmm2/m128
+T}
+	A	V/V	SSSE3	T{
+Multiply signed and unsigned bytes, add horizontal pair of signed words, pack saturated signed\-words to xmm1.
+T}
+T{
+VEX.128.66.0F38.WIG 04 /r VPMADDUBSW xmm1, xmm2, xmm3/m128
+T}
+	B	V/V	AVX	T{
+Multiply signed and unsigned bytes, add horizontal pair of signed words, pack saturated signed\-words to xmm1.
+T}
+T{
+VEX.256.66.0F38.WIG 04 /r VPMADDUBSW ymm1, ymm2, ymm3/m256
+T}
+	B	V/V	AVX2	T{
+Multiply signed and unsigned bytes, add horizontal pair of signed words, pack saturated signed\-words to ymm1.
+T}
+T{
+EVEX.128.66.0F38.WIG 04 /r VPMADDUBSW xmm1 {k1}{z}, xmm2, xmm3/m128
+T}
+	C	V/V	AVX512VL AVX512BW	T{
+Multiply signed and unsigned bytes, add horizontal pair of signed words, pack saturated signed\-words to xmm1 under writemask k1.
+T}
+T{
+EVEX.256.66.0F38.WIG 04 /r VPMADDUBSW ymm1 {k1}{z}, ymm2, ymm3/m256
+T}
+	C	V/V	AVX512VL AVX512BW	T{
+Multiply signed and unsigned bytes, add horizontal pair of signed words, pack saturated signed\-words to ymm1 under writemask k1.
+T}
+T{
+EVEX.512.66.0F38.WIG 04 /r VPMADDUBSW zmm1 {k1}{z}, zmm2, zmm3/m512
+T}
+	C	V/V	AVX512BW	T{
+Multiply signed and unsigned bytes, add horizontal pair of signed words, pack saturated signed\-words to zmm1 under writemask k1.
+T}
+.TE
+
+.PP
+.RS
+
+.PP
+1\&. See note in Section 2.4, “AVX and SSE Instruction Exception
+Specification” in the Intel® 64 and IA\-32 Architectures Software
+Developer’s Manual, Volume 3A.
+
+.RE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+Op/En	Tuple Type	Operand 1	Operand 2	Operand 3	Operand 4
+A	NA	ModRM:reg (r, w)	ModRM:r/m (r)	NA	NA
+B	NA	ModRM:reg (w)	VEX.vvvv (r)	ModRM:r/m (r)	NA
+C	Full Mem	ModRM:reg (w)	EVEX.vvvv (r)	ModRM:r/m (r)	NA
+.TE
+
+.SH DESCRIPTION
+.PP
+(V)PMADDUBSW multiplies vertically each unsigned byte of the destination
+operand (first operand) with the corresponding signed byte of the source
+operand (second operand), producing intermediate signed 16\-bit integers.
+Each adjacent pair of signed words is added and the saturated result is
+packed to the destination operand. For example, the lowest\-order bytes
+(bits 7\-0) in the source and destination operands are multiplied and the
+intermediate signed word result is added with the corresponding
+intermediate result from the 2nd lowest\-order bytes (bits 15\-8) of the
+operands; the sign\-saturated result is stored in the lowest word of the
+destination register (15\-0). The same operation is performed on the
+other pairs of adjacent bytes. Both operands can be MMX register or XMM
+registers. When the source operand is a 128\-bit memory operand, the
+operand must be aligned on a 16\-byte boundary or a general\-protection
+exception (#GP) will be generated.
+
+.PP
+In 64\-bit mode and not encoded with VEX/EVEX, use the REX prefix to
+access XMM8\-XMM15.
+
+.PP
+128\-bit Legacy SSE version: The first source and destination operands
+are XMM registers. The second source operand is an XMM register or a
+128\-bit memory location. Bits (MAXVL\-1:128) of the corresponding
+destination register remain unchanged.
+
+.PP
+VEX.128 and EVEX.128 encoded versions: The first source and destination
+operands are XMM registers. The second source operand is an XMM register
+or a 128\-bit memory location. Bits (MAXVL\-1:128) of the corresponding
+destination register are zeroed.
+
+.PP
+VEX.256 and EVEX.256 encoded versions: The second source operand can be
+an YMM register or a 256\-bit memory location. The first source and
+destination operands are YMM registers. Bits (MAXVL\-1:256) of the
+corresponding ZMM register are zeroed.
+
+.PP
+EVEX.512 encoded version: The second source operand can be an ZMM
+register or a 512\-bit memory location. The first source and destination
+operands are ZMM registers.
+
+.SH OPERATION
+.SS PMADDUBSW (with 64 bit operands)
+.PP
+.RS
+
+.nf
+DEST[15\-0] = SaturateToSignedWord(SRC[15\-8]*DEST[15\-8]+SRC[7\-0]*DEST[7\-0]);
+DEST[31\-16] = SaturateToSignedWord(SRC[31\-24]*DEST[31\-24]+SRC[23\-16]*DEST[23\-16]);
+DEST[47\-32] = SaturateToSignedWord(SRC[47\-40]*DEST[47\-40]+SRC[39\-32]*DEST[39\-32]);
+DEST[63\-48] = SaturateToSignedWord(SRC[63\-56]*DEST[63\-56]+SRC[55\-48]*DEST[55\-48]);
+
+.fi
+.RE
+
+.SS PMADDUBSW (with 128 bit operands)
+.PP
+.RS
+
+.nf
+DEST[15\-0] = SaturateToSignedWord(SRC[15\-8]* DEST[15\-8]+SRC[7\-0]*DEST[7\-0]);
+// Repeat operation for 2nd through 7th word
+SRC1/DEST[127\-112] = SaturateToSignedWord(SRC[127\-120]*DEST[127\-120]+ SRC[119\-112]* DEST[119\-112]);
+
+.fi
+.RE
+
+.SS VPMADDUBSW (VEX.128 encoded version)
+.PP
+.RS
+
+.nf
+DEST[15:0]←SaturateToSignedWord(SRC2[15:8]* SRC1[15:8]+SRC2[7:0]*SRC1[7:0])
+// Repeat operation for 2nd through 7th word
+DEST[127:112]←SaturateToSignedWord(SRC2[127:120]*SRC1[127:120]+ SRC2[119:112]* SRC1[119:112])
+DEST[MAXVL\-1:128] ← 0
+
+.fi
+.RE
+
+.SS VPMADDUBSW (VEX.256 encoded version)
+.PP
+.RS
+
+.nf
+DEST[15:0]←SaturateToSignedWord(SRC2[15:8]* SRC1[15:8]+SRC2[7:0]*SRC1[7:0])
+// Repeat operation for 2nd through 15th word
+DEST[255:240]←SaturateToSignedWord(SRC2[255:248]*SRC1[255:248]+ SRC2[247:240]* SRC1[247:240])
+DEST[MAXVL\-1:256] ← 0
+
+.fi
+.RE
+
+.SS VPMADDUBSW (EVEX encoded versions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (8, 128), (16, 256), (32, 512)
+FOR j←0 TO KL\-1
+    i←j * 16
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+15:i]←SaturateToSignedWord(SRC2[i+15:i+8]* SRC1[i+15:i+8] + SRC2[i+7:i]*SRC1[i+7:i])
+        ELSE
+            IF *merging\-masking* ; merging\-masking
+                THEN *DEST[i+15:i] remains unchanged*
+                ELSE *zeroing\-masking*
+                        ; zeroing\-masking
+                    DEST[i+15:i] = 0
+            FI
+    FI;
+ENDFOR;
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SH INTEL C/C++ COMPILER INTRINSIC EQUIVALENTS
+.PP
+.RS
+
+.nf
+VPMADDUBSW \_\_m512i \_mm512\_maddubs\_epi16( \_\_m512i a, \_\_m512i b);
+
+VPMADDUBSW \_\_m512i \_mm512\_mask\_maddubs\_epi16(\_\_m512i s, \_\_mmask32 k, \_\_m512i a, \_\_m512i b);
+
+VPMADDUBSW \_\_m512i \_mm512\_maskz\_maddubs\_epi16( \_\_mmask32 k, \_\_m512i a, \_\_m512i b);
+
+VPMADDUBSW \_\_m256i \_mm256\_mask\_maddubs\_epi16(\_\_m256i s, \_\_mmask16 k, \_\_m256i a, \_\_m256i b);
+
+VPMADDUBSW \_\_m256i \_mm256\_maskz\_maddubs\_epi16( \_\_mmask16 k, \_\_m256i a, \_\_m256i b);
+
+VPMADDUBSW \_\_m128i \_mm\_mask\_maddubs\_epi16(\_\_m128i s, \_\_mmask8 k, \_\_m128i a, \_\_m128i b);
+
+VPMADDUBSW \_\_m128i \_mm\_maskz\_maddubs\_epi16( \_\_mmask8 k, \_\_m128i a, \_\_m128i b);
+
+PMADDUBSW: \_\_m64 \_mm\_maddubs\_pi16 (\_\_m64 a, \_\_m64 b)
+
+(V)PMADDUBSW: \_\_m128i \_mm\_maddubs\_epi16 (\_\_m128i a, \_\_m128i b)
+
+VPMADDUBSW: \_\_m256i \_mm256\_maddubs\_epi16 (\_\_m256i a, \_\_m256i b)
+
+.fi
+.RE
+
+.SH SIMD FLOATING\-POINT EXCEPTIONS
+.PP
+None.
+
+.SH OTHER EXCEPTIONS
+.PP
+Non\-EVEX\-encoded instruction, see Exceptions Type 4.
+
+.PP
+EVEX\-encoded instruction, see Exceptions Type E4NF.nb.
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+MIT licensed by TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

@@ -1,0 +1,585 @@
+.nh
+.TH "X86-PCMPGTB-PCMPGTW-PCMPGTD" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+PCMPGTB-PCMPGTW-PCMPGTD - COMPARE PACKED SIGNED INTEGERS FOR GREATER THAN
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp/En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+NP 0F 64 /mm, mm/m64	A	V/V	MMX	T{
+Compare packed signed byte integers in mm/m64 for greater than.
+T}
+66 0F 64 /xmm2/m128	A	V/V	SSE2	T{
+Compare packed signed byte integers in xmm2/m128 for greater than.
+T}
+NP 0F 65 /mm, mm/m64	A	V/V	MMX	T{
+Compare packed signed word integers in mm/m64 for greater than.
+T}
+66 0F 65 /xmm2/m128	A	V/V	SSE2	T{
+Compare packed signed word integers in xmm2/m128 for greater than.
+T}
+NP 0F 66 /mm, mm/m64	A	V/V	MMX	T{
+Compare packed signed doubleword integers in mm/m64 for greater than.
+T}
+66 0F 66 /xmm2/m128	A	V/V	SSE2	T{
+Compare packed signed doubleword integers in xmm2/m128 for greater than.
+T}
+T{
+VEX.128.66.0F.WIG 64 /r VPCMPGTB xmm1, xmm2, xmm3/m128
+T}
+	B	V/V	AVX	T{
+Compare packed signed byte integers in xmm3/m128 for greater than.
+T}
+T{
+VEX.128.66.0F.WIG 65 /r VPCMPGTW xmm1, xmm2, xmm3/m128
+T}
+	B	V/V	AVX	T{
+Compare packed signed word integers in xmm3/m128 for greater than.
+T}
+T{
+VEX.128.66.0F.WIG 66 /r VPCMPGTD xmm1, xmm2, xmm3/m128
+T}
+	B	V/V	AVX	T{
+Compare packed signed doubleword integers in xmm3/m128 for greater than.
+T}
+T{
+VEX.256.66.0F.WIG 64 /r VPCMPGTB ymm1, ymm2, ymm3/m256
+T}
+	B	V/V	AVX2	T{
+Compare packed signed byte integers in ymm3/m256 for greater than.
+T}
+T{
+VEX.256.66.0F.WIG 65 /r VPCMPGTW ymm1, ymm2, ymm3/m256
+T}
+	B	V/V	AVX2	T{
+Compare packed signed word integers in ymm3/m256 for greater than.
+T}
+T{
+VEX.256.66.0F.WIG 66 /r VPCMPGTD ymm1, ymm2, ymm3/m256
+T}
+	B	V/V	AVX2	T{
+Compare packed signed doubleword integers in ymm3/m256 for greater than.
+T}
+T{
+EVEX.128.66.0F.W0 66 /r VPCMPGTD k1 {k2}, xmm2, xmm3/m128/m32bcst
+T}
+	C	V/V	AVX512VL AVX512F	T{
+Compare Greater between int32 vector xmm2 and int32 vector xmm3/m128/m32bcst, and set vector mask k1 to reflect the zero/nonzero status of each element of the result, under writemask.
+T}
+T{
+EVEX.256.66.0F.W0 66 /r VPCMPGTD k1 {k2}, ymm2, ymm3/m256/m32bcst
+T}
+	C	V/V	AVX512VL AVX512F	T{
+Compare Greater between int32 vector ymm2 and int32 vector ymm3/m256/m32bcst, and set vector mask k1 to reflect the zero/nonzero status of each element of the result, under writemask.
+T}
+T{
+EVEX.512.66.0F.W0 66 /r VPCMPGTD k1 {k2}, zmm2, zmm3/m512/m32bcst
+T}
+	C	V/V	AVX512F	T{
+Compare Greater between int32 elements in zmm2 and zmm3/m512/m32bcst, and set destination k1 according to the comparison results under writemask. k2.
+T}
+T{
+EVEX.128.66.0F.WIG 64 /r VPCMPGTB k1 {k2}, xmm2, xmm3/m128
+T}
+	D	V/V	AVX512VL AVX512BW	T{
+Compare packed signed byte integers in xmm2 and xmm3/m128 for greater than, and set vector mask k1 to reflect the zero/nonzero status of each element of the result, under writemask.
+T}
+T{
+EVEX.256.66.0F.WIG 64 /r VPCMPGTB k1 {k2}, ymm2, ymm3/m256
+T}
+	D	V/V	AVX512VL AVX512BW	T{
+Compare packed signed byte integers in ymm2 and ymm3/m256 for greater than, and set vector mask k1 to reflect the zero/nonzero status of each element of the result, under writemask.
+T}
+.TE
+
+.TS
+allbox;
+l l l l l 
+l l l l l .
+T{
+EVEX.512.66.0F.WIG 64 /r VPCMPGTB k1 {k2}, zmm2, zmm3/m512
+T}
+	D	V/V	AVX512BW	T{
+Compare packed signed byte integers in zmm2 and zmm3/m512 for greater than, and set vector mask k1 to reflect the zero/nonzero status of each element of the result, under writemask.
+T}
+T{
+EVEX.128.66.0F.WIG 65 /r VPCMPGTW k1 {k2}, xmm2, xmm3/m128
+T}
+	D	V/V	AVX512VL AVX512BW	T{
+Compare packed signed word integers in xmm2 and xmm3/m128 for greater than, and set vector mask k1 to reflect the zero/nonzero status of each element of the result, under writemask.
+T}
+T{
+EVEX.256.66.0F.WIG 65 /r VPCMPGTW k1 {k2}, ymm2, ymm3/m256
+T}
+	D	V/V	AVX512VL AVX512BW	T{
+Compare packed signed word integers in ymm2 and ymm3/m256 for greater than, and set vector mask k1 to reflect the zero/nonzero status of each element of the result, under writemask.
+T}
+T{
+EVEX.512.66.0F.WIG 65 /r VPCMPGTW k1 {k2}, zmm2, zmm3/m512
+T}
+	D	V/V	AVX512BW	T{
+Compare packed signed word integers in zmm2 and zmm3/m512 for greater than, and set vector mask k1 to reflect the zero/nonzero status of each element of the result, under writemask.
+T}
+.TE
+
+.PP
+.RS
+
+.PP
+1\&. See note in Section 2.4, “AVX and SSE Instruction Exception
+Specification” in the Intel® 64 and IA\-32 Architectures Software
+Developer’s Manual, Volume 3A.
+
+.RE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+Op/En	Tuple Type	Operand 1	Operand 2	Operand 3	Operand 4
+A	NA	ModRM:reg (r, w)	ModRM:r/m (r)	NA	NA
+B	NA	ModRM:reg (w)	VEX.vvvv (r)	ModRM:r/m (r)	NA
+C	Full	ModRM:reg (w)	EVEX.vvvv (r)	ModRM:r/m (r)	NA
+D	Full Mem	ModRM:reg (w)	EVEX.vvvv (r)	ModRM:r/m (r)	NA
+.TE
+
+.SH DESCRIPTION
+.PP
+Performs an SIMD signed compare for the greater value of the packed
+byte, word, or doubleword integers in the destination operand (first
+operand) and the source operand (second operand). If a data element in
+the destination operand is greater than the corresponding date element
+in the source operand, the corresponding data element in the destination
+operand is set to all 1s; otherwise, it is set to all 0s.
+
+.PP
+The PCMPGTB instruction compares the corresponding signed byte integers
+in the destination and source operands; the PCMPGTW instruction compares
+the corresponding signed word integers in the destination and source
+operands; and the PCMPGTD instruction compares the corresponding signed
+doubleword integers in the destination and source operands.
+
+.PP
+In 64\-bit mode and not encoded with VEX/EVEX, using a REX prefix in the
+form of REX.R permits this instruction to access additional registers
+(XMM8\-XMM15).
+
+.PP
+Legacy SSE instructions: The source operand can be an MMX technology
+register or a 64\-bit memory location. The destination operand can be an
+MMX technology register.
+
+.PP
+128\-bit Legacy SSE version: The second source operand can be an XMM
+register or a 128\-bit memory location. The first source operand and
+destination operand are XMM registers. Bits (MAXVL\-1:128) of the
+corresponding YMM destination register remain unchanged.
+
+.PP
+VEX.128 encoded version: The second source operand can be an XMM
+register or a 128\-bit memory location. The first source operand and
+destination operand are XMM registers. Bits (MAXVL\-1:128) of the
+corresponding YMM register are zeroed.
+
+.PP
+VEX.256 encoded version: The first source operand is a YMM register. The
+second source operand is a YMM register or a 256\-bit memory location.
+The destination operand is a YMM register.
+
+.PP
+EVEX encoded VPCMPGTD: The first source operand (second operand) is a
+ZMM/YMM/XMM register. The second source operand can be a ZMM/YMM/XMM
+register, a 512/256/128\-bit memory location or a 512/256/128\-bit vector
+broadcasted from a 32\-bit memory location. The destination operand
+(first operand) is a mask register updated according to the writemask
+k2.
+
+.PP
+EVEX encoded VPCMPGTB/W: The first source operand (second operand) is a
+ZMM/YMM/XMM register. The second source operand can be a ZMM/YMM/XMM
+register, a 512/256/128\-bit memory location. The destination operand
+(first operand) is a mask register updated according to the writemask
+k2.
+
+.SH OPERATION
+.SS PCMPGTB (with 64\-bit operands)
+.PP
+.RS
+
+.nf
+IF DEST[7:0] > SRC[7:0]
+    THEN DEST[7:0) ← FFH;
+    ELSE DEST[7:0] ← 0; FI;
+(* Continue comparison of 2nd through 7th bytes in DEST and SRC *)
+IF DEST[63:56] > SRC[63:56]
+    THEN DEST[63:56] ← FFH;
+    ELSE DEST[63:56] ← 0; FI;
+
+.fi
+.RE
+
+.SS COMPARE\_BYTES\_GREATER (SRC1, SRC2)
+.PP
+.RS
+
+.nf
+    IF SRC1[7:0] > SRC2[7:0]
+    THEN DEST[7:0]←FFH;
+    ELSE DEST[7:0]←0; FI;
+(* Continue comparison of 2nd through 15th bytes in SRC1 and SRC2 *)
+    IF SRC1[127:120] > SRC2[127:120]
+    THEN DEST[127:120]←FFH;
+    ELSE DEST[127:120]←0; FI;
+
+.fi
+.RE
+
+.SS COMPARE\_WORDS\_GREATER (SRC1, SRC2)
+.PP
+.RS
+
+.nf
+    IF SRC1[15:0] > SRC2[15:0]
+    THEN DEST[15:0]←FFFFH;
+    ELSE DEST[15:0]←0; FI;
+(* Continue comparison of 2nd through 7th 16\-bit words in SRC1 and SRC2 *)
+    IF SRC1[127:112] > SRC2[127:112]
+    THEN DEST[127:112]←FFFFH;
+    ELSE DEST[127:112]←0; FI;
+
+.fi
+.RE
+
+.SS COMPARE\_DWORDS\_GREATER (SRC1, SRC2)
+.PP
+.RS
+
+.nf
+    IF SRC1[31:0] > SRC2[31:0]
+    THEN DEST[31:0]←FFFFFFFFH;
+    ELSE DEST[31:0]←0; FI;
+(* Continue comparison of 2nd through 3rd 32\-bit dwords in SRC1 and SRC2 *)
+    IF SRC1[127:96] > SRC2[127:96]
+    THEN DEST[127:96]←FFFFFFFFH;
+    ELSE DEST[127:96]←0; FI;
+
+.fi
+.RE
+
+.SS PCMPGTB (with 128\-bit operands)
+.PP
+.RS
+
+.nf
+DEST[127:0] ←COMPARE\_BYTES\_GREATER(DEST[127:0],SRC[127:0])
+DEST[MAXVL\-1:128] (Unmodified)
+
+.fi
+.RE
+
+.SS VPCMPGTB (VEX.128 encoded version)
+.PP
+.RS
+
+.nf
+DEST[127:0] ←COMPARE\_BYTES\_GREATER(SRC1,SRC2)
+DEST[MAXVL\-1:128] ← 0
+
+.fi
+.RE
+
+.SS VPCMPGTB (VEX.256 encoded version)
+.PP
+.RS
+
+.nf
+DEST[127:0] ←COMPARE\_BYTES\_GREATER(SRC1[127:0],SRC2[127:0])
+DEST[255:128] ←COMPARE\_BYTES\_GREATER(SRC1[255:128],SRC2[255:128])
+DEST[MAXVL\-1:256] ← 0
+
+.fi
+.RE
+
+.SS VPCMPGTB (EVEX encoded versions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (16, 128), (32, 256), (64, 512)
+FOR j←0 TO KL\-1
+    i←j * 8
+    IF k2[j] OR *no writemask*
+        THEN
+            /* signed comparison */
+            CMP←SRC1[i+7:i] > SRC2[i+7:i];
+            IF CMP = TRUE
+                THEN DEST[j]←1;
+                ELSE DEST[j]←0; FI;
+        ELSE DEST[j]←0
+                    ; zeroing\-masking onlyFI;
+    FI;
+ENDFOR
+DEST[MAX\_KL\-1:KL] ← 0
+
+.fi
+.RE
+
+.SS PCMPGTW (with 64\-bit operands)
+.PP
+.RS
+
+.nf
+IF DEST[15:0] > SRC[15:0]
+    THEN DEST[15:0] ← FFFFH;
+    ELSE DEST[15:0] ← 0; FI;
+(* Continue comparison of 2nd and 3rd words in DEST and SRC *)
+IF DEST[63:48] > SRC[63:48]
+    THEN DEST[63:48] ← FFFFH;
+    ELSE DEST[63:48] ← 0; FI;
+
+.fi
+.RE
+
+.SS PCMPGTW (with 128\-bit operands)
+.PP
+.RS
+
+.nf
+DEST[127:0] ←COMPARE\_WORDS\_GREATER(DEST[127:0],SRC[127:0])
+DEST[MAXVL\-1:128] (Unmodified)
+
+.fi
+.RE
+
+.SS VPCMPGTW (VEX.128 encoded version)
+.PP
+.RS
+
+.nf
+DEST[127:0] ←COMPARE\_WORDS\_GREATER(SRC1,SRC2)
+DEST[MAXVL\-1:128] ← 0
+
+.fi
+.RE
+
+.SS VPCMPGTW (VEX.256 encoded version)
+.PP
+.RS
+
+.nf
+DEST[127:0] ←COMPARE\_WORDS\_GREATER(SRC1[127:0],SRC2[127:0])
+DEST[255:128] ←COMPARE\_WORDS\_GREATER(SRC1[255:128],SRC2[255:128])
+DEST[MAXVL\-1:256] ← 0
+
+.fi
+.RE
+
+.SS VPCMPGTW (EVEX encoded versions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (8, 128), (16, 256), (32, 512)
+FOR j←0 TO KL\-1
+            i←j * 16
+            IF k2[j] OR *no writemask*
+                THEN
+                    /* signed comparison */
+                    CMP←SRC1[i+15:i] > SRC2[i+15:i];
+                    IF CMP = TRUE
+                        THEN DEST[j]←1;
+                        ELSE DEST[j]←0; FI;
+                ELSE DEST[j]←0
+                            ; zeroing\-masking onlyFI;
+E
+FI;
+    N
+FI;
+        D
+FI;
+            F
+FI;
+            O
+FI;
+            R
+FI;
+            FI;
+DEST[MAX\_KL\-1:KL] ← 0
+
+.fi
+.RE
+
+.SS PCMPGTD (with 64\-bit operands)
+.PP
+.RS
+
+.nf
+IF DEST[31:0] > SRC[31:0]
+    THEN DEST[31:0] ← FFFFFFFFH;
+    ELSE DEST[31:0] ← 0; FI;
+IF DEST[63:32] > SRC[63:32]
+    THEN DEST[63:32] ← FFFFFFFFH;
+    ELSE DEST[63:32] ← 0; FI;
+
+.fi
+.RE
+
+.SS PCMPGTD (with 128\-bit operands)
+.PP
+.RS
+
+.nf
+DEST[127:0] ←COMPARE\_DWORDS\_GREATER(DEST[127:0],SRC[127:0])
+DEST[MAXVL\-1:128] (Unmodified)
+
+.fi
+.RE
+
+.SS VPCMPGTD (VEX.128 encoded version)
+.PP
+.RS
+
+.nf
+DEST[127:0] ←COMPARE\_DWORDS\_GREATER(SRC1,SRC2)
+DEST[MAXVL\-1:128] ← 0
+
+.fi
+.RE
+
+.SS VPCMPGTD (VEX.256 encoded version)
+.PP
+.RS
+
+.nf
+DEST[127:0] ←COMPARE\_DWORDS\_GREATER(SRC1[127:0],SRC2[127:0])
+DEST[255:128] ←COMPARE\_DWORDS\_GREATER(SRC1[255:128],SRC2[255:128])
+DEST[MAXVL\-1:256] ← 0
+
+.fi
+.RE
+
+.SS VPCMPGTD (EVEX encoded versions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (4, 128), (8, 256), (8, 512)
+FOR j←0 TO KL\-1
+    i←j * 32
+    IF k2[j] OR *no writemask*
+        THEN
+            /* signed comparison */
+            IF (EVEX.b = 1) AND (SRC2 *is memory*)
+                THEN CMP←SRC1[i+31:i] > SRC2[31:0];
+                ELSE CMP←SRC1[i+31:i] > SRC2[i+31:i];
+            FI;
+            IF CMP = TRUE
+                THEN DEST[j]←1;
+                ELSE DEST[j]←0; FI;
+        ELSE DEST[j]←0
+                    ; zeroing\-masking only
+    FI;
+ENDFOR
+DEST[MAX\_KL\-1:KL] ← 0
+
+.fi
+.RE
+
+.SH INTEL C/C++ COMPILER INTRINSIC EQUIVALENTS
+.PP
+.RS
+
+.nf
+VPCMPGTB \_\_mmask64 \_mm512\_cmpgt\_epi8\_mask(\_\_m512i a, \_\_m512i b);
+
+VPCMPGTB \_\_mmask64 \_mm512\_mask\_cmpgt\_epi8\_mask(\_\_mmask64 k, \_\_m512i a, \_\_m512i b);
+
+VPCMPGTB \_\_mmask32 \_mm256\_cmpgt\_epi8\_mask(\_\_m256i a, \_\_m256i b);
+
+VPCMPGTB \_\_mmask32 \_mm256\_mask\_cmpgt\_epi8\_mask(\_\_mmask32 k, \_\_m256i a, \_\_m256i b);
+
+VPCMPGTB \_\_mmask16 \_mm\_cmpgt\_epi8\_mask(\_\_m128i a, \_\_m128i b);
+
+VPCMPGTB \_\_mmask16 \_mm\_mask\_cmpgt\_epi8\_mask(\_\_mmask16 k, \_\_m128i a, \_\_m128i b);
+
+VPCMPGTD \_\_mmask16 \_mm512\_cmpgt\_epi32\_mask(\_\_m512i a, \_\_m512i b);
+
+VPCMPGTD \_\_mmask16 \_mm512\_mask\_cmpgt\_epi32\_mask(\_\_mmask16 k, \_\_m512i a, \_\_m512i b);
+
+VPCMPGTD \_\_mmask8 \_mm256\_cmpgt\_epi32\_mask(\_\_m256i a, \_\_m256i b);
+
+VPCMPGTD \_\_mmask8 \_mm256\_mask\_cmpgt\_epi32\_mask(\_\_mmask8 k, \_\_m256i a, \_\_m256i b);
+
+VPCMPGTD \_\_mmask8 \_mm\_cmpgt\_epi32\_mask(\_\_m128i a, \_\_m128i b);
+
+VPCMPGTD \_\_mmask8 \_mm\_mask\_cmpgt\_epi32\_mask(\_\_mmask8 k, \_\_m128i a, \_\_m128i b);
+
+VPCMPGTW \_\_mmask32 \_mm512\_cmpgt\_epi16\_mask(\_\_m512i a, \_\_m512i b);
+
+VPCMPGTW \_\_mmask32 \_mm512\_mask\_cmpgt\_epi16\_mask(\_\_mmask32 k, \_\_m512i a, \_\_m512i b);
+
+VPCMPGTW \_\_mmask16 \_mm256\_cmpgt\_epi16\_mask(\_\_m256i a, \_\_m256i b);
+
+VPCMPGTW \_\_mmask16 \_mm256\_mask\_cmpgt\_epi16\_mask(\_\_mmask16 k, \_\_m256i a, \_\_m256i b);
+
+VPCMPGTW \_\_mmask8 \_mm\_cmpgt\_epi16\_mask(\_\_m128i a, \_\_m128i b);
+
+VPCMPGTW \_\_mmask8 \_mm\_mask\_cmpgt\_epi16\_mask(\_\_mmask8 k, \_\_m128i a, \_\_m128i b);
+
+PCMPGTB:\_\_m64 \_mm\_cmpgt\_pi8 (\_\_m64 m1, \_\_m64 m2)
+
+PCMPGTW:\_\_m64 \_mm\_cmpgt\_pi16 (\_\_m64 m1, \_\_m64 m2)
+
+PCMPGTD:\_\_m64 \_mm\_cmpgt\_pi32 (\_\_m64 m1, \_\_m64 m2)
+
+(V)PCMPGTB:\_\_m128i \_mm\_cmpgt\_epi8 ( \_\_m128i a, \_\_m128i b)
+
+(V)PCMPGTW:\_\_m128i \_mm\_cmpgt\_epi16 ( \_\_m128i a, \_\_m128i b)
+
+(V)DCMPGTD:\_\_m128i \_mm\_cmpgt\_epi32 ( \_\_m128i a, \_\_m128i b)
+
+VPCMPGTB: \_\_m256i \_mm256\_cmpgt\_epi8 ( \_\_m256i a, \_\_m256i b)
+
+VPCMPGTW: \_\_m256i \_mm256\_cmpgt\_epi16 ( \_\_m256i a, \_\_m256i b)
+
+VPCMPGTD: \_\_m256i \_mm256\_cmpgt\_epi32 ( \_\_m256i a, \_\_m256i b)
+
+.fi
+.RE
+
+.SH FLAGS AFFECTED
+.PP
+None.
+
+.SH NUMERIC EXCEPTIONS
+.PP
+None.
+
+.SH OTHER EXCEPTIONS
+.PP
+Non\-EVEX\-encoded instruction, see Exceptions Type 4.
+
+.PP
+EVEX\-encoded VPCMPGTD, see Exceptions Type E4.
+
+.PP
+EVEX\-encoded VPCMPGTB/W, see Exceptions Type E4.nb.
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+MIT licensed by TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

@@ -1,0 +1,294 @@
+.nh
+.TH "X86-VPBROADCASTB-VPBROADCASTW-VPBROADCASTD-VPBROADCASTQ" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+VPBROADCASTB-VPBROADCASTW-VPBROADCASTD-VPBROADCASTQ - LOAD WITH BROADCAST INTEGER DATA FROM GENERAL PURPOSE REGISTER
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp/En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+T{
+EVEX.128.66.0F38.W0 7A /r VPBROADCASTB xmm1 {k1}{z}, reg
+T}
+	A	V/V	AVX512VL AVX512BW	T{
+Broadcast an 8\-bit value from a GPR to all bytes in the 128\-bit destination subject to writemask k1.
+T}
+T{
+EVEX.256.66.0F38.W0 7A /r VPBROADCASTB ymm1 {k1}{z}, reg
+T}
+	A	V/V	AVX512VL AVX512BW	T{
+Broadcast an 8\-bit value from a GPR to all bytes in the 256\-bit destination subject to writemask k1.
+T}
+T{
+EVEX.512.66.0F38.W0 7A /r VPBROADCASTB zmm1 {k1}{z}, reg
+T}
+	A	V/V	AVX512BW	T{
+Broadcast an 8\-bit value from a GPR to all bytes in the 512\-bit destination subject to writemask k1.
+T}
+T{
+EVEX.128.66.0F38.W0 7B /r VPBROADCASTW xmm1 {k1}{z}, reg
+T}
+	A	V/V	AVX512VL AVX512BW	T{
+Broadcast a 16\-bit value from a GPR to all words in the 128\-bit destination subject to writemask k1.
+T}
+T{
+EVEX.256.66.0F38.W0 7B /r VPBROADCASTW ymm1 {k1}{z}, reg
+T}
+	A	V/V	AVX512VL AVX512BW	T{
+Broadcast a 16\-bit value from a GPR to all words in the 256\-bit destination subject to writemask k1.
+T}
+T{
+EVEX.512.66.0F38.W0 7B /r VPBROADCASTW zmm1 {k1}{z}, reg
+T}
+	A	V/V	AVX512BW	T{
+Broadcast a 16\-bit value from a GPR to all words in the 512\-bit destination subject to writemask k1.
+T}
+T{
+EVEX.128.66.0F38.W0 7C /r VPBROADCASTD xmm1 {k1}{z}, r32
+T}
+	A	V/V	AVX512VL AVX512F	T{
+Broadcast a 32\-bit value from a GPR to all double\-words in the 128\-bit destination subject to writemask k1.
+T}
+T{
+EVEX.256.66.0F38.W0 7C /r VPBROADCASTD ymm1 {k1}{z}, r32
+T}
+	A	V/V	AVX512VL AVX512F	T{
+Broadcast a 32\-bit value from a GPR to all double\-words in the 256\-bit destination subject to writemask k1.
+T}
+T{
+EVEX.512.66.0F38.W0 7C /r VPBROADCASTD zmm1 {k1}{z}, r32
+T}
+	A	V/V	AVX512F	T{
+Broadcast a 32\-bit value from a GPR to all double\-words in the 512\-bit destination subject to writemask k1.
+T}
+T{
+EVEX.128.66.0F38.W1 7C /r VPBROADCASTQ xmm1 {k1}{z}, r64
+T}
+	A	V/N.E.1	AVX512VL AVX512F	T{
+Broadcast a 64\-bit value from a GPR to all quad\-words in the 128\-bit destination subject to writemask k1.
+T}
+T{
+EVEX.256.66.0F38.W1 7C /r VPBROADCASTQ ymm1 {k1}{z}, r64
+T}
+	A	V/N.E.1	AVX512VL AVX512F	T{
+Broadcast a 64\-bit value from a GPR to all quad\-words in the 256\-bit destination subject to writemask k1.
+T}
+T{
+EVEX.512.66.0F38.W1 7C /r VPBROADCASTQ zmm1 {k1}{z}, r64
+T}
+	A	V/N.E.1	AVX512F	T{
+Broadcast a 64\-bit value from a GPR to all quad\-words in the 512\-bit destination subject to writemask k1.
+T}
+.TE
+
+.PP
+.RS
+
+.PP
+1\&. EVEX.W in non\-64 bit is ignored; the instructions behaves as if
+the W0 version is used.
+
+.RE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+Op/En	Tuple Type	Operand 1	Operand 2	Operand 3	Operand 4
+A	Tuple1 Scalar	ModRM:reg (w)	ModRM:r/m (r)	NA	NA
+.TE
+
+.SS Description
+.PP
+Broadcasts a 8\-bit, 16\-bit, 32\-bit or 64\-bit value from a
+general\-purpose register (the second operand) to all the locations in
+the destination vector register (the first operand) using the writemask
+k1.
+
+.PP
+EVEX.vvvv is reserved and must be 1111b otherwise instructions will
+#UD.
+
+.SS Operation
+.SS VPBROADCASTB (EVEX encoded versions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (16, 128), (32, 256), (64, 512)
+FOR j←0 TO KL\-1
+    i←j * 8
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+7:i]←SRC[7:0]
+        ELSE
+            IF *merging\-masking*
+                        ; merging\-masking
+                THEN *DEST[i+7:i] remains unchanged*
+                ELSE
+                        ; zeroing\-masking
+                    DEST[i+7:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS VPBROADCASTW (EVEX encoded versions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (8, 128), (16, 256), (32, 512)
+FOR j←0 TO KL\-1
+    i←j * 16
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+15:i]←SRC[15:0]
+        ELSE
+            IF *merging\-masking*
+                        ; merging\-masking
+                THEN *DEST[i+15:i] remains unchanged*
+                ELSE
+                        ; zeroing\-masking
+                    DEST[i+15:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS VPBROADCASTD (EVEX encoded versions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (4, 128), (8, 256), (16, 512)
+FOR j←0 TO KL\-1
+    i←j * 32
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+31:i]←SRC[31:0]
+        ELSE
+            IF *merging\-masking*
+                        ; merging\-masking
+                THEN *DEST[i+31:i] remains unchanged*
+                ELSE
+                        ; zeroing\-masking
+                    DEST[i+31:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS VPBROADCASTQ (EVEX encoded versions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (2, 128), (4, 256), (8, 512)
+FOR j←0 TO KL\-1
+    i←j * 64
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+63:i]←SRC[63:0]
+        ELSE
+            IF *merging\-masking*
+                THEN *DEST[i+63:i] remains unchanged*
+                ELSE ; zeroing\-masking
+                    DEST[i+63:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS Intel C/C++ Compiler Intrinsic Equivalent
+.PP
+.RS
+
+.nf
+VPBROADCASTB \_\_m512i \_mm512\_mask\_set1\_epi8(\_\_m512i s, \_\_mmask64 k, int a);
+
+VPBROADCASTB \_\_m512i \_mm512\_maskz\_set1\_epi8( \_\_mmask64 k, int a);
+
+VPBROADCASTB \_\_m256i \_mm256\_mask\_set1\_epi8(\_\_m256i s, \_\_mmask32 k, int a);
+
+VPBROADCASTB \_\_m256i \_mm256\_maskz\_set1\_epi8( \_\_mmask32 k, int a);
+
+VPBROADCASTB \_\_m128i \_mm\_mask\_set1\_epi8(\_\_m128i s, \_\_mmask16 k, int a);
+
+VPBROADCASTB \_\_m128i \_mm\_maskz\_set1\_epi8( \_\_mmask16 k, int a);
+
+VPBROADCASTD \_\_m512i \_mm512\_mask\_set1\_epi32(\_\_m512i s, \_\_mmask16 k, int a);
+
+VPBROADCASTD \_\_m512i \_mm512\_maskz\_set1\_epi32( \_\_mmask16 k, int a);
+
+VPBROADCASTD \_\_m256i \_mm256\_mask\_set1\_epi32(\_\_m256i s, \_\_mmask8 k, int a);
+
+VPBROADCASTD \_\_m256i \_mm256\_maskz\_set1\_epi32( \_\_mmask8 k, int a);
+
+VPBROADCASTD \_\_m128i \_mm\_mask\_set1\_epi32(\_\_m128i s, \_\_mmask8 k, int a);
+
+VPBROADCASTD \_\_m128i \_mm\_maskz\_set1\_epi32( \_\_mmask8 k, int a);
+
+VPBROADCASTQ \_\_m512i \_mm512\_mask\_set1\_epi64(\_\_m512i s, \_\_mmask8 k, \_\_int64 a);
+
+VPBROADCASTQ \_\_m512i \_mm512\_maskz\_set1\_epi64( \_\_mmask8 k, \_\_int64 a);
+
+VPBROADCASTQ \_\_m256i \_mm256\_mask\_set1\_epi64(\_\_m256i s, \_\_mmask8 k, \_\_int64 a);
+
+VPBROADCASTQ \_\_m256i \_mm256\_maskz\_set1\_epi64( \_\_mmask8 k, \_\_int64 a);
+
+VPBROADCASTQ \_\_m128i \_mm\_mask\_set1\_epi64(\_\_m128i s, \_\_mmask8 k, \_\_int64 a);
+
+VPBROADCASTQ \_\_m128i \_mm\_maskz\_set1\_epi64( \_\_mmask8 k, \_\_int64 a);
+
+VPBROADCASTW \_\_m512i \_mm512\_mask\_set1\_epi16(\_\_m512i s, \_\_mmask32 k, int a);
+
+VPBROADCASTW \_\_m512i \_mm512\_maskz\_set1\_epi16( \_\_mmask32 k, int a);
+
+VPBROADCASTW \_\_m256i \_mm256\_mask\_set1\_epi16(\_\_m256i s, \_\_mmask16 k, int a);
+
+VPBROADCASTW \_\_m256i \_mm256\_maskz\_set1\_epi16( \_\_mmask16 k, int a);
+
+VPBROADCASTW \_\_m128i \_mm\_mask\_set1\_epi16(\_\_m128i s, \_\_mmask8 k, int a);
+
+VPBROADCASTW \_\_m128i \_mm\_maskz\_set1\_epi16( \_\_mmask8 k, int a);
+
+.fi
+.RE
+
+.SS Exceptions
+.PP
+EVEX\-encoded instructions, see Exceptions Type E7NM.
+
+.TS
+allbox;
+l l 
+l l .
+#UD	If EVEX.vvvv != 1111B.
+.TE
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+MIT licensed by TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

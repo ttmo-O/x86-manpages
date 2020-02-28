@@ -1,0 +1,272 @@
+.nh
+.TH "X86-PMULUDQ" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+PMULUDQ - MULTIPLY PACKED UNSIGNED DOUBLEWORD INTEGERS
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp/En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+NP 0F F4 /mm2/m64	A	V/V	SSE2	T{
+Multiply unsigned doubleword integer in mm1.
+T}
+66 0F F4 /xmm2/m128	A	V/V	SSE2	T{
+Multiply packed unsigned doubleword integers in xmm1.
+T}
+T{
+VEX.128.66.0F.WIG F4 /r VPMULUDQ xmm1, xmm2, xmm3/m128
+T}
+	B	V/V	AVX	T{
+Multiply packed unsigned doubleword integers in xmm1.
+T}
+T{
+VEX.256.66.0F.WIG F4 /r VPMULUDQ ymm1, ymm2, ymm3/m256
+T}
+	B	V/V	AVX2	T{
+Multiply packed unsigned doubleword integers in ymm1.
+T}
+T{
+EVEX.128.66.0F.W1 F4 /r VPMULUDQ xmm1 {k1}{z}, xmm2, xmm3/m128/m64bcst
+T}
+	C	V/V	AVX512VL AVX512F	T{
+Multiply packed unsigned doubleword integers in xmm2 by packed unsigned doubleword integers in xmm3/m128/m64bcst, and store the quadword results in xmm1 under writemask k1.
+T}
+T{
+EVEX.256.66.0F.W1 F4 /r VPMULUDQ ymm1 {k1}{z}, ymm2, ymm3/m256/m64bcst
+T}
+	C	V/V	AVX512VL AVX512F	T{
+Multiply packed unsigned doubleword integers in ymm2 by packed unsigned doubleword integers in ymm3/m256/m64bcst, and store the quadword results in ymm1 under writemask k1.
+T}
+T{
+EVEX.512.66.0F.W1 F4 /r VPMULUDQ zmm1 {k1}{z}, zmm2, zmm3/m512/m64bcst
+T}
+	C	V/V	AVX512F	T{
+Multiply packed unsigned doubleword integers in zmm2 by packed unsigned doubleword integers in zmm3/m512/m64bcst, and store the quadword results in zmm1 under writemask k1.
+T}
+.TE
+
+.PP
+.RS
+
+.PP
+1\&. See note in Section 2.4, “AVX and SSE Instruction Exception
+Specification” in the Intel® 64 and IA\-32 Architectures Software
+Developer’s Manual, Volume 3A.
+
+.RE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+Op/En	Tuple Type	Operand 1	Operand 2	Operand 3	Operand 4
+A	NA	ModRM:reg (r, w)	ModRM:r/m (r)	NA	NA
+B	NA	ModRM:reg (w)	VEX.vvvv (r)	ModRM:r/m (r)	NA
+C	Full	ModRM:reg (w)	EVEX.vvvv (r)	ModRM:r/m (r)	NA
+.TE
+
+.SH DESCRIPTION
+.PP
+Multiplies the first operand (destination operand) by the second operand
+(source operand) and stores the result in the destination operand.
+
+.PP
+In 64\-bit mode and not encoded with VEX/EVEX, using a REX prefix in the
+form of REX.R permits this instruction to access additional registers
+(XMM8\-XMM15).
+
+.PP
+Legacy SSE version 64\-bit operand: The source operand can be an unsigned
+doubleword integer stored in the low doubleword of an MMX technology
+register or a 64\-bit memory location. The destination operand can be an
+unsigned doubleword integer stored in the low doubleword an MMX
+technology register. The result is an unsigned
+
+.PP
+quadword integer stored in the destination an MMX technology register.
+When a quadword result is too large to be represented in 64 bits
+(overflow), the result is wrapped around and the low 64 bits are written
+to the destination element (that is, the carry is ignored).
+
+.PP
+For 64\-bit memory operands, 64 bits are fetched from memory, but only
+the low doubleword is used in the computation.
+
+.PP
+128\-bit Legacy SSE version: The second source operand is two packed
+unsigned doubleword integers stored in the first (low) and third
+doublewords of an XMM register or a 128\-bit memory location. For 128\-bit
+memory operands, 128 bits are fetched from memory, but only the first
+and third doublewords are used in the computation. The first source
+operand is two packed unsigned doubleword integers stored in the first
+and third doublewords of an XMM register. The destination contains two
+packed unsigned quadword integers stored in an XMM register. Bits
+(MAXVL\-1:128) of the corresponding YMM destination register remain
+unchanged.
+
+.PP
+VEX.128 encoded version: The second source operand is two packed
+unsigned doubleword integers stored in the first (low) and third
+doublewords of an XMM register or a 128\-bit memory location. For 128\-bit
+memory operands, 128 bits are fetched from memory, but only the first
+and third doublewords are used in the computation. The first source
+operand is two packed unsigned doubleword integers stored in the first
+and third doublewords of an XMM register. The destination contains two
+packed unsigned quadword integers stored in an XMM register. Bits
+(MAXVL\-1:128) of the destination YMM register are zeroed.
+
+.PP
+VEX.256 encoded version: The second source operand is four packed
+unsigned doubleword integers stored in the first (low), third, fifth and
+seventh doublewords of a YMM register or a 256\-bit memory location. For
+256\-bit memory operands, 256 bits are fetched from memory, but only the
+first, third, fifth and seventh doublewords are used in the computation.
+The first source operand is four packed unsigned doubleword integers
+stored in the first, third, fifth and seventh doublewords of an YMM
+register. The destination contains four packed unaligned quadword
+integers stored in an YMM register.
+
+.PP
+EVEX encoded version: The input unsigned doubleword integers are taken
+from the even\-numbered elements of the source operands. The first source
+operand is a ZMM/YMM/XMM registers. The second source operand can be an
+ZMM/YMM/XMM register, a 512/256/128\-bit memory location or a
+512/256/128\-bit vector broadcasted from a 64\-bit memory location. The
+destination is a ZMM/YMM/XMM register, and updated according to the
+writemask at 64\-bit granularity.
+
+.SH OPERATION
+.SS PMULUDQ (with 64\-Bit operands)
+.PP
+.RS
+
+.nf
+DEST[63:0] ← DEST[31:0] ∗ SRC[31:0];
+
+.fi
+.RE
+
+.SS PMULUDQ (with 128\-Bit operands)
+.PP
+.RS
+
+.nf
+DEST[63:0] ← DEST[31:0] ∗ SRC[31:0];
+DEST[127:64] ← DEST[95:64] ∗ SRC[95:64];
+
+.fi
+.RE
+
+.SS VPMULUDQ (VEX.128 encoded version)
+.PP
+.RS
+
+.nf
+DEST[63:0]←SRC1[31:0] * SRC2[31:0]
+DEST[127:64]←SRC1[95:64] * SRC2[95:64]
+DEST[MAXVL\-1:128] ← 0
+
+.fi
+.RE
+
+.SS VPMULUDQ (VEX.256 encoded version)
+.PP
+.RS
+
+.nf
+DEST[63:0]←SRC1[31:0] * SRC2[31:0]
+DEST[127:64]←SRC1[95:64] * SRC2[95:64
+DEST[191:128]←SRC1[159:128] * SRC2[159:128]
+DEST[255:192]←SRC1[223:192] * SRC2[223:192]
+DEST[MAXVL\-1:256] ← 0
+
+.fi
+.RE
+
+.SS VPMULUDQ (EVEX encoded versions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (2, 128), (4, 256), (8, 512)
+FOR j←0 TO KL\-1
+    i←j * 64
+    IF k1[j] OR *no writemask* THEN
+            IF (EVEX.b = 1) AND (SRC2 *is memory*)
+                THEN DEST[i+63:i]←ZeroExtend64( SRC1[i+31:i]) * ZeroExtend64( SRC2[31:0] )
+                ELSE DEST[i+63:i]←ZeroExtend64( SRC1[i+31:i]) * ZeroExtend64( SRC2[i+31:i] )
+            FI;
+        ELSE
+            IF *merging\-masking* ; merging\-masking
+                THEN *DEST[i+63:i] remains unchanged*
+                ELSE *zeroing\-masking*
+                        ; zeroing\-masking
+                    DEST[i+63:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SH INTEL C/C++ COMPILER INTRINSIC EQUIVALENT
+.PP
+.RS
+
+.nf
+VPMULUDQ \_\_m512i \_mm512\_mul\_epu32(\_\_m512i a, \_\_m512i b);
+
+VPMULUDQ \_\_m512i \_mm512\_mask\_mul\_epu32(\_\_m512i s, \_\_mmask8 k, \_\_m512i a, \_\_m512i b);
+
+VPMULUDQ \_\_m512i \_mm512\_maskz\_mul\_epu32( \_\_mmask8 k, \_\_m512i a, \_\_m512i b);
+
+VPMULUDQ \_\_m256i \_mm256\_mask\_mul\_epu32(\_\_m256i s, \_\_mmask8 k, \_\_m256i a, \_\_m256i b);
+
+VPMULUDQ \_\_m256i \_mm256\_maskz\_mul\_epu32( \_\_mmask8 k, \_\_m256i a, \_\_m256i b);
+
+VPMULUDQ \_\_m128i \_mm\_mask\_mul\_epu32(\_\_m128i s, \_\_mmask8 k, \_\_m128i a, \_\_m128i b);
+
+VPMULUDQ \_\_m128i \_mm\_maskz\_mul\_epu32( \_\_mmask8 k, \_\_m128i a, \_\_m128i b);
+
+PMULUDQ:\_\_m64 \_mm\_mul\_su32 (\_\_m64 a, \_\_m64 b)
+
+(V)PMULUDQ:\_\_m128i \_mm\_mul\_epu32 ( \_\_m128i a, \_\_m128i b)
+
+VPMULUDQ:\_\_m256i \_mm256\_mul\_epu32( \_\_m256i a, \_\_m256i b);
+
+.fi
+.RE
+
+.SH FLAGS AFFECTED
+.PP
+None.
+
+.SH SIMD FLOATING\-POINT EXCEPTIONS
+.PP
+None.
+
+.SH OTHER EXCEPTIONS
+.PP
+Non\-EVEX\-encoded instruction, see Exceptions Type 4.
+
+.PP
+EVEX\-encoded instruction, see Exceptions Type E4.
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+MIT licensed by TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

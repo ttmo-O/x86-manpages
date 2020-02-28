@@ -1,0 +1,265 @@
+.nh
+.TH "X86-INS-INSB-INSW-INSD" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+INS-INSB-INSW-INSD - INPUT FROM PORT TO STRING
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+\fB\fCOpcode\fR	\fB\fCInstruction\fR	\fB\fCOp/En\fR	\fB\fC64\-Bit Mode\fR	\fB\fCCompat/Leg Mode\fR	\fB\fCDescription\fR
+6C	INS m8, DX	ZO	Valid	Valid	T{
+Input byte from I/O port specified in DX into memory location specified in ES:(E)DI or RDI.
+T}
+*
+6D	INS m16, DX	ZO	Valid	Valid	T{
+Input word from I/O port specified in DX into memory location specified in ES:(E)DI or RDI.1
+T}
+6D	INS m32, DX	ZO	Valid	Valid	T{
+Input doubleword from I/O port specified in DX into memory location specified in ES:(E)DI or RDI.1
+T}
+6C	INSB	ZO	Valid	Valid	T{
+Input byte from I/O port specified in DX into memory location specified with ES:(E)DI or RDI.1
+T}
+6D	INSW	ZO	Valid	Valid	T{
+Input word from I/O port specified in DX into memory location specified in ES:(E)DI or RDI.1
+T}
+6D	INSD	ZO	Valid	Valid	T{
+Input doubleword from I/O port specified in DX into memory location specified in ES:(E)DI or RDI.1
+T}
+.TE
+
+.PP
+.RS
+
+.PP
+*
+In64\-bitmode,only64\-bit(RDI)and32\-bit(EDI)addresssizesaresupported.Innon\-64\-bitmode,only32\-bit(EDI)and16\-bit(DI)
+address sizes are supported.
+
+.RE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l 
+l l l l l .
+Op/En	Operand 1	Operand 2	Operand 3	Operand 4
+ZO	NA	NA	NA	NA
+.TE
+
+.SH DESCRIPTION
+.PP
+Copies the data from the I/O port specified with the source operand
+(second operand) to the destination operand (first operand). The source
+operand is an I/O port address (from 0 to 65,535) that is read from the
+DX register. The destination operand is a memory location, the address
+of which is read from either the ES:DI, ES:EDI or the RDI registers
+(depending on the address\-size attribute of the instruction, 16, 32 or
+64, respectively). (The ES segment cannot be overridden with a segment
+override prefix.) The size of the I/O port being accessed (that is, the
+size of the source and destination operands) is determined by the opcode
+for an 8\-bit I/O port or by the operand\-size attribute of the
+instruction for a 16\- or 32\-bit I/O port.
+
+.PP
+At the assembly\-code level, two forms of this instruction are allowed:
+the “explicit\-operands” form and the “no\-operands” form. The
+explicit\-operands form (specified with the INS mnemonic) allows the
+source and destination operands to be specified explicitly. Here, the
+source operand must be “DX,” and the destination operand should be a
+symbol that indicates the size of the I/O port and the destination
+address. This explicit\-operands form is provided to allow documentation;
+however, note that the documentation provided by this form can be
+misleading. That is, the destination operand symbol must specify the
+correct location. The location is always specified by the ES:(E)DI
+registers, which must be loaded correctly before the INS instruction is
+executed.
+
+.PP
+The no\-operands form provides “short forms” of the byte, word, and
+doubleword versions of the INS instructions. Here also DX is assumed by
+the processor to be the source operand and ES:(E)DI is assumed to be the
+destination operand. The size of the I/O port is specified with the
+choice of mnemonic: INSB (byte), INSW (word), or INSD (doubleword).
+
+.PP
+After the byte, word, or doubleword is transfer from the I/O port to the
+memory location, the DI/EDI/RDI register is incremented or decremented
+automatically according to the setting of the DF flag in the EFLAGS
+register. (If the DF flag is 0, the (E)DI register is incremented; if
+the DF flag is 1, the (E)DI register is decremented.) The (E)DI register
+is incremented or decremented by 1 for byte operations, by 2 for word
+operations, or by 4 for doubleword operations.
+
+.PP
+The INS, INSB, INSW, and INSD instructions can be preceded by the REP
+prefix for block input of ECX bytes, words, or doublewords. See
+“REP/REPE/REPZ /REPNE/REPNZ—Repeat String Operation Prefix” in Chapter 4
+of the Intel® 64 and IA\-32 Architectures Software Developer’s Manual,
+Volume 2B, for a description of the REP prefix.
+
+.PP
+These instructions are only useful for accessing I/O ports located in
+the processor’s I/O address space. See Chapter 18, “Input/Output,” in
+the Intel® 64 and IA\-32 Architectures Software Developer’s Manual,
+Volume 1, for more information on accessing I/O ports in the I/O address
+space.
+
+.PP
+In 64\-bit mode, default address size is 64 bits, 32 bit address size is
+supported using the prefix 67H. The address of the memory destination is
+specified by RDI or EDI. 16\-bit address size is not supported in 64\-bit
+mode. The operand size is not promoted.
+
+.PP
+These instructions may read from the I/O port without writing to the
+memory location if an exception or VM exit occurs due to the write (e.g.
+#PF). If this would be problematic, for example because the I/O port
+read has side\-effects, software should ensure the write to the memory
+location does not cause an exception or VM exit.
+
+.SH OPERATION
+.PP
+.RS
+
+.nf
+IF ((PE = 1) and ((CPL > IOPL) or (VM = 1)))
+    THEN (* Protected mode with CPL > IOPL or virtual\-8086 mode *)
+        IF (Any I/O Permission Bit for I/O port being accessed = 1)
+            THEN (* I/O operation is not allowed *)
+                #GP(0);
+            ELSE (* I/O operation is allowed *)
+                DEST ← SRC; (* Read from I/O port *)
+        FI;
+    ELSE (Real Mode or Protected Mode with CPL IOPL *)
+        DEST ← SRC; (* Read from I/O port *)
+FI;
+Non\-64\-bit Mode:
+IF (Byte transfer)
+    THEN IF DF = 0
+        THEN (E)DI ← (E)DI + 1;
+        ELSE (E)DI ← (E)DI – 1; FI;
+    ELSE IF (Word transfer)
+        THENIFDF =0
+            THEN (E)DI ← (E)DI + 2;
+            ELSE (E)DI ← (E)DI – 2; FI;
+        ELSE (* Doubleword transfer *)
+            THEN IF DF = 0
+                THEN (E)DI ← (E)DI + 4;
+                ELSE (E)DI ← (E)DI – 4; FI;
+        FI;
+FI;
+FI64\-bit Mode:
+IF (Byte transfer)
+    THEN IF DF = 0
+        THEN (E|R)DI ← (E|R)DI + 1;
+        ELSE (E|R)DI ← (E|R)DI – 1; FI;
+    ELSE IF (Word transfer)
+        THENIFDF =0
+            THEN (E)DI ← (E)DI + 2;
+            ELSE (E)DI ← (E)DI – 2; FI;
+        ELSE (* Doubleword transfer *)
+            THEN IF DF = 0
+                THEN (E|R)DI ← (E|R)DI + 4;
+                ELSE (E|R)DI ← (E|R)DI – 4; FI;
+        FI;
+FI;
+
+.fi
+.RE
+
+.SH FLAGS AFFECTED
+.PP
+None
+
+.SH PROTECTED MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP(0)	T{
+If the CPL is greater than (has less privilege) the I/O privilege level (IOPL) and any of the corresponding I/O permission bits in TSS for the I/O port being accessed is 1.
+T}
+	T{
+If the destination is located in a non\-writable segment.
+T}
+	T{
+If an illegal memory operand effective address in the ES segments is given.
+T}
+#PF(fault\-code)	If a page fault occurs.
+#AC(0)	T{
+If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3.
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH REAL\-ADDRESS MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP	T{
+If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit.
+T}
+#SS	T{
+If a memory operand effective address is outside the SS segment limit.
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH VIRTUAL\-8086 MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP(0)	T{
+If any of the I/O permission bits in the TSS for the I/O port being accessed is 1.
+T}
+#PF(fault\-code)	If a page fault occurs.
+#AC(0)	T{
+If alignment checking is enabled and an unaligned memory reference is made.
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH COMPATIBILITY MODE EXCEPTIONS
+.PP
+Same exceptions as in protected mode.
+
+.SH 64\-BIT MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#SS(0)	T{
+If a memory address referencing the SS segment is in a non\-canonical form.
+T}
+#GP(0)	T{
+If the CPL is greater than (has less privilege) the I/O privilege level (IOPL) and any of the corresponding I/O permission bits in TSS for the I/O port being accessed is 1.
+T}
+	T{
+If the memory address is in a non\-canonical form.
+T}
+#PF(fault\-code)	If a page fault occurs.
+#AC(0)	T{
+If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3.
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+MIT licensed by TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

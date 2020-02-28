@@ -1,0 +1,1036 @@
+.nh
+.TH "X86-PSLLW-PSLLD-PSLLQ" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+PSLLW-PSLLD-PSLLQ - SHIFT PACKED DATA LEFT LOGICAL
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp/En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+NP 0F F1 /mm, mm/m64	A	V/V	MMX	T{
+Shift words in mm/m64 while shifting in 0s.
+T}
+66 0F F1 /xmm2/m128	A	V/V	SSE2	T{
+Shift words in xmm2/m128 while shifting in 0s.
+T}
+NP 0F 71 /6 ib PSLLW imm8	B	V/V	MMX	T{
+Shift words in imm8 while shifting in 0s.
+T}
+66 0F 71 /6 ib PSLLW imm8	B	V/V	SSE2	T{
+Shift words in imm8 while shifting in 0s.
+T}
+NP 0F F2 /mm, mm/m64	A	V/V	MMX	T{
+Shift doublewords in mm/m64 while shifting in 0s.
+T}
+66 0F F2 /xmm2/m128	A	V/V	SSE2	T{
+Shift doublewords in xmm2/m128 while shifting in 0s.
+T}
+NP 0F 72 /6 ib1 PSLLD mm, imm8	B	V/V	MMX	T{
+Shift doublewords in imm8 while shifting in 0s.
+T}
+66 0F 72 /6 ib PSLLD imm8	B	V/V	SSE2	T{
+Shift doublewords in imm8 while shifting in 0s.
+T}
+NP 0F F3 /mm, mm/m64	A	V/V	MMX	T{
+Shift quadword in mm/m64 while shifting in 0s.
+T}
+66 0F F3 /xmm2/m128	A	V/V	SSE2	T{
+Shift quadwords in xmm2/m128 while shifting in 0s.
+T}
+NP 0F 73 /6 ib1 PSLLQ mm, imm8	B	V/V	MMX	T{
+Shift quadword in imm8 while shifting in 0s.
+T}
+66 0F 73 /6 ib PSLLQ imm8	B	V/V	SSE2	T{
+Shift quadwords in imm8 while shifting in 0s.
+T}
+T{
+VEX.128.66.0F.WIG F1 /r VPSLLW xmm1, xmm2, xmm3/m128
+T}
+	C	V/V	AVX	T{
+Shift words in xmm3/m128 while shifting in 0s.
+T}
+T{
+VEX.128.66.0F.WIG 71 /6 ib VPSLLW xmm1, xmm2, imm8
+T}
+	D	V/V	AVX	T{
+Shift words in imm8 while shifting in 0s.
+T}
+T{
+VEX.128.66.0F.WIG F2 /r VPSLLD xmm1, xmm2, xmm3/m128
+T}
+	C	V/V	AVX	T{
+Shift doublewords in xmm3/m128 while shifting in 0s.
+T}
+T{
+VEX.128.66.0F.WIG 72 /6 ib VPSLLD xmm1, xmm2, imm8
+T}
+	D	V/V	AVX	T{
+Shift doublewords in imm8 while shifting in 0s.
+T}
+T{
+VEX.128.66.0F.WIG F3 /r VPSLLQ xmm1, xmm2, xmm3/m128
+T}
+	C	V/V	AVX	T{
+Shift quadwords in xmm3/m128 while shifting in 0s.
+T}
+T{
+VEX.128.66.0F.WIG 73 /6 ib VPSLLQ xmm1, xmm2, imm8
+T}
+	D	V/V	AVX	T{
+Shift quadwords in imm8 while shifting in 0s.
+T}
+T{
+VEX.256.66.0F.WIG F1 /r VPSLLW ymm1, ymm2, xmm3/m128
+T}
+	C	V/V	AVX2	T{
+Shift words in xmm3/m128 while shifting in 0s.
+T}
+T{
+VEX.256.66.0F.WIG 71 /6 ib VPSLLW ymm1, ymm2, imm8
+T}
+	D	V/V	AVX2	T{
+Shift words in imm8 while shifting in 0s.
+T}
+.TE
+
+.TS
+allbox;
+l l l l l 
+l l l l l .
+T{
+VEX.256.66.0F.WIG F2 /r VPSLLD ymm1, ymm2, xmm3/m128
+T}
+	C	V/V	AVX2	T{
+Shift doublewords in xmm3/m128 while shifting in 0s.
+T}
+T{
+VEX.256.66.0F.WIG 72 /6 ib VPSLLD ymm1, ymm2, imm8
+T}
+	D	V/V	AVX2	T{
+Shift doublewords in imm8 while shifting in 0s.
+T}
+T{
+VEX.256.66.0F.WIG F3 /r VPSLLQ ymm1, ymm2, xmm3/m128
+T}
+	C	V/V	AVX2	T{
+Shift quadwords in xmm3/m128 while shifting in 0s.
+T}
+T{
+VEX.256.66.0F.WIG 73 /6 ib VPSLLQ ymm1, ymm2, imm8
+T}
+	D	V/V	AVX2	T{
+Shift quadwords in imm8 while shifting in 0s.
+T}
+T{
+EVEX.128.66.0F.WIG F1 /r VPSLLW xmm1 {k1}{z}, xmm2, xmm3/m128
+T}
+	G	V/V	AVX512VL AVX512BW	T{
+Shift words in xmm2 left by amount specified in xmm3/m128 while shifting in 0s using writemask k1.
+T}
+T{
+EVEX.256.66.0F.WIG F1 /r VPSLLW ymm1 {k1}{z}, ymm2, xmm3/m128
+T}
+	G	V/V	AVX512VL AVX512BW	T{
+Shift words in ymm2 left by amount specified in xmm3/m128 while shifting in 0s using writemask k1.
+T}
+T{
+EVEX.512.66.0F.WIG F1 /r VPSLLW zmm1 {k1}{z}, zmm2, xmm3/m128
+T}
+	G	V/V	AVX512BW	T{
+Shift words in zmm2 left by amount specified in xmm3/m128 while shifting in 0s using writemask k1.
+T}
+T{
+EVEX.128.66.0F.WIG 71 /6 ib VPSLLW xmm1 {k1}{z}, xmm2/m128, imm8
+T}
+	E	V/V	AVX512VL AVX512BW	T{
+Shift words in xmm2/m128 left by imm8 while shifting in 0s using writemask k1.
+T}
+T{
+EVEX.256.66.0F.WIG 71 /6 ib VPSLLW ymm1 {k1}{z}, ymm2/m256, imm8
+T}
+	E	V/V	AVX512VL AVX512BW	T{
+Shift words in ymm2/m256 left by imm8 while shifting in 0s using writemask k1.
+T}
+T{
+EVEX.512.66.0F.WIG 71 /6 ib VPSLLW zmm1 {k1}{z}, zmm2/m512, imm8
+T}
+	E	V/V	AVX512BW	T{
+Shift words in zmm2/m512 left by imm8 while shifting in 0 using writemask k1.
+T}
+T{
+EVEX.128.66.0F.W0 F2 /r VPSLLD xmm1 {k1}{z}, xmm2, xmm3/m128
+T}
+	G	V/V	AVX512VL AVX512F	T{
+Shift doublewords in xmm2 left by amount specified in xmm3/m128 while shifting in 0s under writemask k1.
+T}
+T{
+EVEX.256.66.0F.W0 F2 /r VPSLLD ymm1 {k1}{z}, ymm2, xmm3/m128
+T}
+	G	V/V	AVX512VL AVX512F	T{
+Shift doublewords in ymm2 left by amount specified in xmm3/m128 while shifting in 0s under writemask k1.
+T}
+T{
+EVEX.512.66.0F.W0 F2 /r VPSLLD zmm1 {k1}{z}, zmm2, xmm3/m128
+T}
+	G	V/V	AVX512F	T{
+Shift doublewords in zmm2 left by amount specified in xmm3/m128 while shifting in 0s under writemask k1.
+T}
+T{
+EVEX.128.66.0F.W0 72 /6 ib VPSLLD xmm1 {k1}{z}, xmm2/m128/m32bcst, imm8
+T}
+	F	V/V	AVX512VL AVX512F	T{
+Shift doublewords in xmm2/m128/m32bcst left by imm8 while shifting in 0s using writemask k1.
+T}
+T{
+EVEX.256.66.0F.W0 72 /6 ib VPSLLD ymm1 {k1}{z}, ymm2/m256/m32bcst, imm8
+T}
+	F	V/V	AVX512VL AVX512F	T{
+Shift doublewords in ymm2/m256/m32bcst left by imm8 while shifting in 0s using writemask k1.
+T}
+T{
+EVEX.512.66.0F.W0 72 /6 ib VPSLLD zmm1 {k1}{z}, zmm2/m512/m32bcst, imm8
+T}
+	F	V/V	AVX512F	T{
+Shift doublewords in zmm2/m512/m32bcst left by imm8 while shifting in 0s using writemask k1.
+T}
+T{
+EVEX.128.66.0F.W1 F3 /r VPSLLQ xmm1 {k1}{z}, xmm2, xmm3/m128
+T}
+	G	V/V	AVX512VL AVX512F	T{
+Shift quadwords in xmm2 left by amount specified in xmm3/m128 while shifting in 0s using writemask k1.
+T}
+T{
+EVEX.256.66.0F.W1 F3 /r VPSLLQ ymm1 {k1}{z}, ymm2, xmm3/m128
+T}
+	G	V/V	AVX512VL AVX512F	T{
+Shift quadwords in ymm2 left by amount specified in xmm3/m128 while shifting in 0s using writemask k1.
+T}
+T{
+EVEX.512.66.0F.W1 F3 /r VPSLLQ zmm1 {k1}{z}, zmm2, xmm3/m128
+T}
+	G	V/V	AVX512F	T{
+Shift quadwords in zmm2 left by amount specified in xmm3/m128 while shifting in 0s using writemask k1.
+T}
+T{
+EVEX.128.66.0F.W1 73 /6 ib VPSLLQ xmm1 {k1}{z}, xmm2/m128/m64bcst, imm8
+T}
+	F	V/V	AVX512VL AVX512F	T{
+Shift quadwords in xmm2/m128/m64bcst left by imm8 while shifting in 0s using writemask k1.
+T}
+T{
+EVEX.256.66.0F.W1 73 /6 ib VPSLLQ ymm1 {k1}{z}, ymm2/m256/m64bcst, imm8
+T}
+	F	V/V	AVX512VL AVX512F	T{
+Shift quadwords in ymm2/m256/m64bcst left by imm8 while shifting in 0s using writemask k1.
+T}
+T{
+EVEX.512.66.0F.W1 73 /6 ib VPSLLQ zmm1 {k1}{z}, zmm2/m512/m64bcst, imm8
+T}
+	F	V/V	AVX512F	T{
+Shift quadwords in zmm2/m512/m64bcst left by imm8 while shifting in 0s using writemask k1.
+T}
+.TE
+
+.PP
+.RS
+
+.PP
+1\&. See note in Section 2.4, “AVX and SSE Instruction Exception
+Specification” in the Intel® 64 and IA\-32 Architectures Software
+Developer’s Manual, Volume 3A.
+
+.RE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+Op/En	Tuple Type	Operand 1	Operand 2	Operand 3	Operand 4
+A	NA	ModRM:reg (r, w)	ModRM:r/m (r)	NA	NA
+B	NA	ModRM:r/m (r, w)	imm8	NA	NA
+C	NA	ModRM:reg (w)	VEX.vvvv (r)	ModRM:r/m (r)	NA
+D	NA	VEX.vvvv (w)	ModRM:r/m (r)	imm8	NA
+E	Full Mem	EVEX.vvvv (w)	ModRM:r/m (R)	Imm8	NA
+F	Full	EVEX.vvvv (w)	ModRM:r/m (R)	Imm8	NA
+G	Mem128	ModRM:reg (w)	VEX.vvvv (r)	ModRM:r/m (r)	NA
+.TE
+
+.SH DESCRIPTION
+.PP
+Shifts the bits in the individual data elements (words, doublewords, or
+quadword) in the destination operand (first operand) to the left by the
+number of bits specified in the count operand (second operand). As the
+bits in the data elements are shifted left, the empty low\-order bits are
+cleared (set to 0). If the value specified by the count operand is
+greater than 15 (for words), 31 (for doublewords), or 63 (for a
+quadword), then the destination operand is set to all 0s. Figure 4\-17
+gives an example of shifting words in a 64\-bit operand.
+
+.PP
+Pre\-ShiftX0X3X2X1DESTShift Leftwith ZeroExtensionPost\-ShiftX0 \&lt;\&lt;
+COUNTX3 \&lt;\&lt; COUNTX2 \&lt;\&lt; COUNTX1 \&lt;\&lt; COUNTDEST
+
+.PP
+Figure 4\-17. PSLLW, PSLLD, and PSLLQ Instruction Operation Using 64\-bit
+Operand
+
+.PP
+The (V)PSLLW instruction shifts each of the words in the destination
+operand to the left by the number of bits specified in the count
+operand; the (V)PSLLD instruction shifts each of the doublewords in the
+destination operand; and the (V)PSLLQ instruction shifts the quadword
+(or quadwords) in the destination operand.
+
+.PP
+In 64\-bit mode and not encoded with VEX/EVEX, using a REX prefix in the
+form of REX.R permits this instruction to access additional registers
+(XMM8\-XMM15).
+
+.PP
+Legacy SSE instructions 64\-bit operand: The destination operand is an
+MMX technology register; the count operand can be either an MMX
+technology register or an 64\-bit memory location.
+
+.PP
+128\-bit Legacy SSE version: The destination and first source operands
+are XMM registers. Bits (MAXVL\-1:128) of the corresponding YMM
+destination register remain unchanged. The count operand can be either
+an XMM register or a 128\-bit memory location or an 8\-bit immediate. If
+the count operand is a memory address, 128 bits are loaded but the upper
+64 bits are ignored.
+
+.PP
+VEX.128 encoded version: The destination and first source operands are
+XMM registers. Bits (MAXVL\-1:128) of the destination YMM register are
+zeroed. The count operand can be either an XMM register or a 128\-bit
+memory location or an 8\-bit immediate. If the count operand is a memory
+address, 128 bits are loaded but the upper 64 bits are ignored.
+
+.PP
+VEX.256 encoded version: The destination operand is a YMM register. The
+source operand is a YMM register or a memory location. The count operand
+can come either from an XMM register or a memory location or an 8\-bit
+immediate. Bits (MAXVL\-1:256) of the corresponding ZMM register are
+zeroed.
+
+.PP
+EVEX encoded versions: The destination operand is a ZMM register updated
+according to the writemask. The count operand is either an 8\-bit
+immediate (the immediate count version) or an 8\-bit value from an XMM
+register or a memory location (the variable count version). For the
+immediate count version, the source operand (the second operand) can be
+a ZMM register, a 512\-bit memory location or a 512\-bit vector
+broadcasted from a 32/64\-bit memory location. For the variable count
+version, the first source operand (the second operand) is a ZMM
+register, the second source operand (the third operand, 8\-bit variable
+count) can be an XMM register or a memory location.
+
+.PP
+Note: In VEX/EVEX encoded versions of shifts with an immediate count,
+vvvv of VEX/EVEX encode the destination register, and VEX.B/EVEX.B +
+ModRM.r/m encodes the source register.
+
+.PP
+Note: For shifts with an immediate count (VEX.128.66.0F 71\-73 /6, or
+EVEX.128.66.0F 71\-73 /6), VEX.vvvv/EVEX.vvvv encodes the destination
+register.
+
+.SH OPERATION
+.SS PSLLW (with 64\-bit operand)
+.PP
+.RS
+
+.nf
+IF (COUNT > 15)
+THEN
+    DEST[64:0] ← 0000000000000000H;
+ELSE
+    DEST[15:0] ← ZeroExtend(DEST[15:0] << COUNT);
+    (* Repeat shift operation for 2nd and 3rd words *)
+    DEST[63:48] ← ZeroExtend(DEST[63:48] << COUNT);
+FI;
+
+.fi
+.RE
+
+.SS PSLLD (with 64\-bit operand)
+.PP
+.RS
+
+.nf
+IF (COUNT > 31)
+THEN
+    DEST[64:0] ← 0000000000000000H;
+ELSE
+    DEST[31:0] ← ZeroExtend(DEST[31:0] << COUNT);
+    DEST[63:32] ← ZeroExtend(DEST[63:32] << COUNT);
+FI;
+
+.fi
+.RE
+
+.SS PSLLQ (with 64\-bit operand)
+.PP
+.RS
+
+.nf
+    IF (COUNT > 63)
+    THEN
+        DEST[64:0] ← 0000000000000000H;
+    ELSE
+        DEST ← ZeroExtend(DEST << COUNT);
+    FI;
+LOGICAL\_LEFT\_SHIFT\_WORDS(SRC, COUNT\_SRC)
+COUNT ←COUNT\_SRC[63:0];
+IF (COUNT > 15)
+THEN
+    DEST[127:0] ←00000000000000000000000000000000H
+ELSE
+    DEST[15:0]←ZeroExtend(SRC[15:0] << COUNT);
+    (* Repeat shift operation for 2nd through 7th words *)
+    DEST[127:112]←ZeroExtend(SRC[127:112] << COUNT);
+FI;
+LOGICAL\_LEFT\_SHIFT\_DWORDS1(SRC, COUNT\_SRC)
+COUNT ← COUNT\_SRC[63:0];
+IF (COUNT > 31)
+THEN
+    DEST[31:0] ← 0
+ELSE
+    DEST[31:0]←ZeroExtend(SRC[31:0] << COUNT);
+FI;
+LOGICAL\_LEFT\_SHIFT\_DWORDS(SRC, COUNT\_SRC)
+COUNT ←COUNT\_SRC[63:0];
+IF (COUNT > 31)
+THEN
+    DEST[127:0] ←00000000000000000000000000000000H
+ELSE
+    DEST[31:0]←ZeroExtend(SRC[31:0] << COUNT);
+    (* Repeat shift operation for 2nd through 3rd words *)
+    DEST[127:96]←ZeroExtend(SRC[127:96] << COUNT);
+FI;
+LOGICAL\_LEFT\_SHIFT\_QWORDS1(SRC, COUNT\_SRC)
+COUNT ← COUNT\_SRC[63:0];
+IF (COUNT > 63)
+THEN
+    DEST[63:0] ← 0
+ELSE
+    DEST[63:0]←ZeroExtend(SRC[63:0] << COUNT);
+FI;
+LOGICAL\_LEFT\_SHIFT\_QWORDS(SRC, COUNT\_SRC)
+COUNT ←COUNT\_SRC[63:0];
+IF (COUNT > 63)
+THEN
+    DEST[127:0] ←00000000000000000000000000000000H
+ELSE
+    DEST[63:0]←ZeroExtend(SRC[63:0] << COUNT);
+    DEST[127:64]←ZeroExtend(SRC[127:64] << COUNT);
+FI;
+LOGICAL\_LEFT\_SHIFT\_WORDS\_256b(SRC, COUNT\_SRC)
+COUNT ←COUNT\_SRC[63:0];
+IF (COUNT > 15)
+THEN
+    DEST[127:0] ←00000000000000000000000000000000H
+    DEST[255:128] ←00000000000000000000000000000000H
+ELSE
+    DEST[15:0]←ZeroExtend(SRC[15:0] << COUNT);
+    (* Repeat shift operation for 2nd through 15th words *)
+    DEST[255:240]←ZeroExtend(SRC[255:240] << COUNT);
+FI;
+LOGICAL\_LEFT\_SHIFT\_DWORDS\_256b(SRC, COUNT\_SRC)
+COUNT ←COUNT\_SRC[63:0];
+IF (COUNT > 31)
+THEN
+    DEST[127:0] ←00000000000000000000000000000000H
+    DEST[255:128] ←00000000000000000000000000000000H
+ELSE
+    DEST[31:0]←ZeroExtend(SRC[31:0] << COUNT);
+    (* Repeat shift operation for 2nd through 7th words *)
+    DEST[255:224]←ZeroExtend(SRC[255:224] << COUNT);
+FI;
+LOGICAL\_LEFT\_SHIFT\_QWORDS\_256b(SRC, COUNT\_SRC)
+COUNT ←COUNT\_SRC[63:0];
+IF (COUNT > 63)
+THEN
+    DEST[127:0] ←00000000000000000000000000000000H
+    DEST[255:128] ←00000000000000000000000000000000H
+ELSE
+    DEST[63:0]←ZeroExtend(SRC[63:0] << COUNT);
+    DEST[127:64]←ZeroExtend(SRC[127:64] << COUNT)
+    DEST[191:128]←ZeroExtend(SRC[191:128] << COUNT);
+    DEST[255:192]←ZeroExtend(SRC[255:192] << COUNT);
+FI;
+
+.fi
+.RE
+
+.SS VPSLLW (EVEX versions, xmm/m128)
+.PP
+.RS
+
+.nf
+(KL, VL) = (8, 128), (16, 256), (32, 512)
+IF VL = 128
+    TMP\_DEST[127:0]←LOGICAL\_LEFT\_SHIFT\_WORDS\_128b(SRC1[127:0], SRC2)
+FI;
+IF VL = 256
+    TMP\_DEST[255:0]←LOGICAL\_LEFT\_SHIFT\_WORDS\_256b(SRC1[255:0], SRC2)
+FI;
+IF VL = 512
+    TMP\_DEST[255:0]←LOGICAL\_LEFT\_SHIFT\_WORDS\_256b(SRC1[255:0], SRC2)
+    TMP\_DEST[511:256]←LOGICAL\_LEFT\_SHIFT\_WORDS\_256b(SRC1[511:256], SRC2)
+FI;
+FOR j←0 TO KL\-1
+    i←j * 16
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+15:i]←TMP\_DEST[i+15:i]
+        ELSE
+            IF *merging\-masking*
+                        ; merging\-masking
+                THEN *DEST[i+15:i] remains unchanged*
+                ELSE *zeroing\-masking*
+                            ; zeroing\-masking
+                    DEST[i+15:i] = 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS VPSLLW (EVEX versions, imm8)
+.PP
+.RS
+
+.nf
+(KL, VL) = (8, 128), (16, 256), (32, 512)
+IF VL = 128
+    TMP\_DEST[127:0]←LOGICAL\_LEFT\_SHIFT\_WORDS\_128b(SRC1[127:0], imm8)
+FI;
+IF VL = 256
+    TMP\_DEST[255:0]←LOGICAL\_RIGHT\_SHIFT\_WORDS\_256b(SRC1[255:0], imm8)
+FI;
+IF VL = 512
+    TMP\_DEST[255:0]←LOGICAL\_LEFT\_SHIFT\_WORDS\_256b(SRC1[255:0], imm8)
+    TMP\_DEST[511:256]←LOGICAL\_LEFT\_SHIFT\_WORDS\_256b(SRC1[511:256], imm8)
+FI;
+FOR j←0 TO KL\-1
+    i←j * 16
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+15:i]←TMP\_DEST[i+15:i]
+        ELSE
+            IF *merging\-masking*
+                        ; merging\-masking
+                THEN *DEST[i+15:i] remains unchanged*
+                ELSE *zeroing\-masking*
+                            ; zeroing\-masking
+                    DEST[i+15:i] = 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS VPSLLW (ymm, ymm, xmm/m128) \- VEX.256 encoding
+.PP
+.RS
+
+.nf
+DEST[255:0]←LOGICAL\_LEFT\_SHIFT\_WORDS\_256b(SRC1, SRC2)
+DEST[MAXVL\-1:256] ←0;
+
+.fi
+.RE
+
+.SS VPSLLW (ymm, imm8) \- VEX.256 encoding
+.PP
+.RS
+
+.nf
+DEST[255:0]←LOGICAL\_LEFT\_SHIFT\_WORD\_256b(SRC1, imm8)
+DEST[MAXVL\-1:256] ←0;
+
+.fi
+.RE
+
+.SS VPSLLW (xmm, xmm, xmm/m128) \- VEX.128 encoding
+.PP
+.RS
+
+.nf
+DEST[127:0]←LOGICAL\_LEFT\_SHIFT\_WORDS(SRC1, SRC2)
+DEST[MAXVL\-1:128] ←0
+
+.fi
+.RE
+
+.SS VPSLLW (xmm, imm8) \- VEX.128 encoding
+.PP
+.RS
+
+.nf
+DEST[127:0]←LOGICAL\_LEFT\_SHIFT\_WORDS(SRC1, imm8)
+DEST[MAXVL\-1:128] ←0
+
+.fi
+.RE
+
+.SS PSLLW (xmm, xmm, xmm/m128)
+.PP
+.RS
+
+.nf
+DEST[127:0]←LOGICAL\_LEFT\_SHIFT\_WORDS(DEST, SRC)
+DEST[MAXVL\-1:128] (Unmodified)
+
+.fi
+.RE
+
+.SS PSLLW (xmm, imm8)
+.PP
+.RS
+
+.nf
+DEST[127:0]←LOGICAL\_LEFT\_SHIFT\_WORDS(DEST, imm8)
+DEST[MAXVL\-1:128] (Unmodified)
+
+.fi
+.RE
+
+.SS VPSLLD (EVEX versions, imm8)
+.PP
+.RS
+
+.nf
+(KL, VL) = (4, 128), (8, 256), (16, 512)
+FOR j←0 TO KL\-1
+    i←j * 32
+    IF k1[j] OR *no writemask* THEN
+            IF (EVEX.b = 1) AND (SRC1 *is memory*)
+                THEN DEST[i+31:i]←LOGICAL\_LEFT\_SHIFT\_DWORDS1(SRC1[31:0], imm8)
+                ELSE DEST[i+31:i]←LOGICAL\_LEFT\_SHIFT\_DWORDS1(SRC1[i+31:i], imm8)
+            FI;
+        ELSE
+            IF *merging\-masking* ; merging\-masking
+                THEN *DEST[i+31:i] remains unchanged*
+                ELSE *zeroing\-masking*
+                        ; zeroing\-masking
+                    DEST[i+31:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS VPSLLD (EVEX versions, xmm/m128)
+.PP
+.RS
+
+.nf
+(KL, VL) = (4, 128), (8, 256), (16, 512)
+IF VL = 128
+    TMP\_DEST[127:0]←LOGICAL\_LEFT\_SHIFT\_DWORDS\_128b(SRC1[127:0], SRC2)
+FI;
+IF VL = 256
+    TMP\_DEST[255:0]←LOGICAL\_LEFT\_SHIFT\_DWORDS\_256b(SRC1[255:0], SRC2)
+FI;
+IF VL = 512
+    TMP\_DEST[255:0]←LOGICAL\_LEFT\_SHIFT\_DWORDS\_256b(SRC1[255:0], SRC2)
+    TMP\_DEST[511:256]←LOGICAL\_LEFT\_SHIFT\_DWORDS\_256b(SRC1[511:256], SRC2)
+FI;
+FOR j←0 TO KL\-1
+    i←j * 32
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+31:i]←TMP\_DEST[i+31:i]
+        ELSE
+            IF *merging\-masking*
+                        ; merging\-masking
+                THEN *DEST[i+31:i] remains unchanged*
+                ELSE *zeroing\-masking*
+                            ; zeroing\-masking
+                    DEST[i+31:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS VPSLLD (ymm, ymm, xmm/m128) \- VEX.256 encoding
+.PP
+.RS
+
+.nf
+DEST[255:0]←LOGICAL\_LEFT\_SHIFT\_DWORDS\_256b(SRC1, SRC2)
+DEST[MAXVL\-1:256] ←0;
+
+.fi
+.RE
+
+.SS VPSLLD (ymm, imm8) \- VEX.256 encoding
+.PP
+.RS
+
+.nf
+DEST[255:0]←LOGICAL\_LEFT\_SHIFT\_DWORDS\_256b(SRC1, imm8)
+DEST[MAXVL\-1:256] ←0;
+
+.fi
+.RE
+
+.SS VPSLLD (xmm, xmm, xmm/m128) \- VEX.128 encoding
+.PP
+.RS
+
+.nf
+DEST[127:0]←LOGICAL\_LEFT\_SHIFT\_DWORDS(SRC1, SRC2)
+DEST[MAXVL\-1:128] ←0
+
+.fi
+.RE
+
+.SS VPSLLD (xmm, imm8) \- VEX.128 encoding
+.PP
+.RS
+
+.nf
+DEST[127:0]←LOGICAL\_LEFT\_SHIFT\_DWORDS(SRC1, imm8)
+DEST[MAXVL\-1:128] ←0
+
+.fi
+.RE
+
+.SS PSLLD (xmm, xmm, xmm/m128)
+.PP
+.RS
+
+.nf
+DEST[127:0]←LOGICAL\_LEFT\_SHIFT\_DWORDS(DEST, SRC)
+DEST[MAXVL\-1:128] (Unmodified)
+
+.fi
+.RE
+
+.SS PSLLD (xmm, imm8)
+.PP
+.RS
+
+.nf
+DEST[127:0]←LOGICAL\_LEFT\_SHIFT\_DWORDS(DEST, imm8)
+DEST[MAXVL\-1:128] (Unmodified)
+
+.fi
+.RE
+
+.SS VPSLLQ (EVEX versions, imm8)
+.PP
+.RS
+
+.nf
+(KL, VL) = (2, 128), (4, 256), (8, 512)
+FOR j←0 TO KL\-1
+    i←j * 64
+    IF k1[j] OR *no writemask* THEN
+            IF (EVEX.b = 1) AND (SRC1 *is memory*)
+                THEN DEST[i+63:i]←LOGICAL\_LEFT\_SHIFT\_QWORDS1(SRC1[63:0], imm8)
+                ELSE DEST[i+63:i]←LOGICAL\_LEFT\_SHIFT\_QWORDS1(SRC1[i+63:i], imm8)
+            FI;
+        ELSE
+            IF *merging\-masking* ; merging\-masking
+                THEN *DEST[i+63:i] remains unchanged*
+                ELSE *zeroing\-masking*
+                        ; zeroing\-masking
+                    DEST[i+63:i] ← 0
+            FI
+    FI;
+ENDFOR
+
+.fi
+.RE
+
+.SS VPSLLQ (EVEX versions, xmm/m128)
+.PP
+.RS
+
+.nf
+(KL, VL) = (2, 128), (4, 256), (8, 512)
+IF VL = 128
+    TMP\_DEST[127:0]←LOGICAL\_LEFT\_SHIFT\_QWORDS\_128b(SRC1[127:0], SRC2)
+FI;
+IF VL = 256
+    TMP\_DEST[255:0]←LOGICAL\_LEFT\_SHIFT\_QWORDS\_256b(SRC1[255:0], SRC2)
+FI;
+IF VL = 512
+    TMP\_DEST[255:0]←LOGICAL\_LEFT\_SHIFT\_QWORDS\_256b(SRC1[255:0], SRC2)
+    TMP\_DEST[511:256]←LOGICAL\_LEFT\_SHIFT\_QWORDS\_256b(SRC1[511:256], SRC2)
+FI;
+FOR j←0 TO KL\-1
+    i←j * 64
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+63:i]←TMP\_DEST[i+63:i]
+        ELSE
+            IF *merging\-masking*
+                        ; merging\-masking
+                THEN *DEST[i+63:i] remains unchanged*
+                ELSE *zeroing\-masking*
+                            ; zeroing\-masking
+                    DEST[i+63:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ←0
+
+.fi
+.RE
+
+.SS VPSLLQ (ymm, ymm, xmm/m128) \- VEX.256 encoding
+.PP
+.RS
+
+.nf
+DEST[255:0]←LOGICAL\_LEFT\_SHIFT\_QWORDS\_256b(SRC1, SRC2)
+DEST[MAXVL\-1:256] ←0;
+
+.fi
+.RE
+
+.SS VPSLLQ (ymm, imm8) \- VEX.256 encoding
+.PP
+.RS
+
+.nf
+DEST[255:0]←LOGICAL\_LEFT\_SHIFT\_QWORDS\_256b(SRC1, imm8)
+DEST[MAXVL\-1:256] ←0;
+
+.fi
+.RE
+
+.SS VPSLLQ (xmm, xmm, xmm/m128) \- VEX.128 encoding
+.PP
+.RS
+
+.nf
+DEST[127:0]←LOGICAL\_LEFT\_SHIFT\_QWORDS(SRC1, SRC2)
+DEST[MAXVL\-1:128] ←0
+
+.fi
+.RE
+
+.SS VPSLLQ (xmm, imm8) \- VEX.128 encoding
+.PP
+.RS
+
+.nf
+DEST[127:0]←LOGICAL\_LEFT\_SHIFT\_QWORDS(SRC1, imm8)
+DEST[MAXVL\-1:128] ←0
+
+.fi
+.RE
+
+.SS PSLLQ (xmm, xmm, xmm/m128)
+.PP
+.RS
+
+.nf
+DEST[127:0]←LOGICAL\_LEFT\_SHIFT\_QWORDS(DEST, SRC)
+DEST[MAXVL\-1:128] (Unmodified)
+
+.fi
+.RE
+
+.SS PSLLQ (xmm, imm8)
+.PP
+.RS
+
+.nf
+DEST[127:0]←LOGICAL\_LEFT\_SHIFT\_QWORDS(DEST, imm8)
+DEST[MAXVL\-1:128] (Unmodified)
+
+.fi
+.RE
+
+.SH INTEL C/C++ COMPILER INTRINSIC EQUIVALENTS
+.PP
+.RS
+
+.nf
+VPSLLD \_\_m512i \_mm512\_slli\_epi32(\_\_m512i a, unsigned int imm);
+
+VPSLLD \_\_m512i \_mm512\_mask\_slli\_epi32(\_\_m512i s, \_\_mmask16 k, \_\_m512i a, unsigned int imm);
+
+VPSLLD \_\_m512i \_mm512\_maskz\_slli\_epi32( \_\_mmask16 k, \_\_m512i a, unsigned int imm);
+
+VPSLLD \_\_m256i \_mm256\_mask\_slli\_epi32(\_\_m256i s, \_\_mmask8 k, \_\_m256i a, unsigned int imm);
+
+VPSLLD \_\_m256i \_mm256\_maskz\_slli\_epi32( \_\_mmask8 k, \_\_m256i a, unsigned int imm);
+
+VPSLLD \_\_m128i \_mm\_mask\_slli\_epi32(\_\_m128i s, \_\_mmask8 k, \_\_m128i a, unsigned int imm);
+
+VPSLLD \_\_m128i \_mm\_maskz\_slli\_epi32( \_\_mmask8 k, \_\_m128i a, unsigned int imm);
+
+VPSLLD \_\_m512i \_mm512\_sll\_epi32(\_\_m512i a, \_\_m128i cnt);
+
+VPSLLD \_\_m512i \_mm512\_mask\_sll\_epi32(\_\_m512i s, \_\_mmask16 k, \_\_m512i a, \_\_m128i cnt);
+
+VPSLLD \_\_m512i \_mm512\_maskz\_sll\_epi32( \_\_mmask16 k, \_\_m512i a, \_\_m128i cnt);
+
+VPSLLD \_\_m256i \_mm256\_mask\_sll\_epi32(\_\_m256i s, \_\_mmask8 k, \_\_m256i a, \_\_m128i cnt);
+
+VPSLLD \_\_m256i \_mm256\_maskz\_sll\_epi32( \_\_mmask8 k, \_\_m256i a, \_\_m128i cnt);
+
+VPSLLD \_\_m128i \_mm\_mask\_sll\_epi32(\_\_m128i s, \_\_mmask8 k, \_\_m128i a, \_\_m128i cnt);
+
+VPSLLD \_\_m128i \_mm\_maskz\_sll\_epi32( \_\_mmask8 k, \_\_m128i a, \_\_m128i cnt);
+
+VPSLLQ \_\_m512i \_mm512\_mask\_slli\_epi64(\_\_m512i a, unsigned int imm);
+
+VPSLLQ \_\_m512i \_mm512\_mask\_slli\_epi64(\_\_m512i s, \_\_mmask8 k, \_\_m512i a, unsigned int imm);
+
+VPSLLQ \_\_m512i \_mm512\_maskz\_slli\_epi64( \_\_mmask8 k, \_\_m512i a, unsigned int imm);
+
+VPSLLQ \_\_m256i \_mm256\_mask\_slli\_epi64(\_\_m256i s, \_\_mmask8 k, \_\_m256i a, unsigned int imm);
+
+VPSLLQ \_\_m256i \_mm256\_maskz\_slli\_epi64( \_\_mmask8 k, \_\_m256i a, unsigned int imm);
+
+VPSLLQ \_\_m128i \_mm\_mask\_slli\_epi64(\_\_m128i s, \_\_mmask8 k, \_\_m128i a, unsigned int imm);
+
+VPSLLQ \_\_m128i \_mm\_maskz\_slli\_epi64( \_\_mmask8 k, \_\_m128i a, unsigned int imm);
+
+VPSLLQ \_\_m512i \_mm512\_mask\_sll\_epi64(\_\_m512i a, \_\_m128i cnt);
+
+VPSLLQ \_\_m512i \_mm512\_mask\_sll\_epi64(\_\_m512i s, \_\_mmask8 k, \_\_m512i a, \_\_m128i cnt);
+
+VPSLLQ \_\_m512i \_mm512\_maskz\_sll\_epi64( \_\_mmask8 k, \_\_m512i a, \_\_m128i cnt);
+
+VPSLLQ \_\_m256i \_mm256\_mask\_sll\_epi64(\_\_m256i s, \_\_mmask8 k, \_\_m256i a, \_\_m128i cnt);
+
+VPSLLQ \_\_m256i \_mm256\_maskz\_sll\_epi64( \_\_mmask8 k, \_\_m256i a, \_\_m128i cnt);
+
+VPSLLQ \_\_m128i \_mm\_mask\_sll\_epi64(\_\_m128i s, \_\_mmask8 k, \_\_m128i a, \_\_m128i cnt);
+
+VPSLLQ \_\_m128i \_mm\_maskz\_sll\_epi64( \_\_mmask8 k, \_\_m128i a, \_\_m128i cnt);
+
+VPSLLW \_\_m512i \_mm512\_slli\_epi16(\_\_m512i a, unsigned int imm);
+
+VPSLLW \_\_m512i \_mm512\_mask\_slli\_epi16(\_\_m512i s, \_\_mmask32 k, \_\_m512i a, unsigned int imm);
+
+VPSLLW \_\_m512i \_mm512\_maskz\_slli\_epi16( \_\_mmask32 k, \_\_m512i a, unsigned int imm);
+
+VPSLLW \_\_m256i \_mm256\_mask\_slli\_epi16(\_\_m256i s, \_\_mmask16 k, \_\_m256i a, unsigned int imm);
+
+VPSLLW \_\_m256i \_mm256\_maskz\_slli\_epi16( \_\_mmask16 k, \_\_m256i a, unsigned int imm);
+
+VPSLLW \_\_m128i \_mm\_mask\_slli\_epi16(\_\_m128i s, \_\_mmask8 k, \_\_m128i a, unsigned int imm);
+
+VPSLLW \_\_m128i \_mm\_maskz\_slli\_epi16( \_\_mmask8 k, \_\_m128i a, unsigned int imm);
+
+VPSLLW \_\_m512i \_mm512\_sll\_epi16(\_\_m512i a, \_\_m128i cnt);
+
+VPSLLW \_\_m512i \_mm512\_mask\_sll\_epi16(\_\_m512i s, \_\_mmask32 k, \_\_m512i a, \_\_m128i cnt);
+
+VPSLLW \_\_m512i \_mm512\_maskz\_sll\_epi16( \_\_mmask32 k, \_\_m512i a, \_\_m128i cnt);
+
+VPSLLW \_\_m256i \_mm256\_mask\_sll\_epi16(\_\_m256i s, \_\_mmask16 k, \_\_m256i a, \_\_m128i cnt);
+
+VPSLLW \_\_m256i \_mm256\_maskz\_sll\_epi16( \_\_mmask16 k, \_\_m256i a, \_\_m128i cnt);
+
+VPSLLW \_\_m128i \_mm\_mask\_sll\_epi16(\_\_m128i s, \_\_mmask8 k, \_\_m128i a, \_\_m128i cnt);
+
+VPSLLW \_\_m128i \_mm\_maskz\_sll\_epi16( \_\_mmask8 k, \_\_m128i a, \_\_m128i cnt);
+
+PSLLW:\_\_m64 \_mm\_slli\_pi16 (\_\_m64 m, int count)
+
+PSLLW:\_\_m64 \_mm\_sll\_pi16(\_\_m64 m, \_\_m64 count)
+
+(V)PSLLW:\_\_m128i \_mm\_slli\_epi16(\_\_m64 m, int count)
+
+(V)PSLLW:\_\_m128i \_mm\_sll\_epi16(\_\_m128i m, \_\_m128i count)
+
+VPSLLW:\_\_m256i \_mm256\_slli\_epi16 (\_\_m256i m, int count)
+
+VPSLLW:\_\_m256i \_mm256\_sll\_epi16 (\_\_m256i m, \_\_m128i count)
+
+PSLLD:\_\_m64 \_mm\_slli\_pi32(\_\_m64 m, int count)
+
+PSLLD:\_\_m64 \_mm\_sll\_pi32(\_\_m64 m, \_\_m64 count)
+
+(V)PSLLD:\_\_m128i \_mm\_slli\_epi32(\_\_m128i m, int count)
+
+(V)PSLLD:\_\_m128i \_mm\_sll\_epi32(\_\_m128i m, \_\_m128i count)
+
+VPSLLD:\_\_m256i \_mm256\_slli\_epi32 (\_\_m256i m, int count)
+
+VPSLLD:\_\_m256i \_mm256\_sll\_epi32 (\_\_m256i m, \_\_m128i count)
+
+PSLLQ:\_\_m64 \_mm\_slli\_si64(\_\_m64 m, int count)
+
+PSLLQ:\_\_m64 \_mm\_sll\_si64(\_\_m64 m, \_\_m64 count)
+
+(V)PSLLQ:\_\_m128i \_mm\_slli\_epi64(\_\_m128i m, int count)
+
+(V)PSLLQ:\_\_m128i \_mm\_sll\_epi64(\_\_m128i m, \_\_m128i count)
+
+VPSLLQ:\_\_m256i \_mm256\_slli\_epi64 (\_\_m256i m, int count)
+
+VPSLLQ:\_\_m256i \_mm256\_sll\_epi64 (\_\_m256i m, \_\_m128i count)
+
+.fi
+.RE
+
+.SH FLAGS AFFECTED
+.PP
+None.
+
+.SH NUMERIC EXCEPTIONS
+.PP
+None.
+
+.SH OTHER EXCEPTIONS
+.PP
+VEX\-encoded instructions:
+
+.PP
+Syntax with RM/RVM operand encoding (A/C in the operand encoding table),
+see Exceptions Type 4.
+
+.PP
+Syntax with MI/VMI operand encoding (B/D in the operand encoding table),
+see Exceptions Type 7.
+
+.PP
+EVEX\-encoded VPSLLW (E in the operand encoding table), see Exceptions
+Type E4NF.nb.
+
+.PP
+EVEX\-encoded VPSLLD/Q:
+
+.PP
+Syntax with Mem128 tuple type (G in the operand encoding table), see
+Exceptions Type E4NF.nb.
+
+.PP
+Syntax with Full tuple type (F in the operand encoding table), see
+Exceptions Type E4.
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+MIT licensed by TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

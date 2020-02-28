@@ -1,0 +1,377 @@
+.nh
+.TH "X86-PADDSB-PADDSW" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+PADDSB-PADDSW - ADD PACKED SIGNED INTEGERS WITH SIGNED SATURATION
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp/En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+NP 0F EC /mm, mm/m64	A	V/V	MMX	T{
+Add packed signed byte integers from mm/m64 and mm and saturate the results.
+T}
+66 0F EC /xmm1, xmm2/m128	A	V/V	SSE2	T{
+Add packed signed byte integers from xmm1 saturate the results.
+T}
+NP 0F ED /mm, mm/m64	A	V/V	MMX	T{
+Add packed signed word integers from mm/m64 and mm and saturate the results.
+T}
+66 0F ED /xmm1, xmm2/m128	A	V/V	SSE2	T{
+Add packed signed word integers from xmm1 and saturate the results.
+T}
+T{
+VEX.128.66.0F.WIG EC /r VPADDSB xmm1, xmm2, xmm3/m128
+T}
+	B	V/V	AVX	T{
+Add packed signed byte integers from xmm2 saturate the results.
+T}
+T{
+VEX.128.66.0F.WIG ED /r VPADDSW xmm1, xmm2, xmm3/m128
+T}
+	B	V/V	AVX	T{
+Add packed signed word integers from xmm2 and saturate the results.
+T}
+T{
+VEX.256.66.0F.WIG EC /r VPADDSB ymm1, ymm2, ymm3/m256
+T}
+	B	V/V	AVX2	T{
+Add packed signed byte integers from ymm2, and ymm1.
+T}
+T{
+VEX.256.66.0F.WIG ED /r VPADDSW ymm1, ymm2, ymm3/m256
+T}
+	B	V/V	AVX2	T{
+Add packed signed word integers from ymm2, and ymm1.
+T}
+T{
+EVEX.128.66.0F.WIG EC /r VPADDSB xmm1 {k1}{z}, xmm2, xmm3/m128
+T}
+	C	V/V	AVX512VL AVX512BW	T{
+Add packed signed byte integers from xmm2, and xmm3/m128 and store the saturated results in xmm1 under writemask k1.
+T}
+T{
+EVEX.256.66.0F.WIG EC /r VPADDSB ymm1 {k1}{z}, ymm2, ymm3/m256
+T}
+	C	V/V	AVX512VL AVX512BW	T{
+Add packed signed byte integers from ymm2, and ymm3/m256 and store the saturated results in ymm1 under writemask k1.
+T}
+T{
+EVEX.512.66.0F.WIG EC /r VPADDSB zmm1 {k1}{z}, zmm2, zmm3/m512
+T}
+	C	V/V	AVX512BW	T{
+Add packed signed byte integers from zmm2, and zmm3/m512 and store the saturated results in zmm1 under writemask k1.
+T}
+T{
+EVEX.128.66.0F.WIG ED /r VPADDSW xmm1 {k1}{z}, xmm2, xmm3/m128
+T}
+	C	V/V	AVX512VL AVX512BW	T{
+Add packed signed word integers from xmm2, and xmm3/m128 and store the saturated results in xmm1 under writemask k1.
+T}
+T{
+EVEX.256.66.0F.WIG ED /r VPADDSW ymm1 {k1}{z}, ymm2, ymm3/m256
+T}
+	C	V/V	AVX512VL AVX512BW	T{
+Add packed signed word integers from ymm2, and ymm3/m256 and store the saturated results in ymm1 under writemask k1.
+T}
+T{
+EVEX.512.66.0F.WIG ED /r VPADDSW zmm1 {k1}{z}, zmm2, zmm3/m512
+T}
+	C	V/V	AVX512BW	T{
+Add packed signed word integers from zmm2, and zmm3/m512 and store the saturated results in zmm1 under writemask k1.
+T}
+.TE
+
+.PP
+.RS
+
+.PP
+1\&. See note in Section 2.4, “AVX and SSE Instruction Exception
+Specification” in the Intel® 64 and IA\-32 Architectures Software
+Developer’s Manual, Volume 3A.
+
+.RE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+Op/En	Tuple Type	Operand 1	Operand 2	Operand 3	Operand 4
+A	NA	ModRM:reg (r, w)	ModRM:r/m (r)	NA	NA
+B	NA	ModRM:reg (w)	VEX.vvvv (r)	ModRM:r/m (r)	NA
+C	Full Mem	ModRM:reg (w)	EVEX.vvvv (r)	ModRM:r/m (r)	NA
+.TE
+
+.SH DESCRIPTION
+.PP
+Performs a SIMD add of the packed signed integers from the source
+operand (second operand) and the destination operand (first operand),
+and stores the packed integer results in the destination operand. See
+Figure 9\-4 in the Intel® 64 and IA\-32
+Architectures Software Developer’s Manual, Volume 1, for an illustration
+of a SIMD operation. Overflow is handled with signed saturation, as
+described in the following paragraphs.
+
+.PP
+(V)PADDSB performs a SIMD add of the packed signed integers with
+saturation from the first source operand and second source operand and
+stores the packed integer results in the destination operand. When an
+individual byte result is beyond the range of a signed byte integer
+(that is, greater than 7FH or less than 80H), the saturated value of 7FH
+or 80H, respectively, is written to the destination operand.
+
+.PP
+(V)PADDSW performs a SIMD add of the packed signed word integers with
+saturation from the first source operand and second source operand and
+stores the packed integer results in the destination operand. When an
+individual word result is beyond the range of a signed word integer
+(that is, greater than 7FFFH or less than 8000H), the saturated value of
+7FFFH or 8000H, respectively, is written to the destination operand.
+
+.PP
+EVEX encoded versions: The first source operand is an ZMM/YMM/XMM
+register. The second source operand is an ZMM/YMM/XMM register or a
+memory location. The destination operand is an ZMM/YMM/XMM register.
+
+.PP
+VEX.256 encoded version: The first source operand is a YMM register. The
+second source operand is a YMM register or a 256\-bit memory location.
+The destination operand is a YMM register.
+
+.PP
+VEX.128 encoded version: The first source operand is an XMM register.
+The second source operand is an XMM register or 128\-bit memory location.
+The destination operand is an XMM register. The upper bits (MAXVL\-1:128)
+of the corresponding register destination are zeroed.
+
+.PP
+128\-bit Legacy SSE version: The first source operand is an XMM register.
+The second operand can be an XMM register or an 128\-bit memory location.
+The destination is not distinct from the first source XMM register and
+the upper bits (MAXVL\-1:128) of the corresponding register destination
+are unmodified.
+
+.SH OPERATION
+.SS PADDSB (with 64\-bit operands)
+.PP
+.RS
+
+.nf
+DEST[7:0] ← SaturateToSignedByte(DEST[7:0] + SRC (7:0]);
+(* Repeat add operation for 2nd through 7th bytes *)
+DEST[63:56] ← SaturateToSignedByte(DEST[63:56] + SRC[63:56] );
+
+.fi
+.RE
+
+.SS PADDSB (with 128\-bit operands)
+.PP
+.RS
+
+.nf
+DEST[7:0] ←SaturateToSignedByte (DEST[7:0] + SRC[7:0]);
+(* Repeat add operation for 2nd through 14th bytes *)
+DEST[127:120] ← SaturateToSignedByte (DEST[111:120] + SRC[127:120]);
+
+.fi
+.RE
+
+.SS VPADDSB (VEX.128 encoded version)
+.PP
+.RS
+
+.nf
+DEST[7:0]←SaturateToSignedByte (SRC1[7:0] + SRC2[7:0]);
+(* Repeat subtract operation for 2nd through 14th bytes *)
+DEST[127:120]←SaturateToSignedByte (SRC1[111:120] + SRC2[127:120]);
+DEST[MAXVL\-1:128] ← 0
+
+.fi
+.RE
+
+.SS VPADDSB (VEX.256 encoded version)
+.PP
+.RS
+
+.nf
+DEST[7:0]←SaturateToSignedByte (SRC1[7:0] + SRC2[7:0]);
+(* Repeat add operation for 2nd through 31st bytes *)
+DEST[255:248]←SaturateToSignedByte (SRC1[255:248] + SRC2[255:248]);
+
+.fi
+.RE
+
+.SS VPADDSB (EVEX encoded versions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (16, 128), (32, 256), (64, 512)
+FOR j←0 TO KL\-1
+    i←j * 8
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+7:i]←SaturateToSignedByte (SRC1[i+7:i] + SRC2[i+7:i])
+        ELSE
+            IF *merging\-masking* ; merging\-masking
+                THEN *DEST[i+7:i] remains unchanged*
+                ELSE *zeroing\-masking*
+                        ; zeroing\-masking
+                    DEST[i+7:i] = 0
+            FI
+    FI;
+ENDFOR;
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS PADDSW (with 64\-bit operands)
+.PP
+.RS
+
+.nf
+DEST[15:0] ← SaturateToSignedWord(DEST[15:0] + SRC[15:0] );
+(* Repeat add operation for 2nd and 7th words *)
+DEST[63:48] ← SaturateToSignedWord(DEST[63:48] + SRC[63:48] );
+
+.fi
+.RE
+
+.SS PADDSW (with 128\-bit operands)
+.PP
+.RS
+
+.nf
+DEST[15:0] ← SaturateToSignedWord (DEST[15:0] + SRC[15:0]);
+(* Repeat add operation for 2nd through 7th words *)
+DEST[127:112] ← SaturateToSignedWord (DEST[127:112] + SRC[127:112]);
+
+.fi
+.RE
+
+.SS VPADDSW (VEX.128 encoded version)
+.PP
+.RS
+
+.nf
+DEST[15:0]←SaturateToSignedWord (SRC1[15:0] + SRC2[15:0]);
+(* Repeat subtract operation for 2nd through 7th words *)
+DEST[127:112]←SaturateToSignedWord (SRC1[127:112] + SRC2[127:112]);
+DEST[MAXVL\-1:128] ← 0
+
+.fi
+.RE
+
+.SS VPADDSW (VEX.256 encoded version)
+.PP
+.RS
+
+.nf
+DEST[15:0]←SaturateToSignedWord (SRC1[15:0] + SRC2[15:0]);
+(* Repeat add operation for 2nd through 15th words *)
+DEST[255:240]←SaturateToSignedWord (SRC1[255:240] + SRC2[255:240])
+
+.fi
+.RE
+
+.SS VPADDSW (EVEX encoded versions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (8, 128), (16, 256), (32, 512)
+FOR j←0 TO KL\-1
+    i←j * 16
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+15:i]←SaturateToSignedWord (SRC1[i+15:i] + SRC2[i+15:i])
+        ELSE
+            IF *merging\-masking* ; merging\-masking
+                THEN *DEST[i+15:i] remains unchanged*
+                ELSE *zeroing\-masking*
+                        ; zeroing\-masking
+                    DEST[i+15:i] = 0
+            FI
+    FI;
+ENDFOR;
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SH INTEL C/C++ COMPILER INTRINSIC EQUIVALENTS
+.PP
+.RS
+
+.nf
+PADDSB: \_\_m64 \_mm\_adds\_pi8(\_\_m64 m1, \_\_m64 m2)
+
+(V)PADDSB: \_\_m128i \_mm\_adds\_epi8 ( \_\_m128i a, \_\_m128i b)
+
+VPADDSB: \_\_m256i \_mm256\_adds\_epi8 ( \_\_m256i a, \_\_m256i b)
+
+PADDSW: \_\_m64 \_mm\_adds\_pi16(\_\_m64 m1, \_\_m64 m2)
+
+(V)PADDSW: \_\_m128i \_mm\_adds\_epi16 ( \_\_m128i a, \_\_m128i b)
+
+VPADDSW: VPADDSB\_\_m512i \_mm512\_adds\_epi8 ( \_\_m512i a, \_\_m512i b)
+
+VPADDSW\_\_m512i \_mm512\_adds\_epi16 ( \_\_m512i a, \_\_m512i b)
+
+VPADDSB\_\_m512i \_mm512\_mask\_adds\_epi8 ( \_\_m512i s, \_\_mmask64 m, \_\_m512i a, \_\_m512i b)
+
+VPADDSW\_\_m512i \_mm512\_mask\_adds\_epi16 ( \_\_m512i s, \_\_mmask32 m, \_\_m512i a, \_\_m512i b)
+
+VPADDSB\_\_m512i \_mm512\_maskz\_adds\_epi8 (\_\_mmask64 m, \_\_m512i a, \_\_m512i b)
+
+VPADDSW\_\_m512i \_mm512\_maskz\_adds\_epi16 (\_\_mmask32 m, \_\_m512i a, \_\_m512i b)
+
+VPADDSB\_\_m256i \_mm256\_mask\_adds\_epi8 (\_\_m256i s, \_\_mmask32 m, \_\_m256i a, \_\_m256i b)
+
+VPADDSW\_\_m256i \_mm256\_mask\_adds\_epi16 (\_\_m256i s, \_\_mmask16 m, \_\_m256i a, \_\_m256i b)
+
+VPADDSB\_\_m256i \_mm256\_maskz\_adds\_epi8 (\_\_mmask32 m, \_\_m256i a, \_\_m256i b)
+
+VPADDSW\_\_m256i \_mm256\_maskz\_adds\_epi16 (\_\_mmask16 m, \_\_m256i a, \_\_m256i b)
+
+VPADDSB\_\_m128i \_mm\_mask\_adds\_epi8 (\_\_m128i s, \_\_mmask16 m, \_\_m128i a, \_\_m128i b)
+
+VPADDSW\_\_m128i \_mm\_mask\_adds\_epi16 (\_\_m128i s, \_\_mmask8 m, \_\_m128i a, \_\_m128i b)
+
+VPADDSB\_\_m128i \_mm\_maskz\_adds\_epi8 (\_\_mmask16 m, \_\_m128i a, \_\_m128i b)
+
+VPADDSW\_\_m128i \_mm\_maskz\_adds\_epi16 (\_\_mmask8 m, \_\_m128i a, \_\_m128i b)
+
+.fi
+.RE
+
+.SH FLAGS AFFECTED
+.PP
+None.
+
+.SH SIMD FLOATING\-POINT EXCEPTIONS
+.PP
+None.
+
+.SH OTHER EXCEPTIONS
+.PP
+Non\-EVEX\-encoded instruction, see Exceptions Type 4.
+
+.PP
+EVEX\-encoded instruction, see Exceptions Type E4.nb.
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+MIT licensed by TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

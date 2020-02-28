@@ -1,0 +1,216 @@
+.nh
+.TH "X86-MULPD" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+MULPD - MULTIPLY PACKED DOUBLE-PRECISION FLOATING-POINT VALUES
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp/En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+T{
+66 0F 59 /r MULPD xmm1, xmm2/m128
+T}
+	A	V/V	SSE2	T{
+Multiply packed double\-precision floating\-point values in xmm2/m128 with xmm1 and store result in xmm1.
+T}
+T{
+VEX.128.66.0F.WIG 59 /r VMULPD xmm1,xmm2, xmm3/m128
+T}
+	B	V/V	AVX	T{
+Multiply packed double\-precision floating\-point values in xmm3/m128 with xmm2 and store result in xmm1.
+T}
+T{
+VEX.256.66.0F.WIG 59 /r VMULPD ymm1, ymm2, ymm3/m256
+T}
+	B	V/V	AVX	T{
+Multiply packed double\-precision floating\-point values in ymm3/m256 with ymm2 and store result in ymm1.
+T}
+T{
+EVEX.128.66.0F.W1 59 /r VMULPD xmm1 {k1}{z}, xmm2, xmm3/m128/m64bcst
+T}
+	C	V/V	AVX512VL AVX512F	T{
+Multiply packed double\-precision floating\-point values from xmm3/m128/m64bcst to xmm2 and store result in xmm1.
+T}
+T{
+EVEX.256.66.0F.W1 59 /r VMULPD ymm1 {k1}{z}, ymm2, ymm3/m256/m64bcst
+T}
+	C	V/V	AVX512VL AVX512F	T{
+Multiply packed double\-precision floating\-point values from ymm3/m256/m64bcst to ymm2 and store result in ymm1.
+T}
+T{
+EVEX.512.66.0F.W1 59 /r VMULPD zmm1 {k1}{z}, zmm2, zmm3/m512/m64bcst{er}
+T}
+	C	V/V	AVX512F	T{
+Multiply packed double\-precision floating\-point values in zmm3/m512/m64bcst with zmm2 and store result in zmm1.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+Op/En	Tuple Type	Operand 1	Operand 2	Operand 3	Operand 4
+A	NA	ModRM:reg (r, w)	ModRM:r/m (r)	NA	NA
+B	NA	ModRM:reg (w)	VEX.vvvv (r)	ModRM:r/m (r)	NA
+C	Full	ModRM:reg (w)	EVEX.vvvv (r)	ModRM:r/m (r)	NA
+.TE
+
+.SS Description
+.PP
+Multiply packed double\-precision floating\-point values from the first
+source operand with corresponding values in the second source operand,
+and stores the packed double\-precision floating\-point results in the
+destination operand.
+
+.PP
+EVEX encoded versions: The first source operand (the second operand) is
+a ZMM/YMM/XMM register. The second source operand can be a ZMM/YMM/XMM
+register, a 512/256/128\-bit memory location or a 512/256/128\-bit vector
+broadcasted from a 64\-bit memory location. The destination operand is a
+ZMM/YMM/XMM register conditionally updated with writemask k1.
+
+.PP
+VEX.256 encoded version: The first source operand is a YMM register. The
+second source operand can be a YMM register or a 256\-bit memory
+location. The destination operand is a YMM register. Bits (MAXVL\-1:256)
+of the corresponding destination ZMM register are zeroed.
+
+.PP
+VEX.128 encoded version: The first source operand is a XMM register. The
+second source operand can be a XMM register or a 128\-bit memory
+location. The destination operand is a XMM register. The upper bits
+(MAXVL\-1:128) of the destination YMM register destination are zeroed.
+
+.PP
+128\-bit Legacy SSE version: The second source can be an XMM register or
+an 128\-bit memory location. The destination is not distinct from the
+first source XMM register and the upper bits (MAXVL\-1:128) of the
+corresponding ZMM register destination are unmodified.
+
+.SS Operation
+.SS VMULPD (EVEX encoded versions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (2, 128), (4, 256), (8, 512)
+IF (VL = 512) AND (EVEX.b = 1) AND SRC2 *is a register*
+    THEN
+        SET\_RM(EVEX.RC);
+    ELSE
+        SET\_RM(MXCSR.RM);
+FI;
+FOR j←0 TO KL\-1
+    i←j * 64
+    IF k1[j] OR *no writemask*
+        THEN
+            IF (EVEX.b = 1) AND (SRC2 *is memory*)
+                THEN
+                    DEST[i+63:i]←SRC1[i+63:i] * SRC2[63:0]
+                ELSE
+                    DEST[i+63:i]←SRC1[i+63:i] * SRC2[i+63:i]
+            FI;
+        ELSE
+            IF *merging\-masking* ; merging\-masking
+                THEN *DEST[i+63:i] remains unchanged*
+                ELSE ; zeroing\-masking
+                    DEST[i+63:i] ← 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS VMULPD (VEX.256 encoded version)
+.PP
+.RS
+
+.nf
+DEST[63:0]←SRC1[63:0] * SRC2[63:0]
+DEST[127:64]←SRC1[127:64] * SRC2[127:64]
+DEST[191:128]←SRC1[191:128] * SRC2[191:128]
+DEST[255:192]←SRC1[255:192] * SRC2[255:192]
+DEST[MAXVL\-1:256] ←0;
+.
+
+.fi
+.RE
+
+.SS VMULPD (VEX.128 encoded version)
+.PP
+.RS
+
+.nf
+DEST[63:0]←SRC1[63:0] * SRC2[63:0]
+DEST[127:64]←SRC1[127:64] * SRC2[127:64]
+DEST[MAXVL\-1:128] ←0
+
+.fi
+.RE
+
+.SS MULPD (128\-bit Legacy SSE version)
+.PP
+.RS
+
+.nf
+DEST[63:0]←DEST[63:0] * SRC[63:0]
+DEST[127:64]←DEST[127:64] * SRC[127:64]
+DEST[MAXVL\-1:128] (Unmodified)
+
+.fi
+.RE
+
+.SS Intel C/C++ Compiler Intrinsic Equivalent
+.PP
+.RS
+
+.nf
+VMULPD \_\_m512d \_mm512\_mul\_pd( \_\_m512d a, \_\_m512d b);
+
+VMULPD \_\_m512d \_mm512\_mask\_mul\_pd(\_\_m512d s, \_\_mmask8 k, \_\_m512d a, \_\_m512d b);
+
+VMULPD \_\_m512d \_mm512\_maskz\_mul\_pd( \_\_mmask8 k, \_\_m512d a, \_\_m512d b);
+
+VMULPD \_\_m512d \_mm512\_mul\_round\_pd( \_\_m512d a, \_\_m512d b, int);
+
+VMULPD \_\_m512d \_mm512\_mask\_mul\_round\_pd(\_\_m512d s, \_\_mmask8 k, \_\_m512d a, \_\_m512d b, int);
+
+VMULPD \_\_m512d \_mm512\_maskz\_mul\_round\_pd( \_\_mmask8 k, \_\_m512d a, \_\_m512d b, int);
+
+VMULPD \_\_m256d \_mm256\_mul\_pd (\_\_m256d a, \_\_m256d b);
+
+MULPD \_\_m128d \_mm\_mul\_pd (\_\_m128d a, \_\_m128d b);
+
+.fi
+.RE
+
+.SS SIMD Floating\-Point Exceptions
+.PP
+Overflow, Underflow, Invalid, Precision, Denormal
+
+.SS Other Exceptions
+.PP
+Non\-EVEX\-encoded instruction, see Exceptions Type 2.
+
+.PP
+EVEX\-encoded instruction, see Exceptions Type E2.
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+MIT licensed by TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

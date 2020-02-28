@@ -1,0 +1,210 @@
+.nh
+.TH "X86-PCMPGTQ" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+PCMPGTQ - COMPARE PACKED DATA FOR GREATER THAN
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp/En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+66 0F 38 37 xmm1,xmm2/m128	A	V/V	SSE4\_2	T{
+Compare packed signed qwords in xmm1 for greater than.
+T}
+T{
+VEX.128.66.0F38.WIG 37 /r VPCMPGTQ xmm1, xmm2, xmm3/m128
+T}
+	B	V/V	AVX	T{
+Compare packed signed qwords in xmm3/m128 for greater than.
+T}
+T{
+VEX.256.66.0F38.WIG 37 /r VPCMPGTQ ymm1, ymm2, ymm3/m256
+T}
+	B	V/V	AVX2	T{
+Compare packed signed qwords in ymm3/m256 for greater than.
+T}
+T{
+EVEX.128.66.0F38.W1 37 /r VPCMPGTQ k1 {k2}, xmm2, xmm3/m128/m64bcst
+T}
+	C	V/V	AVX512VL AVX512F	T{
+Compare Greater between int64 vector xmm2 and int64 vector xmm3/m128/m64bcst, and set vector mask k1 to reflect the zero/nonzero status of each element of the result, under writemask.
+T}
+T{
+EVEX.256.66.0F38.W1 37 /r VPCMPGTQ k1 {k2}, ymm2, ymm3/m256/m64bcst
+T}
+	C	V/V	AVX512VL AVX512F	T{
+Compare Greater between int64 vector ymm2 and int64 vector ymm3/m256/m64bcst, and set vector mask k1 to reflect the zero/nonzero status of each element of the result, under writemask.
+T}
+T{
+EVEX.512.66.0F38.W1 37 /r VPCMPGTQ k1 {k2}, zmm2, zmm3/m512/m64bcst
+T}
+	C	V/V	AVX512F	T{
+Compare Greater between int64 vector zmm2 and int64 vector zmm3/m512/m64bcst, and set vector mask k1 to reflect the zero/nonzero status of each element of the result, under writemask.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+Op/En	Tuple Type	Operand 1	Operand 2	Operand 3	Operand 4
+A	NA	ModRM:reg (r, w)	ModRM:r/m (r)	NA	NA
+B	NA	ModRM:reg (w)	VEX.vvvv (r)	ModRM:r/m (r)	NA
+C	Full	ModRM:reg (w)	EVEX.vvvv (r)	ModRM:r/m (r)	NA
+.TE
+
+.SH DESCRIPTION
+.PP
+Performs an SIMD signed compare for the packed quadwords in the
+destination operand (first operand) and the source operand (second
+operand). If the data element in the first (destination) operand is
+greater than the corresponding element in the second (source) operand,
+the corresponding data element in the destination is set to all 1s;
+otherwise, it is set to 0s.
+
+.PP
+128\-bit Legacy SSE version: The second source operand can be an XMM
+register or a 128\-bit memory location. The first source operand and
+destination operand are XMM registers. Bits (MAXVL\-1:128) of the
+corresponding YMM destination register remain unchanged.
+
+.PP
+VEX.128 encoded version: The second source operand can be an XMM
+register or a 128\-bit memory location. The first source operand and
+destination operand are XMM registers. Bits (MAXVL\-1:128) of the
+corresponding YMM register are zeroed.
+
+.PP
+VEX.256 encoded version: The first source operand is a YMM register. The
+second source operand is a YMM register or a 256\-bit memory location.
+The destination operand is a YMM register.
+
+.PP
+EVEX encoded VPCMPGTD/Q: The first source operand (second operand) is a
+ZMM/YMM/XMM register. The second source operand can be a ZMM/YMM/XMM
+register, a 512/256/128\-bit memory location or a 512/256/128\-bit vector
+broadcasted from a 64\-bit memory location. The destination operand
+(first operand) is a mask register updated according to the writemask
+k2.
+
+.SH OPERATION
+.SS COMPARE\_QWORDS\_GREATER (SRC1, SRC2)
+.PP
+.RS
+
+.nf
+IF SRC1[63:0] > SRC2[63:0]
+THEN DEST[63:0]←FFFFFFFFFFFFFFFFH;
+ELSE DEST[63:0]←0; FI;
+IF SRC1[127:64] > SRC2[127:64]
+THEN DEST[127:64]←FFFFFFFFFFFFFFFFH;
+ELSE DEST[127:64]←0; FI;
+
+.fi
+.RE
+
+.SS VPCMPGTQ (VEX.128 encoded version)
+.PP
+.RS
+
+.nf
+DEST[127:0] ←COMPARE\_QWORDS\_GREATER(SRC1,SRC2)
+DEST[MAXVL\-1:128] ← 0
+
+.fi
+.RE
+
+.SS VPCMPGTQ (VEX.256 encoded version)
+.PP
+.RS
+
+.nf
+DEST[127:0] ←COMPARE\_QWORDS\_GREATER(SRC1[127:0],SRC2[127:0])
+DEST[255:128] ←COMPARE\_QWORDS\_GREATER(SRC1[255:128],SRC2[255:128])
+DEST[MAXVL\-1:256] ← 0
+
+.fi
+.RE
+
+.SS VPCMPGTQ (EVEX encoded versions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (2, 128), (4, 256), (8, 512)
+FOR j←0 TO KL\-1
+    i←j * 64
+    IF k2[j] OR *no writemask*
+        THEN
+            /* signed comparison */
+            IF (EVEX.b = 1) AND (SRC2 *is memory*)
+                THEN CMP←SRC1[i+63:i] > SRC2[63:0];
+                ELSE CMP←SRC1[i+63:i] > SRC2[i+63:i];
+            FI;
+            IF CMP = TRUE
+                THEN DEST[j]←1;
+                ELSE DEST[j]←0; FI;
+        ELSE DEST[j]←0
+                    ; zeroing\-masking only
+    FI;
+ENDFOR
+DEST[MAX\_KL\-1:KL] ← 0
+
+.fi
+.RE
+
+.SH INTEL C/C++ COMPILER INTRINSIC EQUIVALENT
+.PP
+.RS
+
+.nf
+VPCMPGTQ \_\_mmask8 \_mm512\_cmpgt\_epi64\_mask( \_\_m512i a, \_\_m512i b);
+
+VPCMPGTQ \_\_mmask8 \_mm512\_mask\_cmpgt\_epi64\_mask(\_\_mmask8 k, \_\_m512i a, \_\_m512i b);
+
+VPCMPGTQ \_\_mmask8 \_mm256\_cmpgt\_epi64\_mask( \_\_m256i a, \_\_m256i b);
+
+VPCMPGTQ \_\_mmask8 \_mm256\_mask\_cmpgt\_epi64\_mask(\_\_mmask8 k, \_\_m256i a, \_\_m256i b);
+
+VPCMPGTQ \_\_mmask8 \_mm\_cmpgt\_epi64\_mask( \_\_m128i a, \_\_m128i b);
+
+VPCMPGTQ \_\_mmask8 \_mm\_mask\_cmpgt\_epi64\_mask(\_\_mmask8 k, \_\_m128i a, \_\_m128i b);
+
+(V)PCMPGTQ: \_\_m128i \_mm\_cmpgt\_epi64(\_\_m128i a, \_\_m128i b)
+
+VPCMPGTQ: \_\_m256i \_mm256\_cmpgt\_epi64( \_\_m256i a, \_\_m256i b);
+
+.fi
+.RE
+
+.SH FLAGS AFFECTED
+.PP
+None.
+
+.SH SIMD FLOATING\-POINT EXCEPTIONS
+.PP
+None.
+
+.SH OTHER EXCEPTIONS
+.PP
+Non\-EVEX\-encoded instruction, see Exceptions Type 4.
+
+.PP
+EVEX\-encoded VPCMPGTQ, see Exceptions Type E4.
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+MIT licensed by TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

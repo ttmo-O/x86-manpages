@@ -1,0 +1,408 @@
+.nh
+.TH "X86-MPSADBW" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+MPSADBW - COMPUTE MULTIPLE PACKED SUMS OF ABSOLUTE DIFFERENCE
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp/En\fR	\fB\fC64/32\-bit Mode\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+T{
+66 0F 3A 42 /r ib MPSADBW xmm1, xmm2/m128, imm8
+T}
+	RMI	V/V	SSE4\_1	T{
+Sums absolute 8\-bit integer difference of adjacent groups of 4 byte integers in imm8.
+T}
+T{
+VEX.128.66.0F3A.WIG 42 /r ib VMPSADBW xmm1, xmm2, xmm3/m128, imm8
+T}
+	RVMI	V/V	AVX	T{
+Sums absolute 8\-bit integer difference of adjacent groups of 4 byte integers in imm8.
+T}
+T{
+VEX.256.66.0F3A.WIG 42 /r ib VMPSADBW ymm1, ymm2, ymm3/m256, imm8
+T}
+	RVMI	V/V	AVX2	T{
+Sums absolute 8\-bit integer difference of adjacent groups of 4 byte integers in imm8.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l 
+l l l l l .
+Op/En	Operand 1	Operand 2	Operand 3	Operand 4
+RMI	ModRM:reg (r, w)	ModRM:r/m (r)	imm8	NA
+RVMI	ModRM:reg (w)	VEX.vvvv (r)	ModRM:r/m (r)	imm8
+.TE
+
+.SH DESCRIPTION
+.PP
+(V)MPSADBW calculates packed word results of sum\-absolute\-difference
+(SAD) of unsigned bytes from two blocks of 32\-bit dword elements, using
+two select fields in the immediate byte to select the offsets of the two
+blocks within the first source operand and the second operand. Packed
+SAD word results are calculated within each 128\-bit lane. Each SAD word
+result is calculated between a stationary block\_2 (whose offset within
+the second source operand is selected by a two bit select control,
+multiplied by 32 bits) and a sliding block\_1 at consecutive
+byte\-granular position within the first source operand. The offset of
+the first 32\-bit block of block\_1 is selectable using a one bit select
+control, multiplied by 32 bits.
+
+.PP
+128\-bit Legacy SSE version: Imm8[1:0]*32 specifies the bit offset of
+block\_2 within the second source operand. Imm[2]*32 specifies the
+initial bit offset of the block\_1 within the first source operand. The
+first source operand and destination operand are the same. The first
+source and destination operands are XMM registers. The second source
+operand is either an XMM register or a 128\-bit memory location. Bits
+(MAXVL\-1:128) of the corresponding YMM destination register remain
+unchanged. Bits 7:3 of the immediate byte are ignored.
+
+.PP
+VEX.128 encoded version: Imm8[1:0]*32 specifies the bit offset of
+block\_2 within the second source operand. Imm[2]*32 specifies the
+initial bit offset of the block\_1 within the first source operand. The
+first source and destination operands are XMM registers. The second
+source operand is either an XMM register or a 128\-bit memory location.
+Bits (127:128) of the corresponding YMM register are zeroed. Bits 7:3 of
+the immediate byte are ignored.
+
+.PP
+VEX.256 encoded version: The sum\-absolute\-difference (SAD) operation is
+repeated 8 times for MPSADW between the same block\_2 (fixed offset
+within the second source operand) and a variable block\_1 (offset is
+shifted by 8 bits for each SAD operation) in the first source operand.
+Each 16\-bit result of eight SAD operations between block\_2 and block\_1
+is written to the respective word in the lower 128 bits of the
+destination operand.
+
+.PP
+Additionally, VMPSADBW performs another eight SAD operations on block\_4
+of the second source operand and block\_3 of the first source operand.
+(Imm8[4:3]*32 + 128) specifies the bit offset of block\_4 within the
+second source operand. (Imm[5]*32+128) specifies the initial bit
+offset of the block\_3 within the first source operand. Each 16\-bit
+result of eight SAD operations between block\_4 and block\_3 is written
+to the respective word in the upper 128 bits of the destination operand.
+
+.PP
+The first source operand is a YMM register. The second source register
+can be a YMM register or a 256\-bit memory location. The destination
+operand is a YMM register. Bits 7:6 of the immediate byte are ignored.
+
+.PP
+Note: If VMPSADBW is encoded with VEX.L= 1, an attempt to execute the
+instruction encoded with VEX.L= 1 will cause an #UD exception.
+
+.PP
+Imm[4:3]*32+128128255224192Src2Abs.
+Diff.Imm[5]*32+128Src1Sum144122855DestinationImm[1:0]*3201279664Src2Abs.
+Diff.Imm[2]*32Src1Sum1601Destination
+
+.PP
+Figure 4\-5. 256\-bit VMPSADBW Operation
+
+.SH OPERATION
+.SS VMPSADBW (VEX.256 encoded version)
+.PP
+.RS
+
+.nf
+BLK2\_OFFSET ← imm8[1:0]*32
+BLK1\_OFFSET ← imm8[2]*32
+SRC1\_BYTE0 ← SRC1[BLK1\_OFFSET+7:BLK1\_OFFSET]
+SRC1\_BYTE1 ← SRC1[BLK1\_OFFSET+15:BLK1\_OFFSET+8]
+SRC1\_BYTE2 ← SRC1[BLK1\_OFFSET+23:BLK1\_OFFSET+16]
+SRC1\_BYTE3 ← SRC1[BLK1\_OFFSET+31:BLK1\_OFFSET+24]
+SRC1\_BYTE4 ←SRC1[BLK1\_OFFSET+39:BLK1\_OFFSET+32]
+SRC1\_BYTE5 ← SRC1[BLK1\_OFFSET+47:BLK1\_OFFSET+40]
+SRC1\_BYTE6 ← SRC1[BLK1\_OFFSET+55:BLK1\_OFFSET+48]
+SRC1\_BYTE7 ← SRC1[BLK1\_OFFSET+63:BLK1\_OFFSET+56]
+SRC1\_BYTE8 ← SRC1[BLK1\_OFFSET+71:BLK1\_OFFSET+64]
+SRC1\_BYTE9 ← SRC1[BLK1\_OFFSET+79:BLK1\_OFFSET+72]
+SRC1\_BYTE10 ← SRC1[BLK1\_OFFSET+87:BLK1\_OFFSET+80]
+SRC2\_BYTE0 ←SRC2[BLK2\_OFFSET+7:BLK2\_OFFSET]
+SRC2\_BYTE1 ← SRC2[BLK2\_OFFSET+15:BLK2\_OFFSET+8]
+SRC2\_BYTE2 ← SRC2[BLK2\_OFFSET+23:BLK2\_OFFSET+16]
+SRC2\_BYTE3 ← SRC2[BLK2\_OFFSET+31:BLK2\_OFFSET+24]
+TEMP0←ABS(SRC1\_BYTE0 \- SRC2\_BYTE0)
+TEMP1←ABS(SRC1\_BYTE1 \- SRC2\_BYTE1)
+TEMP2←ABS(SRC1\_BYTE2 \- SRC2\_BYTE2)
+TEMP3←ABS(SRC1\_BYTE3 \- SRC2\_BYTE3)
+DEST[15:0]←TEMP0 + TEMP1 + TEMP2 + TEMP3
+TEMP0←ABS(SRC1\_BYTE1 \- SRC2\_BYTE0)
+TEMP1←ABS(SRC1\_BYTE2 \- SRC2\_BYTE1)
+TEMP2←ABS(SRC1\_BYTE3 \- SRC2\_BYTE2)
+TEMP3←ABS(SRC1\_BYTE4 \- SRC2\_BYTE3)
+DEST[31:16]←TEMP0 + TEMP1 + TEMP2 + TEMP3
+TEMP0←ABS(SRC1\_BYTE2 \- SRC2\_BYTE0)
+TEMP1←ABS(SRC1\_BYTE3 \- SRC2\_BYTE1)
+TEMP2←ABS(SRC1\_BYTE4 \- SRC2\_BYTE2)
+TEMP3←ABS(SRC1\_BYTE5 \- SRC2\_BYTE3)
+DEST[47:32]←TEMP0 + TEMP1 + TEMP2 + TEMP3
+TEMP0←ABS(SRC1\_BYTE3 \- SRC2\_BYTE0)
+TEMP1←ABS(SRC1\_BYTE4 \- SRC2\_BYTE1)
+TEMP2←ABS(SRC1\_BYTE5 \- SRC2\_BYTE2)
+TEMP3←ABS(SRC1\_BYTE6 \- SRC2\_BYTE3)
+DEST[63:48]←TEMP0 + TEMP1 + TEMP2 + TEMP3
+TEMP0←ABS(SRC1\_BYTE4 \- SRC2\_BYTE0)
+TEMP1←ABS(SRC1\_BYTE5 \- SRC2\_BYTE1)
+TEMP2←ABS(SRC1\_BYTE6 \- SRC2\_BYTE2)
+TEMP3←ABS(SRC1\_BYTE7 \- SRC2\_BYTE3)
+DEST[79:64]←TEMP0 + TEMP1 + TEMP2 + TEMP3
+TEMP0←ABS(SRC1\_BYTE5 \- SRC2\_BYTE0)
+TEMP1←ABS(SRC1\_BYTE6 \- SRC2\_BYTE1)
+TEMP2←ABS(SRC1\_BYTE7 \- SRC2\_BYTE2)
+TEMP3←ABS(SRC1\_BYTE8 \- SRC2\_BYTE3)
+DEST[95:80]←TEMP0 + TEMP1 + TEMP2 + TEMP3
+TEMP0←ABS(SRC1\_BYTE6 \- SRC2\_BYTE0)
+TEMP1←ABS(SRC1\_BYTE7 \- SRC2\_BYTE1)
+TEMP2←ABS(SRC1\_BYTE8 \- SRC2\_BYTE2)
+TEMP3←ABS(SRC1\_BYTE9 \- SRC2\_BYTE3)
+DEST[111:96]←TEMP0 + TEMP1 + TEMP2 + TEMP3
+TEMP0←ABS(SRC1\_BYTE7 \- SRC2\_BYTE0)
+TEMP1←ABS(SRC1\_BYTE8 \- SRC2\_BYTE1)
+TEMP2←ABS(SRC1\_BYTE9 \- SRC2\_BYTE2)
+TEMP3←ABS(SRC1\_BYTE10 \- SRC2\_BYTE3)
+DEST[127:112]←TEMP0 + TEMP1 + TEMP2 + TEMP3
+BLK2\_OFFSET←imm8[4:3]*32 + 128
+BLK1\_OFFSET←imm8[5]*32 + 128
+SRC1\_BYTE0 ← SRC1[BLK1\_OFFSET+7:BLK1\_OFFSET]
+SRC1\_BYTE1 ← SRC1[BLK1\_OFFSET+15:BLK1\_OFFSET+8]
+SRC1\_BYTE2 ← SRC1[BLK1\_OFFSET+23:BLK1\_OFFSET+16]
+SRC1\_BYTE3 ← SRC1[BLK1\_OFFSET+31:BLK1\_OFFSET+24]
+SRC1\_BYTE4 ← SRC1[BLK1\_OFFSET+39:BLK1\_OFFSET+32]
+SRC1\_BYTE5 ← SRC1[BLK1\_OFFSET+47:BLK1\_OFFSET+40]
+SRC1\_BYTE6 ← SRC1[BLK1\_OFFSET+55:BLK1\_OFFSET+48]
+SRC1\_BYTE7 ← SRC1[BLK1\_OFFSET+63:BLK1\_OFFSET+56]
+SRC1\_BYTE8 ← SRC1[BLK1\_OFFSET+71:BLK1\_OFFSET+64]
+SRC1\_BYTE9 ← SRC1[BLK1\_OFFSET+79:BLK1\_OFFSET+72]
+SRC1\_BYTE10 ← SRC1[BLK1\_OFFSET+87:BLK1\_OFFSET+80]
+SRC2\_BYTE0 ←SRC2[BLK2\_OFFSET+7:BLK2\_OFFSET]
+SRC2\_BYTE1 ← SRC2[BLK2\_OFFSET+15:BLK2\_OFFSET+8]
+SRC2\_BYTE2 ← SRC2[BLK2\_OFFSET+23:BLK2\_OFFSET+16]
+SRC2\_BYTE3 ← SRC2[BLK2\_OFFSET+31:BLK2\_OFFSET+24]
+TEMP0←ABS(SRC1\_BYTE0 \- SRC2\_BYTE0)
+TEMP1←ABS(SRC1\_BYTE1 \- SRC2\_BYTE1)
+TEMP2←ABS(SRC1\_BYTE2 \- SRC2\_BYTE2)
+TEMP3←ABS(SRC1\_BYTE3 \- SRC2\_BYTE3)
+DEST[143:128]←TEMP0 + TEMP1 + TEMP2 + TEMP3
+TEMP0←ABS(SRC1\_BYTE1 \- SRC2\_BYTE0)
+TEMP1←ABS(SRC1\_BYTE2 \- SRC2\_BYTE1)
+TEMP2←ABS(SRC1\_BYTE3 \- SRC2\_BYTE2)
+TEMP3←ABS(SRC1\_BYTE4 \- SRC2\_BYTE3)
+DEST[159:144]←TEMP0 + TEMP1 + TEMP2 + TEMP3
+TEMP0←ABS(SRC1\_BYTE2 \- SRC2\_BYTE0)
+TEMP1←ABS(SRC1\_BYTE3 \- SRC2\_BYTE1)
+TEMP2←ABS(SRC1\_BYTE4 \- SRC2\_BYTE2)
+TEMP3←ABS(SRC1\_BYTE5 \- SRC2\_BYTE3)
+DEST[175:160]←TEMP0 + TEMP1 + TEMP2 + TEMP3
+TEMP0←ABS(SRC1\_BYTE3 \- SRC2\_BYTE0)
+TEMP1←ABS(SRC1\_BYTE4 \- SRC2\_BYTE1)
+TEMP2←ABS(SRC1\_BYTE5 \- SRC2\_BYTE2)
+TEMP3←ABS(SRC1\_BYTE6 \- SRC2\_BYTE3)
+DEST[191:176]←TEMP0 + TEMP1 + TEMP2 + TEMP3
+TEMP0←ABS(SRC1\_BYTE4 \- SRC2\_BYTE0)
+TEMP1←ABS(SRC1\_BYTE5 \- SRC2\_BYTE1)
+TEMP2←ABS(SRC1\_BYTE6 \- SRC2\_BYTE2)
+TEMP3←ABS(SRC1\_BYTE7 \- SRC2\_BYTE3)
+DEST[207:192]←TEMP0 + TEMP1 + TEMP2 + TEMP3
+TEMP0←ABS(SRC1\_BYTE5 \- SRC2\_BYTE0)
+TEMP1←ABS(SRC1\_BYTE6 \- SRC2\_BYTE1)
+TEMP2←ABS(SRC1\_BYTE7 \- SRC2\_BYTE2)
+TEMP3←ABS(SRC1\_BYTE8 \- SRC2\_BYTE3)
+DEST[223:208]←TEMP0 + TEMP1 + TEMP2 + TEMP3
+TEMP0←ABS(SRC1\_BYTE6 \- SRC2\_BYTE0)
+TEMP1←ABS(SRC1\_BYTE7 \- SRC2\_BYTE1)
+TEMP2←ABS(SRC1\_BYTE8 \- SRC2\_BYTE2)
+TEMP3←ABS(SRC1\_BYTE9 \- SRC2\_BYTE3)
+DEST[239:224]←TEMP0 + TEMP1 + TEMP2 + TEMP3
+TEMP0←ABS(SRC1\_BYTE7 \- SRC2\_BYTE0)
+TEMP1←ABS(SRC1\_BYTE8 \- SRC2\_BYTE1)
+TEMP2←ABS(SRC1\_BYTE9 \- SRC2\_BYTE2)
+TEMP3←ABS(SRC1\_BYTE10 \- SRC2\_BYTE3)
+DEST[255:240]←TEMP0 + TEMP1 + TEMP2 + TEMP3
+
+.fi
+.RE
+
+.SS VMPSADBW (VEX.128 encoded version)
+.PP
+.RS
+
+.nf
+BLK2\_OFFSET ← imm8[1:0]*32
+BLK1\_OFFSET ← imm8[2]*32
+SRC1\_BYTE0 ← SRC1[BLK1\_OFFSET+7:BLK1\_OFFSET]
+SRC1\_BYTE1 ← SRC1[BLK1\_OFFSET+15:BLK1\_OFFSET+8]
+SRC1\_BYTE2 ← SRC1[BLK1\_OFFSET+23:BLK1\_OFFSET+16]
+SRC1\_BYTE3 ← SRC1[BLK1\_OFFSET+31:BLK1\_OFFSET+24]
+SRC1\_BYTE4 ← SRC1[BLK1\_OFFSET+39:BLK1\_OFFSET+32]
+SRC1\_BYTE5 ← SRC1[BLK1\_OFFSET+47:BLK1\_OFFSET+40]
+SRC1\_BYTE6 ← SRC1[BLK1\_OFFSET+55:BLK1\_OFFSET+48]
+SRC1\_BYTE7 ← SRC1[BLK1\_OFFSET+63:BLK1\_OFFSET+56]
+SRC1\_BYTE8 ← SRC1[BLK1\_OFFSET+71:BLK1\_OFFSET+64]
+SRC1\_BYTE9 ← SRC1[BLK1\_OFFSET+79:BLK1\_OFFSET+72]
+SRC1\_BYTE10 ← SRC1[BLK1\_OFFSET+87:BLK1\_OFFSET+80]
+SRC2\_BYTE0 ←SRC2[BLK2\_OFFSET+7:BLK2\_OFFSET]
+SRC2\_BYTE1 ← SRC2[BLK2\_OFFSET+15:BLK2\_OFFSET+8]
+SRC2\_BYTE2 ← SRC2[BLK2\_OFFSET+23:BLK2\_OFFSET+16]
+SRC2\_BYTE3 ← SRC2[BLK2\_OFFSET+31:BLK2\_OFFSET+24]
+TEMP0←ABS(SRC1\_BYTE0 \- SRC2\_BYTE0)
+TEMP1←ABS(SRC1\_BYTE1 \- SRC2\_BYTE1)
+TEMP2←ABS(SRC1\_BYTE2 \- SRC2\_BYTE2)
+TEMP3←ABS(SRC1\_BYTE3 \- SRC2\_BYTE3)
+DEST[15:0]←TEMP0 + TEMP1 + TEMP2 + TEMP3
+TEMP0←ABS(SRC1\_BYTE1 \- SRC2\_BYTE0)
+TEMP1←ABS(SRC1\_BYTE2 \- SRC2\_BYTE1)
+TEMP2←ABS(SRC1\_BYTE3 \- SRC2\_BYTE2)
+TEMP3←ABS(SRC1\_BYTE4 \- SRC2\_BYTE3)
+DEST[31:16]←TEMP0 + TEMP1 + TEMP2 + TEMP3
+TEMP0←ABS(SRC1\_BYTE2 \- SRC2\_BYTE0)
+TEMP1←ABS(SRC1\_BYTE3 \- SRC2\_BYTE1)
+TEMP2←ABS(SRC1\_BYTE4 \- SRC2\_BYTE2)
+TEMP3←ABS(SRC1\_BYTE5 \- SRC2\_BYTE3)
+DEST[47:32]←TEMP0 + TEMP1 + TEMP2 + TEMP3
+TEMP0←ABS(SRC1\_BYTE3 \- SRC2\_BYTE0)
+TEMP1←ABS(SRC1\_BYTE4 \- SRC2\_BYTE1)
+TEMP2←ABS(SRC1\_BYTE5 \- SRC2\_BYTE2)
+TEMP3←ABS(SRC1\_BYTE6 \- SRC2\_BYTE3)
+DEST[63:48]←TEMP0 + TEMP1 + TEMP2 + TEMP3
+TEMP0←ABS(SRC1\_BYTE4 \- SRC2\_BYTE0)
+TEMP1←ABS(SRC1\_BYTE5 \- SRC2\_BYTE1)
+TEMP2←ABS(SRC1\_BYTE6 \- SRC2\_BYTE2)
+TEMP3←ABS(SRC1\_BYTE7 \- SRC2\_BYTE3)
+DEST[79:64]←TEMP0 + TEMP1 + TEMP2 + TEMP3
+TEMP0←ABS(SRC1\_BYTE5 \- SRC2\_BYTE0)
+TEMP1←ABS(SRC1\_BYTE6 \- SRC2\_BYTE1)
+TEMP2←ABS(SRC1\_BYTE7 \- SRC2\_BYTE2)
+TEMP3←ABS(SRC1\_BYTE8 \- SRC2\_BYTE3)
+DEST[95:80]←TEMP0 + TEMP1 + TEMP2 + TEMP3
+TEMP0←ABS(SRC1\_BYTE6 \- SRC2\_BYTE0)
+TEMP1←ABS(SRC1\_BYTE7 \- SRC2\_BYTE1)
+TEMP2←ABS(SRC1\_BYTE8 \- SRC2\_BYTE2)
+TEMP3←ABS(SRC1\_BYTE9 \- SRC2\_BYTE3)
+DEST[111:96]←TEMP0 + TEMP1 + TEMP2 + TEMP3
+TEMP0←ABS(SRC1\_BYTE7 \- SRC2\_BYTE0)
+TEMP1←ABS(SRC1\_BYTE8 \- SRC2\_BYTE1)
+TEMP2←ABS(SRC1\_BYTE9 \- SRC2\_BYTE2)
+TEMP3←ABS(SRC1\_BYTE10 \- SRC2\_BYTE3)
+DEST[127:112]←TEMP0 + TEMP1 + TEMP2 + TEMP3
+DEST[MAXVL\-1:128] ← 0
+
+.fi
+.RE
+
+.SS MPSADBW (128\-bit Legacy SSE version)
+.PP
+.RS
+
+.nf
+SRC\_OFFSET ← imm8[1:0]*32
+DEST\_OFFSET ← imm8[2]*32
+DEST\_BYTE0 ← DEST[DEST\_OFFSET+7:DEST\_OFFSET]
+DEST\_BYTE1 ← DEST[DEST\_OFFSET+15:DEST\_OFFSET+8]
+DEST\_BYTE2 ← DEST[DEST\_OFFSET+23:DEST\_OFFSET+16]
+DEST\_BYTE3 ← DEST[DEST\_OFFSET+31:DEST\_OFFSET+24]
+DEST\_BYTE4 ← DEST[DEST\_OFFSET+39:DEST\_OFFSET+32]
+DEST\_BYTE5 ← DEST[DEST\_OFFSET+47:DEST\_OFFSET+40]
+DEST\_BYTE6 ← DEST[DEST\_OFFSET+55:DEST\_OFFSET+48]
+DEST\_BYTE7 ← DEST[DEST\_OFFSET+63:DEST\_OFFSET+56]
+DEST\_BYTE8 ← DEST[DEST\_OFFSET+71:DEST\_OFFSET+64]
+DEST\_BYTE9 ← DEST[DEST\_OFFSET+79:DEST\_OFFSET+72]
+DEST\_BYTE10 ← DEST[DEST\_OFFSET+87:DEST\_OFFSET+80]
+SRC\_BYTE0 ← SRC[SRC\_OFFSET+7:SRC\_OFFSET]
+SRC\_BYTE1 ← SRC[SRC\_OFFSET+15:SRC\_OFFSET+8]
+SRC\_BYTE2 ← SRC[SRC\_OFFSET+23:SRC\_OFFSET+16]
+SRC\_BYTE3 ← SRC[SRC\_OFFSET+31:SRC\_OFFSET+24]
+TEMP0←ABS( DEST\_BYTE0 \- SRC\_BYTE0)
+TEMP1←ABS( DEST\_BYTE1 \- SRC\_BYTE1)
+TEMP2←ABS( DEST\_BYTE2 \- SRC\_BYTE2)
+TEMP3←ABS( DEST\_BYTE3 \- SRC\_BYTE3)
+DEST[15:0]←TEMP0 + TEMP1 + TEMP2 + TEMP3
+TEMP0←ABS( DEST\_BYTE1 \- SRC\_BYTE0)
+TEMP1←ABS( DEST\_BYTE2 \- SRC\_BYTE1)
+TEMP2←ABS( DEST\_BYTE3 \- SRC\_BYTE2)
+TEMP3←ABS( DEST\_BYTE4 \- SRC\_BYTE3)
+DEST[31:16]←TEMP0 + TEMP1 + TEMP2 + TEMP3
+TEMP0←ABS( DEST\_BYTE2 \- SRC\_BYTE0)
+TEMP1←ABS( DEST\_BYTE3 \- SRC\_BYTE1)
+TEMP2←ABS( DEST\_BYTE4 \- SRC\_BYTE2)
+TEMP3←ABS( DEST\_BYTE5 \- SRC\_BYTE3)
+DEST[47:32]←TEMP0 + TEMP1 + TEMP2 + TEMP3
+TEMP0←ABS( DEST\_BYTE3 \- SRC\_BYTE0)
+TEMP1←ABS( DEST\_BYTE4 \- SRC\_BYTE1)
+TEMP2←ABS( DEST\_BYTE5 \- SRC\_BYTE2)
+TEMP3←ABS( DEST\_BYTE6 \- SRC\_BYTE3)
+DEST[63:48]←TEMP0 + TEMP1 + TEMP2 + TEMP3
+TEMP0←ABS( DEST\_BYTE4 \- SRC\_BYTE0)
+TEMP1←ABS( DEST\_BYTE5 \- SRC\_BYTE1)
+TEMP2←ABS( DEST\_BYTE6 \- SRC\_BYTE2)
+TEMP3←ABS( DEST\_BYTE7 \- SRC\_BYTE3)
+DEST[79:64]←TEMP0 + TEMP1 + TEMP2 + TEMP3
+TEMP0←ABS( DEST\_BYTE5 \- SRC\_BYTE0)
+TEMP1←ABS( DEST\_BYTE6 \- SRC\_BYTE1)
+TEMP2←ABS( DEST\_BYTE7 \- SRC\_BYTE2)
+TEMP3←ABS( DEST\_BYTE8 \- SRC\_BYTE3)
+DEST[95:80]←TEMP0 + TEMP1 + TEMP2 + TEMP3
+TEMP0←ABS( DEST\_BYTE6 \- SRC\_BYTE0)
+TEMP1←ABS( DEST\_BYTE7 \- SRC\_BYTE1)
+TEMP2←ABS( DEST\_BYTE8 \- SRC\_BYTE2)
+TEMP3←ABS( DEST\_BYTE9 \- SRC\_BYTE3)
+DEST[111:96]←TEMP0 + TEMP1 + TEMP2 + TEMP3
+TEMP0←ABS( DEST\_BYTE7 \- SRC\_BYTE0)
+TEMP1←ABS( DEST\_BYTE8 \- SRC\_BYTE1)
+TEMP2←ABS( DEST\_BYTE9 \- SRC\_BYTE2)
+TEMP3←ABS( DEST\_BYTE10 \- SRC\_BYTE3)
+DEST[127:112]←TEMP0 + TEMP1 + TEMP2 + TEMP3
+DEST[MAXVL\-1:128] (Unmodified)
+
+.fi
+.RE
+
+.SH INTEL C/C++ COMPILER INTRINSIC EQUIVALENT
+.PP
+.RS
+
+.nf
+(V)MPSADBW: \_\_m128i \_mm\_mpsadbw\_epu8 (\_\_m128i s1, \_\_m128i s2, const int mask);
+
+VMPSADBW: \_\_m256i \_mm256\_mpsadbw\_epu8 (\_\_m256i s1, \_\_m256i s2, const int mask);
+
+.fi
+.RE
+
+.SH FLAGS AFFECTED
+.PP
+None
+
+.SH OTHER EXCEPTIONS
+.PP
+See Exceptions Type 4; additionally
+
+.TS
+allbox;
+l l 
+l l .
+#UD	If VEX.L = 1.
+.TE
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+MIT licensed by TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

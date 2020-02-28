@@ -1,0 +1,273 @@
+.nh
+.TH "X86-LSL" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+LSL - LOAD SEGMENT LIMIT
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+\fB\fCOpcode\fR	\fB\fCInstruction\fR	\fB\fCOp/En\fR	\fB\fC64\-Bit Mode\fR	\fB\fCCompat/Leg Mode\fR	\fB\fCDescription\fR
+0F 03 /r	LSL r16, r16/m16	RM	Valid	Valid	Load: r16/m16.
+0F 03 /r	LSL r32, r32/m16*	RM	Valid	Valid	Load: r32/m16.
+REX.W + 0F 03 /r	LSL r64, r32/m16*	RM	Valid	Valid	Load: r32/m16
+.TE
+
+.PP
+.RS
+
+.PP
+*
+Forallloads(regardlessofdestinationsizing),onlybits16\-0areused.Otherbitsareignored.
+
+.RE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l 
+l l l l l .
+Op/En	Operand 1	Operand 2	Operand 3	Operand 4
+RM	ModRM:reg (w)	ModRM:r/m (r)	NA	NA
+.TE
+
+.SH DESCRIPTION
+.PP
+Loads the unscrambled segment limit from the segment descriptor
+specified with the second operand (source operand) into the first
+operand (destination operand) and sets the ZF flag in the EFLAGS
+register. The source operand (which can be a register or a memory
+location) contains the segment selector for the segment descriptor being
+accessed. The destination operand is a general\-purpose register.
+
+.PP
+The processor performs access checks as part of the loading process.
+Once loaded in the destination register, software can compare the
+segment limit with the offset of a pointer.
+
+.PP
+The segment limit is a 20\-bit value contained in bytes 0 and 1 and in
+the first 4 bits of byte 6 of the segment descriptor. If the descriptor
+has a byte granular segment limit (the granularity flag is set to 0),
+the destination operand is loaded with a byte granular value (byte
+limit). If the descriptor has a page granular segment limit (the
+granularity flag is set to 1), the LSL instruction will translate the
+page granular limit (page limit) into a byte limit before loading it
+into the destination operand. The translation is performed by shifting
+the 20\-bit “raw” limit left 12 bits and filling the low\-order 12 bits
+with 1s.
+
+.PP
+When the operand size is 32 bits, the 32\-bit byte limit is stored in the
+destination operand. When the operand size is 16 bits, a valid 32\-bit
+limit is computed; however, the upper 16 bits are truncated and only the
+low\-order 16 bits are loaded into the destination operand.
+
+.PP
+This instruction performs the following checks before it loads the
+segment limit into the destination register:
+
+.RS
+.IP \(bu 2
+Checks that the segment selector is not NULL.
+.IP \(bu 2
+Checks that the segment selector points to a descriptor that is
+within the limits of the GDT or LDT being accessed
+.IP \(bu 2
+Checks that the descriptor type is valid for this instruction. All
+code and data segment descriptors are valid for (can be accessed
+with) the LSL instruction. The valid special segment and gate
+descriptor types are given in the following table.
+.IP \(bu 2
+If the segment is not a conforming code segment, the instruction
+checks that the specified segment descriptor is visible at the CPL
+(that is, if the CPL and the RPL of the segment selector are less
+than or equal to the DPL of the segment selector).
+
+.RE
+
+.PP
+If the segment descriptor cannot be accessed or is an invalid type for
+the instruction, the ZF flag is cleared and no value is loaded in the
+destination operand.
+
+.PP
+Type
+
+.PP
+Protected Mode
+
+.PP
+IA\-32e Mode
+
+.PP
+Name
+
+.PP
+Valid
+
+.PP
+Name
+
+.PP
+Valid
+
+.PP
+0 1 2 3 4 5 6 7 8 9 A B C D E F
+
+.PP
+Reserved Available 16\-bit TSS LDT Busy 16\-bit TSS 16\-bit call gate
+16\-bit/32\-bit task gate 16\-bit interrupt gate 16\-bit trap gate Reserved
+Available 32\-bit TSS Reserved Busy 32\-bit TSS 32\-bit call gate Reserved
+32\-bit interrupt gate 32\-bit trap gate
+
+.PP
+No Yes Yes Yes No No No No No Yes No Yes No No No No
+
+.PP
+Reserved Reserved LDT1 64\-bit call gate Reserved 64\-bit interrupt gate
+64\-bit trap gate
+
+.PP
+No No Yes No No No No No No Yes No Yes No No No No
+
+.PP
+Table 3\-56. Segment and Gate Descriptor Types
+
+.PP
+.RS
+
+.PP
+1\&. In this case, the descriptor comprises 16 bytes; bits 12:8 of the
+upper 4 bytes must be 0.
+
+.RE
+
+.SH OPERATION
+.PP
+.RS
+
+.nf
+IF SRC(Offset) > descriptor table limit
+    THEN ZF ← 0; FI;
+Read segment descriptor;
+IF SegmentDescriptor(Type) ≠ conforming code segment
+and (CPL > DPL) OR (RPL > DPL)
+or Segment type is not valid for instruction
+        THEN
+            ZF ← 0;
+        ELSE
+            temp ← SegmentLimit([SRC]);
+            IF (G ← 1)
+                THEN temp ← ShiftLeft(12, temp) OR 00000FFFH;
+            ELSE IF OperandSize = 32
+                THEN DEST ← temp; FI;
+            ELSE IF OperandSize = 64 (* REX.W used *)
+                THEN DEST (* Zero\-extended *) ← temp; FI;
+            ELSE (* OperandSize = 16 *)
+                DEST ← temp AND FFFFH;
+            FI;
+FI;
+
+.fi
+.RE
+
+.SH FLAGS AFFECTED
+.PP
+The ZF flag is set to 1 if the segment limit is loaded successfully;
+otherwise, it is set to 0.
+
+.SH PROTECTED MODE EXCEPTIONS
+.PP
+#GP(0)
+
+.PP
+If a memory operand effective address is outside the CS, DS, ES, FS, or
+GS segment limit.
+
+.PP
+If the DS, ES, FS, or GS register is used to access memory and it
+contains a NULL segment selector.
+
+.PP
+#SS(0)
+
+.PP
+If a memory operand effective address is outside the SS segment limit.
+
+.PP
+#PF(fault\-code)
+
+.PP
+If a page fault occurs.
+
+.PP
+#AC(0)
+
+.PP
+If alignment checking is enabled and the memory operand effective
+address is unaligned while the current privilege level is 3.
+
+.PP
+#UD
+
+.PP
+If the LOCK prefix is used.
+
+.SH REAL\-ADDRESS MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#UD	T{
+The LSL instruction cannot be executed in real\-address mode.
+T}
+.TE
+
+.SH VIRTUAL\-8086 MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#UD	T{
+The LSL instruction cannot be executed in virtual\-8086 mode.
+T}
+.TE
+
+.SH COMPATIBILITY MODE EXCEPTIONS
+.PP
+Same exceptions as in protected mode.
+
+.SH 64\-BIT MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#SS(0)	T{
+If the memory operand effective address referencing the SS segment is in a non\-canonical form.
+T}
+#GP(0)	T{
+If the memory operand effective address is in a non\-canonical form.
+T}
+#PF(fault\-code)	If a page fault occurs.
+#AC(0)	T{
+If alignment checking is enabled and the memory operand effective address is unaligned while the current privilege level is 3.
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+MIT licensed by TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

@@ -1,0 +1,287 @@
+.nh
+.TH "X86-PUSH" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+PUSH - PUSH WORD, DOUBLEWORD OR QUADWORD ONTO THE STACK
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+\fB\fCOpcode*\fR	\fB\fCInstruction\fR	\fB\fCOp/En\fR	\fB\fC64\-Bit Mode\fR	\fB\fCCompat/Leg Mode\fR	\fB\fCDescription\fR
+FF /6	PUSH r/m16	M	Valid	Valid	Push r/m16.
+FF /6	PUSH r/m32	M	N.E.	Valid	Push r/m32.
+FF /6	PUSH r/m64	M	Valid	N.E.	Push r/m64.
+50+rw	PUSH r16	O	Valid	Valid	Push r16.
+50+rd	PUSH r32	O	N.E.	Valid	Push r32.
+50+rd	PUSH r64	O	Valid	N.E.	Push r64.
+6A ib	PUSH imm8	I	Valid	Valid	Push imm8.
+68 iw	PUSH imm16	I	Valid	Valid	Push imm16.
+68 id	PUSH imm32	I	Valid	Valid	Push imm32.
+0E	PUSH CS	ZO	Invalid	Valid	Push CS.
+16	PUSH SS	ZO	Invalid	Valid	Push SS.
+1E	PUSH DS	ZO	Invalid	Valid	Push DS.
+06	PUSH ES	ZO	Invalid	Valid	Push ES.
+0F A0	PUSH FS	ZO	Valid	Valid	Push FS.
+0F A8	PUSH GS	ZO	Valid	Valid	Push GS.
+.TE
+
+.PP
+.RS
+
+.PP
+* SeeIA\-32ArchitectureCompatibilitysectionbelow.
+
+.RE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l 
+l l l l l .
+Op/En	Operand 1	Operand 2	Operand 3	Operand 4
+M	ModRM:r/m (r)	NA	NA	NA
+O	opcode + rd (r)	NA	NA	NA
+I	imm8/16/32	NA	NA	NA
+ZO	NA	NA	NA	NA
+.TE
+
+.SH DESCRIPTION
+.PP
+Decrements the stack pointer and then stores the source operand on the
+top of the stack. Address and operand sizes are determined and used as
+follows:
+
+.RS
+.IP \(bu 2
+Address size. The D flag in the current code\-segment descriptor
+determines the default address size; it may be overridden by an
+instruction prefix (67H).
+
+.RE
+
+.PP
+The address size is used only when referencing a source operand in
+memory.
+
+.RS
+.IP \(bu 2
+Operand size. The D flag in the current code\-segment descriptor
+determines the default operand size; it may be overridden by
+instruction prefixes (66H or REX.W).
+
+.RE
+
+.PP
+The operand size (16, 32, or 64 bits) determines the amount by which the
+stack pointer is decremented (2, 4 or 8).
+
+.PP
+If the source operand is an immediate of size less than the operand
+size, a sign\-extended value is pushed on the stack. If the source
+operand is a segment register (16 bits) and the operand size is 64\-bits,
+a zero\-extended value is pushed on the stack; if the operand size is
+32\-bits, either a zero\-extended value is pushed on the stack or the
+segment selector is written on the stack using a 16\-bit move. For the
+last case, all recent Core and Atom processors perform a 16\-bit move,
+leaving the upper portion of the stack location unmodified.
+
+.RS
+.IP \(bu 2
+Stack\-address size. Outside of 64\-bit mode, the B flag in the
+current stack\-segment descriptor determines the size of the stack
+pointer (16 or 32 bits); in 64\-bit mode, the size of the stack
+pointer is always 64 bits. The stack\-address size determines the
+width of the stack pointer when writing to the stack in memory and
+when decrementing the stack pointer. (As stated above, the amount by
+which the stack pointer is decremented is determined by the operand
+size.) If the operand size is less than the stack\-address size, the
+PUSH instruction may result in a misaligned stack pointer (a stack
+pointer that is not aligned on a doubleword or quadword boundary).
+
+.RE
+
+.PP
+The PUSH ESP instruction pushes the value of the ESP register as it
+existed before the instruction was executed. If a PUSH instruction uses
+a memory operand in which the ESP register is used for computing the
+operand address, the address of the operand is computed before the ESP
+register is decremented.
+
+.PP
+If the ESP or SP register is 1 when the PUSH instruction is executed in
+real\-address mode, a stack\-fault exception (#SS) is generated (because
+the limit of the stack segment is violated). Its delivery encounters a
+second stack\-fault exception (for the same reason), causing generation
+of a double\-fault exception (#DF). Delivery of the double\-fault
+exception encounters a third stack\-fault exception, and the logical
+processor enters shutdown mode. See the discussion of the double\-fault
+exception in Chapter 6 of the Intel® 64 and IA\-32 Architectures Software
+Developer’s Manual, Volume 3A.
+
+.SH IA\-32 ARCHITECTURE COMPATIBILITY
+.PP
+For IA\-32 processors from the Intel 286 on, the PUSH ESP instruction
+pushes the value of the ESP register as it existed before the
+instruction was executed. (This is also true for Intel 64 architecture,
+real\-address and virtual\-8086 modes of IA\-32 architecture.) For the
+Intel® 8086 processor, the PUSH SP instruction pushes the new value of
+the SP register (that is the value after it has been decremented by 2).
+
+.SH OPERATION
+.PP
+.RS
+
+.nf
+(* See Description section for possible sign\-extension or zero\-extension of source operand and for *)
+(* a case in which the size of the memory store may be
+                    smaller than the instruction’s operand size *)
+IF StackAddrSize = 64
+    THEN
+        IF OperandSize = 64
+            THEN
+                RSP ← RSP – 8;
+                Memory[SS:RSP] ← SRC;
+                    (* push quadword *)
+        ELSE IF OperandSize = 32
+            THEN
+                RSP ← RSP – 4;
+                Memory[SS:RSP] ← SRC;
+                    (* push dword *)
+            ELSE (* OperandSize = 16 *)
+                RSP ← RSP – 2;
+                Memory[SS:RSP] ← SRC;
+                    (* push word *)
+        FI;
+ELSE IF StackAddrSize = 32
+    THEN
+        IF OperandSize = 64
+            THEN
+                ESP ← ESP – 8;
+                Memory[SS:ESP] ← SRC;
+                    (* push quadword *)
+        ELSE IF OperandSize = 32
+            THEN
+                ESP ← ESP – 4;
+                Memory[SS:ESP] ← SRC;
+                    (* push dword *)
+            ELSE (* OperandSize = 16 *)
+                ESP ← ESP – 2;
+                Memory[SS:ESP] ← SRC;
+                    (* push word *)
+        FI;
+    ELSE (* StackAddrSize = 16 *)
+        IF OperandSize = 32
+            THEN
+                SP ← SP – 4;
+                Memory[SS:SP] ← SRC;
+                    (* push dword *)
+            ELSE (* OperandSize = 16 *)
+                SP ← SP – 2;
+                Memory[SS:SP] ← SRC;
+                    (* push word *)
+        FI;
+FI;
+
+.fi
+.RE
+
+.SH FLAGS AFFECTED
+.PP
+None.
+
+.SH PROTECTED MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP(0)	T{
+If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit.
+T}
+	T{
+If the DS, ES, FS, or GS register is used to access memory and it contains a NULL segment selector.
+T}
+#SS(0)	T{
+If a memory operand effective address is outside the SS segment limit.
+T}
+#PF(fault\-code)	If a page fault occurs.
+#AC(0)	T{
+If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3.
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH REAL\-ADDRESS MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP	T{
+If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit.
+T}
+#SS	T{
+If a memory operand effective address is outside the SS segment limit.
+T}
+	T{
+If the new value of the SP or ESP register is outside the stack segment limit.
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH VIRTUAL\-8086 MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP(0)	T{
+If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit.
+T}
+#SS(0)	T{
+If a memory operand effective address is outside the SS segment limit.
+T}
+#PF(fault\-code)	If a page fault occurs.
+#AC(0)	T{
+If alignment checking is enabled and an unaligned memory reference is made.
+T}
+#UD	If the LOCK prefix is used.
+.TE
+
+.SH COMPATIBILITY MODE EXCEPTIONS
+.PP
+Same exceptions as in protected mode.
+
+.SH 64\-BIT MODE EXCEPTIONS
+.TS
+allbox;
+l l 
+l l .
+#GP(0)	T{
+If the memory address is in a non\-canonical form.
+T}
+#SS(0)	T{
+If the stack address is in a non\-canonical form.
+T}
+#PF(fault\-code)	If a page fault occurs.
+#AC(0)	T{
+If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3.
+T}
+#UD	If the LOCK prefix is used.
+	T{
+If the PUSH is of CS, SS, DS, or ES.
+T}
+.TE
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+MIT licensed by TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

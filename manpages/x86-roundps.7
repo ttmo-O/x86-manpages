@@ -1,0 +1,206 @@
+.nh
+.TH "X86-ROUNDPS" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+ROUNDPS - ROUND PACKED SINGLE PRECISION FLOATING-POINT VALUES
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode*/Instruction\fR	\fB\fCOp/En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+T{
+66 0F 3A 08 /r ib ROUNDPS xmm1, xmm2/m128, imm8
+T}
+	RMI	V/V	SSE4\_1	T{
+Round packed single precision floating\-point values in imm8.
+T}
+T{
+VEX.128.66.0F3A.WIG 08 /r ib VROUNDPS xmm1, xmm2/m128, imm8
+T}
+	RMI	V/V	AVX	T{
+Round packed single\-precision floating\-point values in imm8.
+T}
+T{
+VEX.256.66.0F3A.WIG 08 /r ib VROUNDPS ymm1, ymm2/m256, imm8
+T}
+	RMI	V/V	AVX	T{
+Round packed single\-precision floating\-point values in imm8.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l 
+l l l l l .
+Op/En	Operand 1	Operand 2	Operand 3	Operand 4
+RMI	ModRM:reg (w)	ModRM:r/m (r)	imm8	NA
+.TE
+
+.SH DESCRIPTION
+.PP
+Round the 4 single\-precision floating\-point values in the source operand
+(second operand) using the rounding mode specified in the immediate
+operand (third operand) and place the results in the destination operand
+(first operand). The rounding process rounds each input floating\-point
+value to an integer value and returns the integer result as a
+single\-precision floating\-point value.
+
+.PP
+The immediate operand specifies control fields for the rounding
+operation, three bit fields are defined and shown in Figure 4\-24. Bit 3
+of the immediate byte controls processor behavior for a precision
+exception, bit 2 selects the source of rounding mode control. Bits 1:0
+specify a non\-sticky rounding\-mode value (Table 4\-17 lists the encoded values for
+rounding\-mode field).
+
+.PP
+The Precision Floating\-Point Exception is signaled according to the
+immediate operand. If any source operand is an SNaN then it will be
+converted to a QNaN. If DAZ is set to ‘1 then denormals will be
+converted to zero before rounding.
+
+.PP
+128\-bit Legacy SSE version: The second source can be an XMM register or
+128\-bit memory location. The destination is not distinct from the first
+source XMM register and the upper bits (MAXVL\-1:128) of the
+corresponding YMM register destination are unmodified.
+
+.PP
+VEX.128 encoded version: the source operand second source operand or a
+128\-bit memory location. The destination operand is an XMM register. The
+upper bits (MAXVL\-1:128) of the corresponding YMM register destination
+are zeroed.
+
+.PP
+VEX.256 encoded version: The source operand is a YMM register or a
+256\-bit memory location. The destination operand is a YMM register.
+
+.PP
+Note: In VEX\-encoded versions, VEX.vvvv is reserved and must be 1111b
+otherwise instructions will #UD.
+
+.SH OPERATION
+.PP
+.RS
+
+.nf
+IF (imm[2] = ‘1)
+    THEN // rounding mode is determined by MXCSR.RC
+        DEST[31:0] ← ConvertSPFPToInteger\_M(SRC[31:0]);
+        DEST[63:32] ← ConvertSPFPToInteger\_M(SRC[63:32]);
+        DEST[95:64] ← ConvertSPFPToInteger\_M(SRC[95:64]);
+        DEST[127:96] ← ConvertSPFPToInteger\_M(SRC[127:96]);
+    ELSE // rounding mode is determined by IMM8.RC
+        DEST[31:0] ← ConvertSPFPToInteger\_Imm(SRC[31:0]);
+        DEST[63:32] ← ConvertSPFPToInteger\_Imm(SRC[63:32]);
+        DEST[95:64] ← ConvertSPFPToInteger\_Imm(SRC[95:64]);
+        DEST[127:96] ← ConvertSPFPToInteger\_Imm(SRC[127:96]);
+FI;
+
+.fi
+.RE
+
+.SS ROUNDPS(128\-bit Legacy SSE version)
+.PP
+.RS
+
+.nf
+DEST[31:0]←RoundToInteger(SRC[31:0], ROUND\_CONTROL)
+DEST[63:32]←RoundToInteger(SRC[63:32], ROUND\_CONTROL)
+DEST[95:64]←RoundToInteger(SRC[95:64]], ROUND\_CONTROL)
+DEST[127:96]←RoundToInteger(SRC[127:96]], ROUND\_CONTROL)
+DEST[MAXVL\-1:128] (Unmodified)
+
+.fi
+.RE
+
+.SS VROUNDPS (VEX.128 encoded version)
+.PP
+.RS
+
+.nf
+DEST[31:0]←RoundToInteger(SRC[31:0], ROUND\_CONTROL)
+DEST[63:32]←RoundToInteger(SRC[63:32], ROUND\_CONTROL)
+DEST[95:64]←RoundToInteger(SRC[95:64]], ROUND\_CONTROL)
+DEST[127:96]←RoundToInteger(SRC[127:96]], ROUND\_CONTROL)
+DEST[MAXVL\-1:128] ← 0
+
+.fi
+.RE
+
+.SS VROUNDPS (VEX.256 encoded version)
+.PP
+.RS
+
+.nf
+DEST[31:0]←RoundToInteger(SRC[31:0], ROUND\_CONTROL)
+DEST[63:32]←RoundToInteger(SRC[63:32], ROUND\_CONTROL)
+DEST[95:64]←RoundToInteger(SRC[95:64]], ROUND\_CONTROL)
+DEST[127:96]←RoundToInteger(SRC[127:96]], ROUND\_CONTROL)
+DEST[159:128]←RoundToInteger(SRC[159:128]], ROUND\_CONTROL)
+DEST[191:160]←RoundToInteger(SRC[191:160]], ROUND\_CONTROL)
+DEST[223:192]←RoundToInteger(SRC[223:192] ], ROUND\_CONTROL)
+DEST[255:224]←RoundToInteger(SRC[255:224] ], ROUND\_CONTROL)
+
+.fi
+.RE
+
+.SH INTEL C/C++ COMPILER INTRINSIC EQUIVALENT
+.PP
+.RS
+
+.nf
+\_\_m128 \_mm\_round\_ps(\_\_m128 s1, int iRoundMode);
+
+\_\_m128 \_mm\_floor\_ps(\_\_m128 s1);
+
+\_\_m128 \_mm\_ceil\_ps(\_\_m128 s1)
+
+\_\_m256 \_mm256\_round\_ps(\_\_m256 s1, int iRoundMode);
+
+\_\_m256 \_mm256\_floor\_ps(\_\_m256 s1);
+
+\_\_m256 \_mm256\_ceil\_ps(\_\_m256 s1)
+
+.fi
+.RE
+
+.SH SIMD FLOATING\-POINT EXCEPTIONS
+.PP
+Invalid (signaled only if SRC = SNaN)
+
+.PP
+Precision (signaled only if imm[3] = ‘0; if imm[3] = ‘1, then the
+Precision Mask in the MXSCSR is ignored and precision exception is not
+signaled.)
+
+.PP
+Note that Denormal is not signaled by ROUNDPS.
+
+.SH OTHER EXCEPTIONS
+.PP
+See Exceptions Type 2; additionally
+
+.TS
+allbox;
+l l 
+l l .
+#UD	If VEX.vvvv ≠ 1111B.
+.TE
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+MIT licensed by TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

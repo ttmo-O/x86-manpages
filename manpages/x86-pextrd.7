@@ -1,0 +1,249 @@
+.nh
+.TH "X86-PEXTRB-PEXTRD-PEXTRQ" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+PEXTRB-PEXTRD-PEXTRQ - EXTRACT BYTE-DWORD-QWORD
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp/ En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+T{
+66 0F 3A 14 /r ib PEXTRB reg/m8, xmm2, imm8
+T}
+	A	V/V	SSE4\_1	T{
+Extract a byte integer value from reg or m8. The upper bits of r32 or r64 are zeroed.
+T}
+T{
+66 0F 3A 16 /r ib PEXTRD r/m32, xmm2, imm8
+T}
+	A	V/V	SSE4\_1	T{
+Extract a dword integer value from r/m32.
+T}
+T{
+66 REX.W 0F 3A 16 /r ib PEXTRQ r/m64, xmm2, imm8
+T}
+	A	V/N.E.	SSE4\_1	T{
+Extract a qword integer value from r/m64.
+T}
+T{
+VEX.128.66.0F3A.W0 14 /r ib VPEXTRB reg/m8, xmm2, imm8
+T}
+	A	V1/V	AVX	T{
+Extract a byte integer value from m8. The upper bits of r64/r32 is filled with zeros.
+T}
+T{
+VEX.128.66.0F3A.W0 16 /r ib VPEXTRD r32/m32, xmm2, imm8
+T}
+	A	V/V	AVX	T{
+Extract a dword integer value from r32/m32.
+T}
+T{
+VEX.128.66.0F3A.W1 16 /r ib VPEXTRQ r64/m64, xmm2, imm8
+T}
+	A	V/I2	AVX	T{
+Extract a qword integer value from r64/m64.
+T}
+T{
+EVEX.128.66.0F3A.WIG 14 /r ib VPEXTRB reg/m8, xmm2, imm8
+T}
+	B	V/V	AVX512BW	T{
+Extract a byte integer value from xmm2 at the source byte offset specified by imm8 into reg or m8. The upper bits of r64/r32 is filled with zeros.
+T}
+T{
+EVEX.128.66.0F3A.W0 16 /r ib VPEXTRD r32/m32, xmm2, imm8
+T}
+	B	V/V	AVX512DQ	T{
+Extract a dword integer value from xmm2 at the source dword offset specified by imm8 into r32/m32.
+T}
+T{
+EVEX.128.66.0F3A.W1 16 /r ib VPEXTRQ r64/m64, xmm2, imm8
+T}
+	B	V/N.E.2	AVX512DQ	T{
+Extract a qword integer value from xmm2 at the source dword offset specified by imm8 into r64/m64.
+T}
+.TE
+
+.PP
+.RS
+
+.PP
+1\&. In 64\-bit mode, VEX.W1 is ignored for VPEXTRB (similar to legacy
+REX.W=1 prefix in PEXTRB).
+
+.PP
+2\&. VEX.W/EVEX.W in non\-64 bit is ignored; the instructions behaves as
+if the W0 version is used.
+
+.RE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+Op/En	Tuple Type	Operand 1	Operand 2	Operand 3	Operand 4
+A	NA	ModRM:r/m (w)	ModRM:reg (r)	imm8	NA
+B	Tuple1 Scalar	ModRM:r/m (w)	ModRM:reg (r)	imm8	NA
+.TE
+
+.SH DESCRIPTION
+.PP
+Extract a byte/dword/qword integer value from the source XMM register at
+a byte/dword/qword offset determined from imm8[3:0]\&. The destination
+can be a register or byte/dword/qword memory location. If the
+destination is a register, the upper bits of the register are zero
+extended.
+
+.PP
+In legacy non\-VEX encoded version and if the destination operand is a
+register, the default operand size in 64\-bit mode for PEXTRB/PEXTRD is
+64 bits, the bits above the least significant byte/dword data are filled
+with zeros. PEXTRQ is not encodable in non\-64\-bit modes and requires
+REX.W in 64\-bit mode.
+
+.PP
+Note: In VEX.128 encoded versions, VEX.vvvv is reserved and must be
+1111b, VEX.L must be 0, otherwise the instruction will #UD. In EVEX.128
+encoded versions, EVEX.vvvv is reserved and must be 1111b, EVEX.L”L must
+be
+
+.PP
+0, otherwise the instruction will #UD. If the destination operand is a
+register, the default operand size in 64\-bit mode for VPEXTRB/VPEXTRD is
+64 bits, the bits above the least significant byte/word/dword data are
+filled with zeros.
+
+.SH OPERATION
+.PP
+.RS
+
+.nf
+CASE of
+    PEXTRB: SEL←COUNT[3:0];
+        TEMP←(Src >> SEL*8) AND FFH;
+        IF (DEST = Mem8)
+            THEN
+            Mem8 ← TEMP[7:0];
+        ELSE IF (64\-Bit Mode and 64\-bit register selected)
+            THEN
+                R64[7:0] ← TEMP[7:0];
+                r64[63:8] ← ZERO\_FILL; };
+        ELSE
+                R32[7:0] ← TEMP[7:0];
+                r32[31:8] ← ZERO\_FILL; };
+        FI;
+    PEXTRD:SEL ← COUNT[1:0];
+        TEMP←(Src >> SEL*32) AND FFFF\_FFFFH;
+        DEST ← TEMP;
+    PEXTRQ: SEL←COUNT[0];
+        TEMP←(Src >> SEL*64);
+        DEST ← TEMP;
+EASC:
+
+.fi
+.RE
+
+.SS VPEXTRTD/VPEXTRQ
+.PP
+.RS
+
+.nf
+IF (64\-Bit Mode and 64\-bit dest operand)
+THEN
+    Src\_Offset ← Imm8[0]
+    r64/m64←(Src >> Src\_Offset * 64)
+ELSE
+    Src\_Offset ← Imm8[1:0]
+    r32/m32←((Src >> Src\_Offset *32) AND 0FFFFFFFFh);
+FI
+
+.fi
+.RE
+
+.SS VPEXTRB ( dest=m8)
+.PP
+.RS
+
+.nf
+SRC\_Offset ← Imm8[3:0]
+Mem8←(Src >> Src\_Offset*8)
+
+.fi
+.RE
+
+.SS VPEXTRB ( dest=reg)
+.PP
+.RS
+
+.nf
+IF (64\-Bit Mode )
+THEN
+    SRC\_Offset ← Imm8[3:0]
+    DEST[7:0]←((Src >> Src\_Offset*8) AND 0FFh)
+    DEST[63:8] ← ZERO\_FILL;
+ELSE
+    SRC\_Offset←. Imm8[3:0];
+    DEST[7:0]←((Src >> Src\_Offset*8) AND 0FFh);
+    DEST[31:8] ← ZERO\_FILL;
+FI
+
+.fi
+.RE
+
+.SH INTEL C/C++ COMPILER INTRINSIC EQUIVALENT
+.PP
+.RS
+
+.nf
+PEXTRB: int \_mm\_extract\_epi8 (\_\_m128i src, const int ndx);
+
+PEXTRD: int \_mm\_extract\_epi32 (\_\_m128i src, const int ndx);
+
+PEXTRQ: \_\_int64 \_mm\_extract\_epi64 (\_\_m128i src, const int ndx);
+
+.fi
+.RE
+
+.SH FLAGS AFFECTED
+.PP
+None.
+
+.SH SIMD FLOATING\-POINT EXCEPTIONS
+.PP
+None.
+
+.SH OTHER EXCEPTIONS
+.PP
+Non\-EVEX\-encoded instruction, see Exceptions Type 5;
+
+.PP
+EVEX\-encoded instruction, see Exceptions Type E9NF.
+
+.TS
+allbox;
+l l 
+l l .
+#UD	If VEX.L = 1 or EVEX.L’L 
+\&gt;
+ 0.
+	T{
+If VEX.vvvv != 1111B or EVEX.vvvv != 1111B.
+T}
+.TE
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+MIT licensed by TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).

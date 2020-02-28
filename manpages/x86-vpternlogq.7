@@ -1,0 +1,439 @@
+.nh
+.TH "X86-VPTERNLOGD-VPTERNLOGQ" "7" "May 2019" "TTMO" "Intel x86-64 ISA Manual"
+.SH NAME
+VPTERNLOGD-VPTERNLOGQ - BITWISE TERNARY LOGIC
+.TS
+allbox;
+l l l l l 
+l l l l l .
+\fB\fCOpcode/Instruction\fR	\fB\fCOp/En\fR	\fB\fC64/32 bit Mode Support\fR	\fB\fCCPUID Feature Flag\fR	\fB\fCDescription\fR
+T{
+EVEX.128.66.0F3A.W0 25 /r ib VPTERNLOGD xmm1 {k1}{z}, xmm2, xmm3/m128/m32bcst, imm8
+T}
+	A	V/V	AVX512VL AVX512F	T{
+Bitwise ternary logic taking xmm1, xmm2 and xmm3/m128/m32bcst as source operands and writing the result to xmm1 under writemask k1 with dword granularity. The immediate value determines the specific binary function being implemented.
+T}
+T{
+EVEX.256.66.0F3A.W0 25 /r ib VPTERNLOGD ymm1 {k1}{z}, ymm2, ymm3/m256/m32bcst, imm8
+T}
+	A	V/V	AVX512VL AVX512F	T{
+Bitwise ternary logic taking ymm1, ymm2 and ymm3/m256/m32bcst as source operands and writing the result to ymm1 under writemask k1 with dword granularity. The immediate value determines the specific binary function being implemented.
+T}
+T{
+EVEX.512.66.0F3A.W0 25 /r ib VPTERNLOGD zmm1 {k1}{z}, zmm2, zmm3/m512/m32bcst, imm8
+T}
+	A	V/V	AVX512F	T{
+Bitwise ternary logic taking zmm1, zmm2 and zmm3/m512/m32bcst as source operands and writing the result to zmm1 under writemask k1 with dword granularity. The immediate value determines the specific binary function being implemented.
+T}
+T{
+EVEX.128.66.0F3A.W1 25 /r ib VPTERNLOGQ xmm1 {k1}{z}, xmm2, xmm3/m128/m64bcst, imm8
+T}
+	A	V/V	AVX512VL AVX512F	T{
+Bitwise ternary logic taking xmm1, xmm2 and xmm3/m128/m64bcst as source operands and writing the result to xmm1 under writemask k1 with qword granularity. The immediate value determines the specific binary function being implemented.
+T}
+T{
+EVEX.256.66.0F3A.W1 25 /r ib VPTERNLOGQ ymm1 {k1}{z}, ymm2, ymm3/m256/m64bcst, imm8
+T}
+	A	V/V	AVX512VL AVX512F	T{
+Bitwise ternary logic taking ymm1, ymm2 and ymm3/m256/m64bcst as source operands and writing the result to ymm1 under writemask k1 with qword granularity. The immediate value determines the specific binary function being implemented.
+T}
+T{
+EVEX.512.66.0F3A.W1 25 /r ib VPTERNLOGQ zmm1 {k1}{z}, zmm2, zmm3/m512/m64bcst, imm8
+T}
+	A	V/V	AVX512F	T{
+Bitwise ternary logic taking zmm1, zmm2 and zmm3/m512/m64bcst as source operands and writing the result to zmm1 under writemask k1 with qword granularity. The immediate value determines the specific binary function being implemented.
+T}
+.TE
+
+.SH INSTRUCTION OPERAND ENCODING
+.TS
+allbox;
+l l l l l l 
+l l l l l l .
+Op/En	Tuple Type	Operand 1	Operand 2	Operand 3	Operand 4
+A	Full	ModRM:reg (r, w)	EVEX.vvvv (r)	ModRM:r/m (r)	Imm8
+.TE
+
+.SS Description
+.PP
+VPTERNLOGD/Q takes three bit vectors of 512\-bit length (in the first,
+second and third operand) as input data to form a set of 512 indices,
+each index is comprised of one bit from each input vector. The imm8 byte
+specifies a boolean logic table producing a binary value for each 3\-bit
+index value. The final 512\-bit boolean result is written to the
+destination operand (the first operand) using the writemask k1 with the
+granularity of doubleword element or quadword element into the
+destination.
+
+.PP
+The destination operand is a ZMM (EVEX.512)/YMM (EVEX.256)/XMM
+(EVEX.128) register. The first source operand is a ZMM/YMM/XMM register.
+The second source operand can be a ZMM/YMM/XMM register, a
+512/256/128\-bit memory location or a 512/256/128\-bit vector broadcasted
+from a 32/64\-bit memory location The destination operand is a ZMM
+register conditionally updated with writemask k1.
+
+.PP
+Table 5\-18 shows two examples of Boolean functions specified by
+immediate values 0xE2 and 0xE4, with the look up result listed in the
+fourth column following the three columns containing all possible values
+of the 3\-bit index.
+
+.PP
+VPTERNLOGD reg1, reg2, src3, 0xE2
+
+.PP
+Bit Result with Imm8=0xE2
+
+.PP
+VPTERNLOGD reg1, reg2, src3, 0xE4
+
+.PP
+Bit Result with Imm8=0xE4
+
+.PP
+Bit(reg1)
+
+.PP
+Bit(reg2)
+
+.PP
+Bit(src3)
+
+.PP
+Bit(reg1)
+
+.PP
+Bit(reg2)
+
+.PP
+Bit(src3)
+
+.PP
+0
+
+.PP
+0
+
+.PP
+0
+
+.PP
+0
+
+.PP
+0
+
+.PP
+0
+
+.PP
+0
+
+.PP
+0
+
+.PP
+0
+
+.PP
+0
+
+.PP
+1
+
+.PP
+1
+
+.PP
+0
+
+.PP
+0
+
+.PP
+1
+
+.PP
+0
+
+.PP
+0
+
+.PP
+1
+
+.PP
+0
+
+.PP
+0
+
+.PP
+0
+
+.PP
+1
+
+.PP
+0
+
+.PP
+1
+
+.PP
+0
+
+.PP
+1
+
+.PP
+1
+
+.PP
+0
+
+.PP
+0
+
+.PP
+1
+
+.PP
+1
+
+.PP
+0
+
+.PP
+1
+
+.PP
+0
+
+.PP
+0
+
+.PP
+0
+
+.PP
+1
+
+.PP
+0
+
+.PP
+0
+
+.PP
+0
+
+.PP
+1
+
+.PP
+0
+
+.PP
+1
+
+.PP
+1
+
+.PP
+1
+
+.PP
+0
+
+.PP
+1
+
+.PP
+1
+
+.PP
+1
+
+.PP
+1
+
+.PP
+0
+
+.PP
+1
+
+.PP
+1
+
+.PP
+1
+
+.PP
+0
+
+.PP
+1
+
+.PP
+1
+
+.PP
+1
+
+.PP
+1
+
+.PP
+1
+
+.PP
+1
+
+.PP
+1
+
+.PP
+1
+
+.PP
+1
+
+.PP
+Table 5\-18. Examples of VPTERNLOGD/Q Imm8 Boolean Function and Input
+Index Values
+
+.PP
+Specifying different values in imm8 will allow any arbitrary three\-input
+Boolean functions to be implemented in software using VPTERNLOGD/Q.
+Table 5\-10 and Table 5\-11 provide a mapping of all 256
+possible imm8 values to various Boolean expressions.
+
+.SS Operation
+.SS VPTERNLOGD (EVEX encoded versions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (4, 128), (8, 256), (16, 512)
+FOR j←0 TO KL\-1
+    i←j * 32
+    IF k1[j] OR *no writemask*
+        THEN
+            FOR k←0 TO 31
+                IF (EVEX.b = 1) AND (SRC2 *is memory*)
+                    THEN DEST[j][k] ← imm[(DEST[i+k] << 2) + (SRC1[ i+k ] << 1) + SRC2[ k ]]
+                    ELSE DEST[j][k] ← imm[(DEST[i+k] << 2) + (SRC1[ i+k ] << 1) + SRC2[ i+k ]]
+                FI;
+                        ; table lookup of immediate bellow;
+    ELSE
+        IF *merging\-masking* ; merging\-masking
+            THEN *DEST[31+i:i] remains unchanged*
+            ELSE ; zeroing\-masking
+                DEST[31+i:i] ← 0
+        FI;
+    FI;
+ENDFOR;
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS VPTERNLOGQ (EVEX encoded versions)
+.PP
+.RS
+
+.nf
+(KL, VL) = (2, 128), (4, 256), (8, 512)
+FOR j←0 TO KL\-1
+    i←j * 64
+    IF k1[j] OR *no writemask*
+        THEN
+            FOR k←0 TO 63
+                IF (EVEX.b = 1) AND (SRC2 *is memory*)
+                    THEN DEST[j][k] ← imm[(DEST[i+k] << 2) + (SRC1[ i+k ] << 1) + SRC2[ k ]]
+                    ELSE DEST[j][k] ← imm[(DEST[i+k] << 2) + (SRC1[ i+k ] << 1) + SRC2[ i+k ]]
+                FI; ; table lookup of immediate bellow;
+        ELSE
+            IF *merging\-masking* ; merging\-masking
+                THEN *DEST[63+i:i] remains unchanged*
+                ELSE ; zeroing\-masking
+                    DEST[63+i:i] ← 0
+            FI;
+    FI;
+ENDFOR;
+DEST[MAXVL\-1:VL] ← 0
+
+.fi
+.RE
+
+.SS Intel C/C++ Compiler Intrinsic Equivalents
+.PP
+.RS
+
+.nf
+VPTERNLOGD \_\_m512i \_mm512\_ternarylogic\_epi32(\_\_m512i a, \_\_m512i b, int imm);
+
+VPTERNLOGD \_\_m512i \_mm512\_mask\_ternarylogic\_epi32(\_\_m512i s, \_\_mmask16 m, \_\_m512i a, \_\_m512i b, int imm);
+
+VPTERNLOGD \_\_m512i \_mm512\_maskz\_ternarylogic\_epi32(\_\_mmask m, \_\_m512i a, \_\_m512i b, int imm);
+
+VPTERNLOGD \_\_m256i \_mm256\_ternarylogic\_epi32(\_\_m256i a, \_\_m256i b, int imm);
+
+VPTERNLOGD \_\_m256i \_mm256\_mask\_ternarylogic\_epi32(\_\_m256i s, \_\_mmask8 m, \_\_m256i a, \_\_m256i b, int imm);
+
+VPTERNLOGD \_\_m256i \_mm256\_maskz\_ternarylogic\_epi32( \_\_mmask8 m, \_\_m256i a, \_\_m256i b, int imm);
+
+VPTERNLOGD \_\_m128i \_mm\_ternarylogic\_epi32(\_\_m128i a, \_\_m128i b, int imm);
+
+VPTERNLOGD \_\_m128i \_mm\_mask\_ternarylogic\_epi32(\_\_m128i s, \_\_mmask8 m, \_\_m128i a, \_\_m128i b, int imm);
+
+VPTERNLOGD \_\_m128i \_mm\_maskz\_ternarylogic\_epi32( \_\_mmask8 m, \_\_m128i a, \_\_m128i b, int imm);
+
+VPTERNLOGQ \_\_m512i \_mm512\_ternarylogic\_epi64(\_\_m512i a, \_\_m512i b, int imm);
+
+VPTERNLOGQ \_\_m512i \_mm512\_mask\_ternarylogic\_epi64(\_\_m512i s, \_\_mmask8 m, \_\_m512i a, \_\_m512i b, int imm);
+
+VPTERNLOGQ \_\_m512i \_mm512\_maskz\_ternarylogic\_epi64( \_\_mmask8 m, \_\_m512i a, \_\_m512i b, int imm);
+
+VPTERNLOGQ \_\_m256i \_mm256\_ternarylogic\_epi64(\_\_m256i a, \_\_m256i b, int imm);
+
+VPTERNLOGQ \_\_m256i \_mm256\_mask\_ternarylogic\_epi64(\_\_m256i s, \_\_mmask8 m, \_\_m256i a, \_\_m256i b, int imm);
+
+VPTERNLOGQ \_\_m256i \_mm256\_maskz\_ternarylogic\_epi64( \_\_mmask8 m, \_\_m256i a, \_\_m256i b, int imm);
+
+VPTERNLOGQ \_\_m128i \_mm\_ternarylogic\_epi64(\_\_m128i a, \_\_m128i b, int imm);
+
+VPTERNLOGQ \_\_m128i \_mm\_mask\_ternarylogic\_epi64(\_\_m128i s, \_\_mmask8 m, \_\_m128i a, \_\_m128i b, int imm);
+
+VPTERNLOGQ \_\_m128i \_mm\_maskz\_ternarylogic\_epi64( \_\_mmask8 m, \_\_m128i a, \_\_m128i b, int imm);
+
+.fi
+.RE
+
+.SS SIMD Floating\-Point Exceptions
+.PP
+None
+
+.SS Other Exceptions
+.PP
+See Exceptions Type E4.
+
+.SH SEE ALSO
+.PP
+x86\-manpages(7) for a list of other x86\-64 man pages.
+
+.SH COLOPHON
+.PP
+This UNOFFICIAL, mechanically\-separated, non\-verified reference is
+provided for convenience, but it may be incomplete or broken in
+various obvious or non\-obvious ways. Refer to Intel® 64 and IA\-32
+Architectures Software Developer’s Manual for anything serious.
+
+.br
+This page is generated by scripts; therefore may contain visual or semantical bugs. Please report them (or better, fix them) on https://github.com/ttmo-O/x86-manpages.
+
+.br
+MIT licensed by TTMO 2020 (Turkish Unofficial Chamber of Reverse Engineers - https://ttmo.re).
