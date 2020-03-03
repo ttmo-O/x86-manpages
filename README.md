@@ -22,9 +22,9 @@ See `x86-manpages(7)` for a list of instructions.
 ```
 $ git clone https://github.com/ttmo-O/x86-manpages && cd x86-manpages
 # mkdir /usr/local/man/man7
-# cp manpages/* /usr/local/man/man7/
+# cp man7/* /usr/local/man/man7/
 ```
-or add "manpages" directory to your `MANPATH` environment variable.
+or add "x86-manpages" root directory to your `MANPATH` environment variable.
 
 ### Using AUR
 
