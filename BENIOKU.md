@@ -20,9 +20,9 @@ man x86-call
 ```
 $ git clone https://github.com/ttmo-O/x86-manpages && cd x86-manpages
 # mkdir /usr/local/man/man7
-# cp manpages/* /usr/local/man/man7/
+# cp man7/* /usr/local/man/man7/
 ```
-veya "manpages" dizinini `MANPATH` çevresel değişkeninize ekleyin.
+veya "man7" dizinini `MANPATH` çevresel değişkeninize ekleyin.
 
 ### AUR ile
 
